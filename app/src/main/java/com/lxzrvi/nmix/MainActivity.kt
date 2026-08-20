@@ -94,6 +94,24 @@ fun NmixApp() {
 @Composable
 private fun LandingScreen(onStart: () -> Unit) {
     val context = LocalContext.current
+
+    val appearancePrefs = remember {
+        context.getSharedPreferences(
+            "nmix_appearance",
+            android.content.Context.MODE_PRIVATE
+        )
+    }
+
+    val landingTheme =
+        appearancePrefs.getString("theme", "green") ?: "green"
+
+    val landingAccent = when(landingTheme) {
+        "blue" -> Color(0xFF348BB8)
+        "purple" -> Color(0xFF8A62C8)
+        "orange" -> Color(0xFFD57D35)
+        "rose" -> Color(0xFFC85878)
+        else -> Color(0xFF319B79)
+    }
     val motion = rememberInfiniteTransition(label = "movingBackground")
 
     val moveOne by motion.animateFloat(
@@ -144,7 +162,7 @@ private fun LandingScreen(onStart: () -> Unit) {
                     listOf(
                         Color(0xFF010A07),
                         Color(0xFF07392B),
-                        Color(0xFF0D6249),
+                        landingAccent.copy(alpha = .88f),
                         Color(0xFF07382B),
                         Color(0xFF020C09)
                     )

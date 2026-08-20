@@ -541,7 +541,7 @@ fun NativeMainPageV2(
         openSection == "calculator"
 
     val expandedTopHeight =
-        if(calculatorOpen) 430.dp else 350.dp
+        if(calculatorOpen) 455.dp else 375.dp
 
     val topHeight by animateDpAsState(
         targetValue =
@@ -559,7 +559,7 @@ fun NativeMainPageV2(
         targetValue =
             if(topOpen)
                 expandedTopHeight + 18.dp
-            else 88.dp,
+            else 112.dp,
         animationSpec = spring(
             dampingRatio = .88f,
             stiffness = 260f
@@ -906,7 +906,7 @@ fun NativeMainPageV2(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp),
+                            .height(63.dp),
                         contentAlignment =
                             Alignment.Center
                     ) {
@@ -919,14 +919,14 @@ fun NativeMainPageV2(
                                 color =
                                     Color.White
                                         .copy(alpha = .70f),
-                                fontSize = 6.5.sp,
-                                letterSpacing = 1.7.sp
+                                fontSize = 7.5.sp,
+                                letterSpacing = 1.9.sp
                             )
 
                             Text(
                                 "NMIX",
                                 color = Color.White,
-                                fontSize = 25.sp,
+                                fontSize = 29.sp,
                                 fontWeight =
                                     FontWeight.Bold,
                                 letterSpacing = 4.sp
@@ -1533,12 +1533,6 @@ private fun V2ToolSection(
             .padding(horizontal = 12.dp)
             .clip(RoundedCornerShape(15.dp))
             .background(surface)
-            .animateContentSize(
-                animationSpec = tween(
-                    420,
-                    easing = EaseInOutCubic
-                )
-            )
     ) {
         Row(
             Modifier
@@ -1561,6 +1555,7 @@ private fun V2ToolSection(
                     .background(accent),
                 contentAlignment = Alignment.Center
             ) {
+                // Inner outline rotates in opposite direction.
                 Box(
                     Modifier
                         .size(31.dp)
@@ -1572,21 +1567,25 @@ private fun V2ToolSection(
                                 RoundedCornerShape(6.dp)
                         )
                         .background(
-                            Color.White.copy(
-                                alpha = .11f
-                            )
+                            Color.White.copy(alpha = .11f)
                         ),
-                    contentAlignment =
-                        Alignment.Center
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        icon,
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight =
-                            FontWeight.Bold
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(1.dp)
                     )
                 }
+
+                // Counter outer rotation: actual icon stays upright.
+                Text(
+                    icon,
+                    modifier = Modifier.rotate(-outer),
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             Spacer(
@@ -1626,7 +1625,10 @@ private fun V2ToolSection(
                 fadeIn(tween(280)) +
                 expandVertically(
                     animationSpec =
-                        tween(420),
+                        tween(
+                            330,
+                            easing = EaseOutCubic
+                        ),
                     expandFrom =
                         Alignment.Top
                 ),
@@ -1634,7 +1636,10 @@ private fun V2ToolSection(
                 fadeOut(tween(180)) +
                 shrinkVertically(
                     animationSpec =
-                        tween(340),
+                        tween(
+                            280,
+                            easing = EaseInCubic
+                        ),
                     shrinkTowards =
                         Alignment.Top
                 )
@@ -2104,7 +2109,13 @@ private fun V2Settings(
         Row(
             Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onDark)
+                .clickable(
+                    interactionSource = remember {
+                        MutableInteractionSource()
+                    },
+                    indication = null,
+                    onClick = onDark
+                )
                 .padding(vertical = 6.dp),
             verticalAlignment =
                 Alignment.CenterVertically
