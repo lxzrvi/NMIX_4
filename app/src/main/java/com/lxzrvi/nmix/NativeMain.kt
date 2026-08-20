@@ -16,6 +16,11 @@ import java.util.Locale
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.draw.rotate
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -219,8 +224,8 @@ fun NativeMainPage(
     val topHeight by animateDpAsState(
         targetValue = when {
             !topOpen -> 0.dp
-            calculatorOpen -> 395.dp
-            else -> 325.dp
+            calculatorOpen -> 440.dp
+            else -> 365.dp
         },
         animationSpec = spring(
             dampingRatio = .85f,
@@ -232,8 +237,8 @@ fun NativeMainPage(
     val contentTop by animateDpAsState(
         targetValue = when {
             !topOpen -> 72.dp
-            calculatorOpen -> 415.dp
-            else -> 345.dp
+            calculatorOpen -> 460.dp
+            else -> 385.dp
         },
         animationSpec = spring(
             dampingRatio = .85f,
@@ -466,7 +471,7 @@ fun NativeMainPage(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 top = contentTop,
-                bottom = 66.dp
+                bottom = 108.dp
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -724,11 +729,12 @@ fun NativeMainPage(
                             )
                         )
                     )
+                    .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(
                         start = 12.dp,
                         end = 12.dp,
-                        top = 27.dp,
-                        bottom = 11.dp
+                        top = 54.dp,
+                        bottom = 12.dp
                     )
             ) {
                 Column(
@@ -837,7 +843,8 @@ fun NativeMainPage(
             SettingsPanel(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 82.dp, end = 13.dp),
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .padding(top = 67.dp),
                 darkMode = darkMode,
                 themeName = themeName,
                 onDarkChange = {
@@ -923,14 +930,38 @@ fun NativeMainPage(
             }
         }
 
+        AnimatedVisibility(
+            visible = !settingsOpen && !fullscreenClock,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(
+                    start = 22.dp,
+                    end = 22.dp,
+                    bottom = 34.dp
+                ),
+            enter = fadeIn(tween(220)) +
+                scaleIn(initialScale = .97f),
+            exit = fadeOut(tween(180)) +
+                scaleOut(targetScale = .97f)
+        ) {
+            NativePillButton(
+                text = "Back to the Start",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
+                background = themeAccent.copy(alpha = .90f),
+                textColor = Color.White,
+                onClick = onBack
+            )
+        }
+
         // Fixed branding footer — independent from scrolling tools.
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 8.dp)
-                .clip(RoundedCornerShape(50))
-                .background(Color(0xFFE0E2E1).copy(alpha = .92f))
-                .padding(horizontal = 10.dp, vertical = 4.dp),
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(bottom = 5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -952,16 +983,17 @@ fun NativeMainPage(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(
                     start = 14.dp,
                     end = 14.dp,
-                    top = 36.dp
+                    top = 10.dp
                 ),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             NativePressButton(
                 text = if (topOpen) "↑" else "↓",
-                modifier = Modifier.size(50.dp),
+                modifier = Modifier.size(48.dp),
                 background = themeAccent.copy(alpha = .94f),
                 textColor = Color.White,
                 onClick = {
@@ -970,12 +1002,12 @@ fun NativeMainPage(
             )
 
             NativePressButton(
-                text = "☰",
-                modifier = Modifier.size(50.dp),
+                text = if (settingsOpen) "×" else "☰",
+                modifier = Modifier.size(48.dp),
                 background = themeAccent.copy(alpha = .94f),
                 textColor = Color.White,
                 onClick = {
-                    settingsOpen = true
+                    settingsOpen = !settingsOpen
                 }
             )
         }
@@ -1119,11 +1151,37 @@ private fun NativeToolSection(
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+    val appearance = remember {
+        context.getSharedPreferences(
+            "nmix_appearance",
+            android.content.Context.MODE_PRIVATE
+        )
+    }
+    val sectionDark = appearance.getBoolean("dark", false)
+    val sectionTheme = appearance.getString("theme", "green") ?: "green"
+
+    val sectionAccent = when(sectionTheme) {
+        "blue" -> Color(0xFF348BB8)
+        "purple" -> Color(0xFF8A62C8)
+        "orange" -> Color(0xFFD57D35)
+        "rose" -> Color(0xFFC85878)
+        else -> Color(0xFF319B79)
+    }
+
+    val sectionSurface =
+        if(sectionDark) Color.White.copy(alpha = .075f)
+        else Color.White.copy(alpha = .60f)
+
+    val sectionText =
+        if(sectionDark) Color(0xFFEDF4F1)
+        else Color(0xFF202321)
+
     Column(
         modifier = Modifier
             .padding(horizontal = 12.dp)
             .clip(RoundedCornerShape(15.dp))
-            .background(Color(0xFFF0F1F0))
+            .background(sectionSurface)
     ) {
         Row(
             modifier = Modifier
@@ -1132,14 +1190,21 @@ private fun NativeToolSection(
                 .padding(13.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val iconRotation by animateFloatAsState(
+                targetValue = if (open) 180f else 0f,
+                animationSpec = tween(520, easing = EaseInOutCubic),
+                label = "iconSpin"
+            )
+
             Box(
                 Modifier
                     .size(42.dp)
+                    .rotate(iconRotation)
                     .clip(
                         if (open) CircleShape
                         else RoundedCornerShape(9.dp)
                     )
-                    .background(Accent),
+                    .background(sectionAccent),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -1155,7 +1220,7 @@ private fun NativeToolSection(
             Column(Modifier.weight(1f)) {
                 Text(
                     title,
-                    color = Color(0xFF202321),
+                    color = sectionText,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -1212,7 +1277,12 @@ private fun SettingsPanel(
     Box(
         modifier
             .width(330.dp)
-            .clip(RoundedCornerShape(21.dp))
+            .clip(
+                RoundedCornerShape(
+                    topStart = 22.dp,
+                    bottomStart = 22.dp
+                )
+            )
             .background(
                 if (darkMode) Color(0xFF171C1A)
                 else Color(0xFFF4F4F4)
@@ -1240,15 +1310,7 @@ private fun SettingsPanel(
                     )
                 }
 
-                NativePressButton(
-                    text = "×",
-                    modifier = Modifier.size(35.dp),
-                    background = Color(0xFF89928E)
-                        .copy(alpha = .18f),
-                    textColor = if (darkMode)
-                        Color.White else Color(0xFF202321),
-                    onClick = onClose
-                )
+
             }
 
             Spacer(Modifier.height(18.dp))
