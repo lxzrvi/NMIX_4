@@ -114,60 +114,68 @@ private fun LandingScreen(onStart: () -> Unit) {
                 )
             )
     ) {
-        /*
-         * Oversized blurred circles.
-         * Their edges stay outside/soft, so movement looks like
-         * a changing gradient instead of moving rectangles.
-         */
+        // Soft moving gradient lights — no visible square layer edges.
         Box(
             Modifier
-                .size(560.dp)
-                .offset(x = (-220).dp, y = (-210).dp)
+                .fillMaxSize()
                 .graphicsLayer {
-                    translationX = moveOne
-                    translationY = moveVertical * .55f
-                    scaleX = pulse
-                    scaleY = pulse
+                    translationX = moveOne * .42f
+                    translationY = moveVertical * .28f
+                    scaleX = 1.65f
+                    scaleY = 1.65f
                 }
-                .blur(130.dp)
                 .background(
-                    Color(0xFF65E4B8).copy(alpha = .50f),
-                    CircleShape
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFF72E8C0).copy(alpha = .48f),
+                            Color(0xFF35B98D).copy(alpha = .24f),
+                            Color.Transparent
+                        ),
+                        radius = 900f
+                    )
                 )
         )
 
         Box(
             Modifier
-                .align(Alignment.BottomEnd)
-                .size(610.dp)
-                .offset(x = 240.dp, y = 230.dp)
+                .fillMaxSize()
                 .graphicsLayer {
-                    translationX = moveTwo
-                    translationY = -moveVertical * .48f
-                    scaleX = 1.12f
-                    scaleY = 1.12f
+                    translationX = moveTwo * .40f
+                    translationY = -moveVertical * .25f
+                    scaleX = 1.75f
+                    scaleY = 1.75f
+                    rotationZ = moveOne * .018f
                 }
-                .blur(150.dp)
                 .background(
-                    Color(0xFF0EAD7B).copy(alpha = .52f),
-                    CircleShape
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFF13B982).copy(alpha = .38f),
+                            Color(0xFF087253).copy(alpha = .20f),
+                            Color.Transparent
+                        ),
+                        radius = 1050f
+                    )
                 )
         )
 
         Box(
             Modifier
-                .align(Alignment.Center)
-                .size(490.dp)
+                .fillMaxSize()
                 .graphicsLayer {
-                    translationX = -moveOne * .65f
-                    translationY = moveTwo * .42f
-                    scaleX = pulse
-                    scaleY = pulse
+                    translationX = -moveOne * .30f
+                    translationY = moveTwo * .20f
+                    scaleX = 1.8f
+                    scaleY = 1.8f
                 }
-                .blur(155.dp)
                 .background(
-                    Color(0xFF9AF0D2).copy(alpha = .23f),
-                    CircleShape
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0xFF9EF2D5).copy(alpha = .12f),
+                            Color(0xFF20A77C).copy(alpha = .18f),
+                            Color.Transparent
+                        )
+                    )
                 )
         )
 
@@ -230,22 +238,22 @@ private fun LandingScreen(onStart: () -> Unit) {
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 20.dp),
+                .padding(bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "NMIX",
                 color = Color.White.copy(alpha = .92f),
-                fontSize = 13.sp,
-                letterSpacing = 1.sp,
+                fontSize = 12.sp,
+                letterSpacing = .7.sp,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
                 text = "  •  lxzrvi  •  © 2026",
-                color = Color.White.copy(alpha = .62f),
-                fontSize = 11.sp,
-                letterSpacing = .1.sp
+                color = Color.White.copy(alpha = .65f),
+                fontSize = 12.sp,
+                letterSpacing = 0.sp
             )
         }
     }
