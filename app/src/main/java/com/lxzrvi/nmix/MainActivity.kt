@@ -15,8 +15,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,163 +57,181 @@ fun NmixApp() {
 @Composable
 private fun LandingScreen(onStart: () -> Unit) {
     val context = LocalContext.current
-    val infinite = rememberInfiniteTransition(label = "background")
+    val infinite = rememberInfiniteTransition(label = "bg")
 
-    val moveA by infinite.animateFloat(
-        initialValue = -130f,
-        targetValue = 180f,
-        animationSpec = infiniteRepeatable(
-            tween(6500, easing = EaseInOutSine),
-            RepeatMode.Reverse
-        ),
-        label = "a"
+    val x1 by infinite.animateFloat(
+        -170f, 190f,
+        infiniteRepeatable(tween(8000, easing = EaseInOutSine), RepeatMode.Reverse),
+        label = "x1"
     )
 
-    val moveB by infinite.animateFloat(
-        initialValue = 160f,
-        targetValue = -150f,
-        animationSpec = infiniteRepeatable(
-            tween(8500, easing = EaseInOutSine),
-            RepeatMode.Reverse
-        ),
-        label = "b"
+    val y1 by infinite.animateFloat(
+        -80f, 210f,
+        infiniteRepeatable(tween(10500, easing = EaseInOutSine), RepeatMode.Reverse),
+        label = "y1"
     )
 
-    val breathe by infinite.animateFloat(
-        initialValue = .85f,
-        targetValue = 1.2f,
-        animationSpec = infiniteRepeatable(
-            tween(5000, easing = EaseInOutSine),
-            RepeatMode.Reverse
-        ),
-        label = "breathe"
+    val x2 by infinite.animateFloat(
+        170f, -180f,
+        infiniteRepeatable(tween(12000, easing = EaseInOutSine), RepeatMode.Reverse),
+        label = "x2"
+    )
+
+    val pulse by infinite.animateFloat(
+        .88f, 1.18f,
+        infiniteRepeatable(tween(6000, easing = EaseInOutSine), RepeatMode.Reverse),
+        label = "pulse"
     )
 
     Box(
         Modifier
             .fillMaxSize()
             .background(
-                Brush.linearGradient(
+                Brush.verticalGradient(
                     listOf(
-                        Color(0xFF020D0A),
-                        Color(0xFF073326),
-                        Color(0xFF16785B),
-                        Color(0xFF0B4D39),
-                        Color(0xFF021510)
+                        Color(0xFF020A08),
+                        Color(0xFF063126),
+                        Color(0xFF0E5B45),
+                        Color(0xFF07362A),
+                        Color(0xFF020B08)
                     )
                 )
             )
     ) {
-        // Large soft animated light masses
+        // Huge circles are intentionally larger than screen areas:
+        // no square/rectangular blob edges.
         Box(
             Modifier
-                .offset(x = (-100).dp, y = 40.dp)
-                .size(380.dp)
+                .offset((-180).dp, (-150).dp)
+                .size(520.dp)
                 .graphicsLayer {
-                    translationX = moveA
-                    translationY = moveB * .32f
-                    scaleX = breathe
-                    scaleY = breathe
+                    translationX = x1
+                    translationY = y1
+                    scaleX = pulse
+                    scaleY = pulse
                 }
-                .blur(80.dp)
+                .blur(125.dp)
                 .background(
-                    Color(0xFF55D5A9).copy(alpha = .7f),
-                    RoundedCornerShape(50)
+                    Color(0xFF56E0B0).copy(alpha = .52f),
+                    CircleShape
                 )
         )
 
         Box(
             Modifier
                 .align(Alignment.BottomEnd)
-                .offset(x = 130.dp, y = 80.dp)
-                .size(430.dp)
+                .offset(190.dp, 180.dp)
+                .size(570.dp)
                 .graphicsLayer {
-                    translationX = moveB
-                    translationY = moveA * .35f
-                    scaleX = 1.25f - (breathe - .85f)
-                    scaleY = 1.25f - (breathe - .85f)
+                    translationX = x2
+                    translationY = -y1 * .45f
+                    scaleX = 1.12f
+                    scaleY = 1.12f
                 }
-                .blur(95.dp)
+                .blur(145.dp)
                 .background(
-                    Color(0xFF15936C).copy(alpha = .7f),
-                    RoundedCornerShape(50)
+                    Color(0xFF0EA676).copy(alpha = .55f),
+                    CircleShape
                 )
         )
 
         Box(
             Modifier
                 .align(Alignment.Center)
-                .size(300.dp)
+                .size(440.dp)
                 .graphicsLayer {
-                    translationX = moveA * -.55f
-                    translationY = moveB * -.35f
+                    translationX = -x1 * .55f
+                    translationY = x2 * .35f
                 }
-                .blur(110.dp)
+                .blur(155.dp)
                 .background(
-                    Color(0xFF9AF2D4).copy(alpha = .3f),
-                    RoundedCornerShape(50)
+                    Color(0xFF80EBC7).copy(alpha = .24f),
+                    CircleShape
                 )
         )
 
+        // Main branding + actions stay centered independently.
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp)
-                .padding(top = 55.dp, bottom = 38.dp),
+                .align(Alignment.Center)
+                .padding(horizontal = 22.dp)
+                .offset(y = (-38).dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.weight(.55f))
-
             Text(
                 "EVERYTHING WITH NUMBERS",
-                color = Color.White.copy(alpha = .75f),
+                color = Color.White.copy(alpha = .72f),
                 fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 2.5.sp
+                letterSpacing = 2.35.sp,
+                fontWeight = FontWeight.SemiBold
             )
+
+            Spacer(Modifier.height(3.dp))
 
             Text(
                 "NMIX",
                 color = Color.White,
-                fontSize = 54.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 6.sp
+                fontSize = 55.sp,
+                letterSpacing = 6.sp,
+                fontWeight = FontWeight.Bold
             )
 
-            Spacer(Modifier.height(27.dp))
+            Spacer(Modifier.height(30.dp))
 
-            LandingButton("Start", onStart)
+            GlassAction("Start", onStart)
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(11.dp))
 
-            LandingButton("Share") {
-                val intent = Intent(Intent.ACTION_SEND).apply {
+            GlassAction("Share") {
+                val share = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(
                         Intent.EXTRA_TEXT,
                         "NMIX — EVERYTHING WITH NUMBERS\nhttps://lxzrvi.github.io/NMIX/"
                     )
                 }
-                context.startActivity(Intent.createChooser(intent, "Share NMIX"))
+                context.startActivity(Intent.createChooser(share, "Share NMIX"))
             }
+        }
 
-            Spacer(Modifier.height(20.dp))
-
+        // Bottom information area.
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             AppInfoCard()
 
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(13.dp))
 
-            Text(
-                "© 2026 NMIX  •  All Rights Reserved",
-                color = Color.White.copy(alpha = .45f),
-                fontSize = 8.sp
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    "NMIX",
+                    color = Color.White.copy(alpha = .72f),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp
+                )
+
+                Text(
+                    "   •   lxzrvi   •   © 2026",
+                    color = Color.White.copy(alpha = .42f),
+                    fontSize = 8.sp,
+                    letterSpacing = .4.sp
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun LandingButton(
+private fun GlassAction(
     text: String,
     onClick: () -> Unit
 ) {
@@ -220,21 +239,18 @@ private fun LandingButton(
     val pressed by interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (pressed) .955f else 1f,
-        animationSpec = spring(
-            dampingRatio = .65f,
-            stiffness = 550f
-        ),
-        label = "press"
+        if (pressed) .955f else 1f,
+        spring(dampingRatio = .62f, stiffness = 650f),
+        label = "actionPress"
     )
 
     Box(
-        modifier = Modifier
-            .width(275.dp)
-            .height(51.dp)
+        Modifier
+            .width(278.dp)
+            .height(52.dp)
             .scale(scale)
             .clip(RoundedCornerShape(50))
-            .background(Color.White.copy(alpha = .90f))
+            .background(Color.White.copy(alpha = .82f))
             .clickable(
                 interactionSource = interaction,
                 indication = null,
@@ -244,9 +260,9 @@ private fun LandingButton(
     ) {
         Text(
             text,
-            color = Color(0xFF174C3B),
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp
+            color = Color(0xFF143E31),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold
         )
     }
 }
@@ -257,50 +273,55 @@ private fun AppInfoCard() {
 
     val messages = remember {
         listOf(
-            "A simple space for working with numbers.",
-            "Calculate, count and track time from one app.",
-            "Built to keep everyday number tools together.",
-            "Fast, lightweight and designed to work offline.",
-            "Numbers, time and useful tools — all in NMIX."
+            "One place for the numbers you use every day.",
+            "Calculate, count and track time without leaving NMIX.",
+            "Fast number tools designed for a clean native experience.",
+            "Made to stay useful even when you're completely offline.",
+            "Numbers and time, brought together in one simple app."
         )
     }
 
-    var messageIndex by remember { mutableIntStateOf(0) }
+    var index by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         while (true) {
-            delay(3300)
-            messageIndex = (messageIndex + 1) % messages.size
+            delay(3500)
+            index = (index + 1) % messages.size
         }
     }
 
-    GlassBox(
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(22.dp))
+            .background(Color.White.copy(alpha = .20f))
+            .padding(14.dp)
     ) {
-        Column(Modifier.padding(15.dp)) {
+        Column {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        "App Info",
-                        color = Color.White.copy(alpha = .68f),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium
+                        "APP INFO",
+                        color = Color.White.copy(alpha = .6f),
+                        fontSize = 8.sp,
+                        letterSpacing = 1.3.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
 
                     Text(
                         "NMIX",
                         color = Color.White,
-                        fontSize = 20.sp,
+                        fontSize = 19.sp,
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
+                        letterSpacing = 1.2.sp
                     )
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    MiniButton("Web") {
+                    MiniGlassButton("Web") {
                         context.startActivity(
                             Intent(
                                 Intent.ACTION_VIEW,
@@ -309,7 +330,7 @@ private fun AppInfoCard() {
                         )
                     }
 
-                    MiniButton("GitHub") {
+                    MiniGlassButton("GitHub") {
                         context.startActivity(
                             Intent(
                                 Intent.ACTION_VIEW,
@@ -322,62 +343,71 @@ private fun AppInfoCard() {
 
             Spacer(Modifier.height(11.dp))
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(70.dp)
-                    .clip(RoundedCornerShape(13.dp))
-                    .background(Color.White.copy(alpha = .075f)),
-                contentAlignment = Alignment.CenterStart
+            // Exactly two horizontal boxes.
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(9.dp)
             ) {
-                AnimatedContent(
-                    targetState = messageIndex,
-                    transitionSpec = {
-                        fadeIn(tween(500)) togetherWith
-                            fadeOut(tween(400))
-                    },
-                    label = "info"
-                ) { index ->
-                    Text(
-                        messages[index],
-                        modifier = Modifier.padding(horizontal = 13.dp),
-                        color = Color.White.copy(alpha = .82f),
-                        fontSize = 11.sp,
-                        lineHeight = 17.sp
-                    )
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(88.dp)
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(Color.White.copy(alpha = .15f))
+                        .padding(11.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    AnimatedContent(
+                        targetState = index,
+                        transitionSpec = {
+                            fadeIn(tween(550)) togetherWith fadeOut(tween(400))
+                        },
+                        label = "details"
+                    ) { i ->
+                        Text(
+                            messages[i],
+                            color = Color.White.copy(alpha = .9f),
+                            fontSize = 10.sp,
+                            lineHeight = 15.sp
+                        )
+                    }
                 }
-            }
 
-            Spacer(Modifier.height(10.dp))
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(88.dp)
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(Color.White.copy(alpha = .15f))
+                        .padding(11.dp)
+                ) {
+                    Column(
+                        Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            "BUILT WITH",
+                            color = Color.White.copy(alpha = .52f),
+                            fontSize = 7.sp,
+                            letterSpacing = 1.sp
+                        )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(13.dp))
-                    .background(Color.White.copy(alpha = .075f))
-                    .padding(12.dp)
-            ) {
-                Column {
-                    Text(
-                        "Built With",
-                        color = Color.White.copy(alpha = .55f),
-                        fontSize = 9.sp
-                    )
+                        Spacer(Modifier.height(5.dp))
 
-                    Spacer(Modifier.height(5.dp))
+                        Text(
+                            "Kotlin\nJetpack Compose\nAndroid",
+                            color = Color.White.copy(alpha = .9f),
+                            fontSize = 9.sp,
+                            lineHeight = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
 
-                    Text(
-                        "Kotlin  •  Jetpack Compose  •  Android",
-                        color = Color.White.copy(alpha = .9f),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    Text(
-                        "100% Native  •  Offline",
-                        color = Color(0xFF8BE3C5),
-                        fontSize = 9.sp
-                    )
+                        Text(
+                            "Native • Offline",
+                            color = Color(0xFF9DEBD1),
+                            fontSize = 8.sp
+                        )
+                    }
                 }
             }
         }
@@ -385,21 +415,7 @@ private fun AppInfoCard() {
 }
 
 @Composable
-private fun GlassBox(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    Box(
-        modifier
-            .clip(RoundedCornerShape(19.dp))
-            .background(Color.White.copy(alpha = .115f))
-    ) {
-        content()
-    }
-}
-
-@Composable
-private fun MiniButton(
+private fun MiniGlassButton(
     text: String,
     onClick: () -> Unit
 ) {
@@ -407,22 +423,22 @@ private fun MiniButton(
     val pressed by interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if (pressed) .91f else 1f,
-        spring(stiffness = 650f),
-        label = "miniPress"
+        if (pressed) .9f else 1f,
+        spring(stiffness = 700f),
+        label = "mini"
     )
 
     Box(
         Modifier
             .scale(scale)
             .clip(RoundedCornerShape(50))
-            .background(Color.White.copy(alpha = .14f))
+            .background(Color.White.copy(alpha = .18f))
             .clickable(
                 interactionSource = interaction,
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 13.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -446,15 +462,16 @@ private fun MainScreen() {
             Text(
                 "NMIX",
                 color = Emerald,
-                fontSize = 42.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 43.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 4.sp
             )
 
             Text(
                 "EVERYTHING WITH NUMBERS",
                 color = Color(0xFF66706C),
                 fontSize = 10.sp,
-                letterSpacing = 1.5.sp,
+                letterSpacing = 1.4.sp,
                 textAlign = TextAlign.Center
             )
         }
