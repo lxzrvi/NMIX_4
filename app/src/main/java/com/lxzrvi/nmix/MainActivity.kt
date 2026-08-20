@@ -103,10 +103,11 @@ private fun LandingScreen(onStart: () -> Unit) {
             Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    translationX = x1 * .10f
-                    translationY = y1 * .08f
-                    scaleX = 1.35f
-                    scaleY = 1.35f
+                    translationX = x1 * .65f
+                    translationY = y1 * .42f
+                    scaleX = 1.55f
+                    scaleY = 1.55f
+                    rotationZ = x2 * .055f
                 }
                 .background(
                     Brush.linearGradient(
@@ -124,11 +125,11 @@ private fun LandingScreen(onStart: () -> Unit) {
             Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    translationX = x2 * .08f
-                    translationY = -y1 * .07f
-                    scaleX = 1.4f
-                    scaleY = 1.4f
-                    rotationZ = x1 * .025f
+                    translationX = x2 * .55f
+                    translationY = -y1 * .38f
+                    scaleX = 1.65f
+                    scaleY = 1.65f
+                    rotationZ = x1 * .08f
                 }
                 .background(
                     Brush.radialGradient(
@@ -191,12 +192,12 @@ private fun LandingScreen(onStart: () -> Unit) {
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 18.dp),
+                .padding(bottom = 27.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AppInfoCard()
 
-            Spacer(Modifier.height(13.dp))
+            Spacer(Modifier.height(8.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -205,16 +206,16 @@ private fun LandingScreen(onStart: () -> Unit) {
                 Text(
                     "NMIX",
                     color = Color.White.copy(alpha = .72f),
-                    fontSize = 9.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.2.sp
                 )
 
                 Text(
-                    "   •   lxzrvi   •   © 2026",
+                    "  •  lxzrvi  •  © 2026",
                     color = Color.White.copy(alpha = .42f),
-                    fontSize = 8.sp,
-                    letterSpacing = .4.sp
+                    fontSize = 9.sp,
+                    letterSpacing = .2.sp
                 )
             }
         }
