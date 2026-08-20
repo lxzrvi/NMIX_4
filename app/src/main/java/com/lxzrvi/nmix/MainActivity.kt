@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private val Accent = Color(0xFF319B79)
+val Accent = Color(0xFF319B79)
 
 @Composable
 fun NmixApp() {
