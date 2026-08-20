@@ -105,6 +105,9 @@ private fun LandingScreen(onStart: () -> Unit) {
     val landingTheme =
         appearancePrefs.getString("theme", "green") ?: "green"
 
+    val landingDark =
+        appearancePrefs.getBoolean("dark", false)
+
     val landingAccent = when(landingTheme) {
         "blue" -> Color(0xFF348BB8)
         "purple" -> Color(0xFF8A62C8)
@@ -159,15 +162,24 @@ private fun LandingScreen(onStart: () -> Unit) {
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(
-                        Color(0xFF010A07),
-                        Color(0xFF07392B),
-                        landingAccent.copy(alpha = .88f),
-                        Color(0xFF07382B),
-                        Color(0xFF020C09)
-                    )
+                    colors = if (landingDark) {
+                        listOf(
+                            Color(0xFF020403),
+                            Color(0xFF080D0B),
+                            landingAccent.copy(alpha = .32f),
+                            Color(0xFF080D0B),
+                            Color.Black
+                        )
+                    } else {
+                        listOf(
+                            Color(0xFF03140F),
+                            landingAccent.copy(alpha = .46f),
+                            landingAccent,
+                            landingAccent.copy(alpha = .52f),
+                            Color(0xFF03140F)
+                        )
+                    }
                 )
-            )
     ) {
         // Soft moving gradient lights — no visible square layer edges.
         Box(
