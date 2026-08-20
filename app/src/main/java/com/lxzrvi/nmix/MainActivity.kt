@@ -98,55 +98,46 @@ private fun LandingScreen(onStart: () -> Unit) {
                 )
             )
     ) {
-        // Huge circles are intentionally larger than screen areas:
-        // no square/rectangular blob edges.
+        // Smooth full-screen animated color wash.
         Box(
             Modifier
-                .offset((-180).dp, (-150).dp)
-                .size(520.dp)
+                .fillMaxSize()
                 .graphicsLayer {
-                    translationX = x1
-                    translationY = y1
-                    scaleX = pulse
-                    scaleY = pulse
+                    translationX = x1 * .10f
+                    translationY = y1 * .08f
+                    scaleX = 1.35f
+                    scaleY = 1.35f
                 }
-                .blur(125.dp)
                 .background(
-                    Color(0xFF56E0B0).copy(alpha = .52f),
-                    CircleShape
+                    Brush.linearGradient(
+                        listOf(
+                            Color(0xFF06291F).copy(alpha = .20f),
+                            Color(0xFF42C79A).copy(alpha = .42f),
+                            Color.Transparent,
+                            Color(0xFF137A5B).copy(alpha = .36f)
+                        )
+                    )
                 )
         )
 
         Box(
             Modifier
-                .align(Alignment.BottomEnd)
-                .offset(190.dp, 180.dp)
-                .size(570.dp)
+                .fillMaxSize()
                 .graphicsLayer {
-                    translationX = x2
-                    translationY = -y1 * .45f
-                    scaleX = 1.12f
-                    scaleY = 1.12f
+                    translationX = x2 * .08f
+                    translationY = -y1 * .07f
+                    scaleX = 1.4f
+                    scaleY = 1.4f
+                    rotationZ = x1 * .025f
                 }
-                .blur(145.dp)
                 .background(
-                    Color(0xFF0EA676).copy(alpha = .55f),
-                    CircleShape
-                )
-        )
-
-        Box(
-            Modifier
-                .align(Alignment.Center)
-                .size(440.dp)
-                .graphicsLayer {
-                    translationX = -x1 * .55f
-                    translationY = x2 * .35f
-                }
-                .blur(155.dp)
-                .background(
-                    Color(0xFF80EBC7).copy(alpha = .24f),
-                    CircleShape
+                    Brush.radialGradient(
+                        listOf(
+                            Color(0xFF8BE6C6).copy(alpha = .28f),
+                            Color(0xFF249B76).copy(alpha = .14f),
+                            Color.Transparent
+                        )
+                    )
                 )
         )
 
@@ -247,10 +238,10 @@ private fun GlassAction(
     Box(
         Modifier
             .width(278.dp)
-            .height(52.dp)
+            .height(44.dp)
             .scale(scale)
             .clip(RoundedCornerShape(50))
-            .background(Color.White.copy(alpha = .82f))
+            .background(Color.White.copy(alpha = .20f))
             .clickable(
                 interactionSource = interaction,
                 indication = null,
@@ -260,8 +251,8 @@ private fun GlassAction(
     ) {
         Text(
             text,
-            color = Color(0xFF143E31),
-            fontSize = 14.sp,
+            color = Color.White.copy(alpha = .94f),
+            fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold
         )
     }
