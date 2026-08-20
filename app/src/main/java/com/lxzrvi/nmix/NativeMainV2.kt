@@ -6,6 +6,12 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -1528,6 +1534,24 @@ private fun V2ToolSection(
         label = "arrow"
     )
 
+    val outerRadius by animateDpAsState(
+        targetValue = if(open) 21.dp else 9.dp,
+        animationSpec = tween(
+            620,
+            easing = EaseInOutCubic
+        ),
+        label = "outerRadius"
+    )
+
+    val innerRadius by animateDpAsState(
+        targetValue = if(open) 15.dp else 6.dp,
+        animationSpec = tween(
+            620,
+            easing = EaseInOutCubic
+        ),
+        label = "innerRadius"
+    )
+
     Column(
         Modifier
             .padding(horizontal = 12.dp)
@@ -1543,48 +1567,63 @@ private fun V2ToolSection(
                 Alignment.CenterVertically
         ) {
             Box(
-                Modifier
-                    .size(42.dp)
-                    .rotate(outer)
-                    .clip(
-                        if(open)
-                            CircleShape
-                        else
-                            RoundedCornerShape(9.dp)
-                    )
-                    .background(accent),
+                modifier = Modifier.size(42.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Inner outline rotates in opposite direction.
+                // OUTER: clockwise + smoothly square -> circle
                 Box(
+                    Modifier
+                        .fillMaxSize()
+                        .rotate(outer)
+                        .clip(
+                            RoundedCornerShape(
+                                outerRadius
+                            )
+                        )
+                        .background(accent)
+                )
+
+                // INNER OUTLINE: anti-clockwise
+                Canvas(
                     Modifier
                         .size(31.dp)
                         .rotate(inner)
-                        .clip(
-                            if(open)
-                                CircleShape
-                            else
-                                RoundedCornerShape(6.dp)
-                        )
-                        .background(
-                            Color.White.copy(alpha = .11f)
-                        ),
-                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .padding(1.dp)
+                    val stroke =
+                        1.35.dp.toPx()
+
+                    drawRoundRect(
+                        color =
+                            Color.White.copy(
+                                alpha = .42f
+                            ),
+                        topLeft = Offset(
+                            stroke,
+                            stroke
+                        ),
+                        size = Size(
+                            size.width -
+                                stroke * 2,
+                            size.height -
+                                stroke * 2
+                        ),
+                        cornerRadius =
+                            CornerRadius(
+                                innerRadius.toPx(),
+                                innerRadius.toPx()
+                            ),
+                        style = Stroke(
+                            width = stroke
+                        )
                     )
                 }
 
-                // Counter outer rotation: actual icon stays upright.
-                Text(
-                    icon,
-                    modifier = Modifier.rotate(-outer),
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                // VECTOR ICON: never rotates
+                V2VectorIcon(
+                    name = icon,
+                    tint = Color.White,
+                    modifier =
+                        Modifier.size(19.dp)
                 )
             }
 
@@ -1645,6 +1684,106 @@ private fun V2ToolSection(
                 )
         ) {
             content()
+        }
+    }
+}
+
+@Composable
+private fun V2VectorIcon(
+    name: String,
+    tint: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val sw = size.minDimension * .105f
+
+        fun line(
+            x1: Float,
+            y1: Float,
+            x2: Float,
+            y2: Float
+        ) {
+            drawLine(
+                color = tint,
+                start = Offset(w*x1,h*y1),
+                end = Offset(w*x2,h*y2),
+                strokeWidth = sw,
+                cap = StrokeCap.Round
+            )
+        }
+
+        when(name) {
+            "÷" -> {
+                drawCircle(
+                    tint,
+                    w*.055f,
+                    Offset(w*.5f,h*.20f)
+                )
+                line(.20f,.50f,.80f,.50f)
+                drawCircle(
+                    tint,
+                    w*.055f,
+                    Offset(w*.5f,h*.80f)
+                )
+            }
+
+            "◷" -> {
+                drawCircle(
+                    tint,
+                    w*.35f,
+                    Offset(w*.5f,h*.5f),
+                    style = Stroke(sw)
+                )
+                line(.5f,.5f,.5f,.30f)
+                line(.5f,.5f,.68f,.58f)
+            }
+
+            "+" -> {
+                line(.5f,.20f,.5f,.80f)
+                line(.20f,.5f,.80f,.5f)
+            }
+
+            "?" -> {
+                val path =
+                    androidx.compose.ui.graphics.Path()
+
+                path.moveTo(
+                    w*.28f,
+                    h*.32f
+                )
+
+                path.cubicTo(
+                    w*.34f,h*.10f,
+                    w*.74f,h*.10f,
+                    w*.74f,h*.36f
+                )
+
+                path.cubicTo(
+                    w*.74f,h*.54f,
+                    w*.50f,h*.57f,
+                    w*.50f,h*.68f
+                )
+
+                drawPath(
+                    path,
+                    tint,
+                    style = Stroke(
+                        sw,
+                        cap = StrokeCap.Round
+                    )
+                )
+
+                drawCircle(
+                    tint,
+                    w*.055f,
+                    Offset(
+                        w*.5f,
+                        h*.86f
+                    )
+                )
+            }
         }
     }
 }
