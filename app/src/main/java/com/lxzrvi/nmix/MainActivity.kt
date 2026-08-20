@@ -19,6 +19,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -49,15 +53,40 @@ private val Accent = Color(0xFF319B79)
 
 @Composable
 fun NmixApp() {
-    var started by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val prefs = remember {
+        context.getSharedPreferences(
+            "nmix_preferences",
+            android.content.Context.MODE_PRIVATE
+        )
+    }
+
+    var started by remember {
+        mutableStateOf(
+            prefs.getString("home_screen", "landing") == "main"
+        )
+    }
 
     if (started) {
         NativeMainPage(
-            onBack = { started = false }
+            onBack = {
+                prefs.edit()
+                    .putString("home_screen", "landing")
+                    .apply()
+
+                started = false
+            }
         )
     } else {
         LandingScreen(
-            onStart = { started = true }
+            onStart = {
+                prefs.edit()
+                    .putString("home_screen", "main")
+                    .apply()
+
+                started = true
+            }
         )
     }
 }
@@ -783,7 +812,7 @@ private fun NativeMainPage(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 top = contentTop,
-                bottom = 30.dp
+                bottom = 66.dp
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -868,32 +897,7 @@ private fun NativeMainPage(
                 }
             }
 
-            item {
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp, bottom = 12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            "NMIX",
-                            color = Color(0xFF4E5753),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = .7.sp
-                        )
 
-                        Text(
-                            "  •  lxzrvi  •  © 2026",
-                            color = Color(0xFF737C78),
-                            fontSize = 12.sp
-                        )
-                    }
-                }
-            }
         }
 
         AnimatedVisibility(
@@ -953,14 +957,32 @@ private fun NativeMainPage(
                     )
 
                     AnimatedVisibility(
-                        visible = calculatorOpen
+                        visible = calculatorOpen,
+                        enter = fadeIn(tween(300)) +
+                            expandVertically(
+                                animationSpec = tween(380),
+                                expandFrom = Alignment.Top
+                            ) +
+                            scaleIn(
+                                initialScale = .96f,
+                                animationSpec = tween(380)
+                            ),
+                        exit = fadeOut(tween(220)) +
+                            shrinkVertically(
+                                animationSpec = tween(330),
+                                shrinkTowards = Alignment.Top
+                            ) +
+                            scaleOut(
+                                targetScale = .97f,
+                                animationSpec = tween(300)
+                            )
                     ) {
                         Row(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(
-                                    top = 7.dp,
-                                    bottom = 7.dp
+                                    top = 15.dp,
+                                    bottom = 9.dp
                                 ),
                             horizontalArrangement =
                                 Arrangement.spacedBy(7.dp)
@@ -1004,6 +1026,31 @@ private fun NativeMainPage(
                     )
                 }
             }
+        }
+
+        // Fixed branding footer — independent from scrolling tools.
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 8.dp)
+                .clip(RoundedCornerShape(50))
+                .background(Color(0xFFE0E2E1).copy(alpha = .92f))
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "NMIX",
+                color = Color(0xFF4E5753),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = .7.sp
+            )
+
+            Text(
+                "  •  lxzrvi  •  © 2026",
+                color = Color(0xFF737C78),
+                fontSize = 12.sp
+            )
         }
 
         // Persistent top controls.
@@ -1232,7 +1279,27 @@ private fun NativeToolSection(
             )
         }
 
-        AnimatedVisibility(visible = open) {
+        AnimatedVisibility(
+            visible = open,
+            enter = fadeIn(tween(320)) +
+                expandVertically(
+                    animationSpec = tween(420),
+                    expandFrom = Alignment.Top
+                ) +
+                scaleIn(
+                    initialScale = .985f,
+                    animationSpec = tween(420)
+                ),
+            exit = fadeOut(tween(190)) +
+                shrinkVertically(
+                    animationSpec = tween(350),
+                    shrinkTowards = Alignment.Top
+                ) +
+                scaleOut(
+                    targetScale = .985f,
+                    animationSpec = tween(300)
+                )
+        ) {
             content()
         }
     }
@@ -1255,6 +1322,7 @@ private fun NativeCalculatorGrid(
             .padding(
                 start = 10.dp,
                 end = 10.dp,
+                top = 7.dp,
                 bottom = 16.dp
             )
     ) {
