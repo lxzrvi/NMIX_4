@@ -61,25 +61,25 @@ private fun LandingScreen(onStart: () -> Unit) {
 
     val x1 by infinite.animateFloat(
         -170f, 190f,
-        infiniteRepeatable(tween(4200, easing = LinearEasing), RepeatMode.Reverse),
+        infiniteRepeatable(tween(8000, easing = EaseInOutSine), RepeatMode.Reverse),
         label = "x1"
     )
 
     val y1 by infinite.animateFloat(
         -80f, 210f,
-        infiniteRepeatable(tween(5200, easing = LinearEasing), RepeatMode.Reverse),
+        infiniteRepeatable(tween(10500, easing = EaseInOutSine), RepeatMode.Reverse),
         label = "y1"
     )
 
     val x2 by infinite.animateFloat(
         170f, -180f,
-        infiniteRepeatable(tween(6100, easing = LinearEasing), RepeatMode.Reverse),
+        infiniteRepeatable(tween(12000, easing = EaseInOutSine), RepeatMode.Reverse),
         label = "x2"
     )
 
     val pulse by infinite.animateFloat(
         .88f, 1.18f,
-        infiniteRepeatable(tween(4000, easing = EaseInOutSine), RepeatMode.Reverse),
+        infiniteRepeatable(tween(6000, easing = EaseInOutSine), RepeatMode.Reverse),
         label = "pulse"
     )
 
@@ -103,8 +103,8 @@ private fun LandingScreen(onStart: () -> Unit) {
             Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    translationX = x1 * .95f
-                    translationY = y1 * .62f
+                    translationX = x1 * .65f
+                    translationY = y1 * .42f
                     scaleX = 1.55f
                     scaleY = 1.55f
                     rotationZ = x2 * .055f
@@ -125,8 +125,8 @@ private fun LandingScreen(onStart: () -> Unit) {
             Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    translationX = x2 * .85f
-                    translationY = -y1 * .55f
+                    translationX = x2 * .55f
+                    translationY = -y1 * .38f
                     scaleX = 1.65f
                     scaleY = 1.65f
                     rotationZ = x1 * .08f
@@ -186,39 +186,38 @@ private fun LandingScreen(onStart: () -> Unit) {
             }
         }
 
-        // App info floats above the branding footer.
-        Box(
+        // Bottom information area.
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 64.dp)
+                .padding(bottom = 27.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AppInfoCard()
-        }
 
-        // Independent bottom branding.
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 18.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                "NMIX",
-                color = Color.White.copy(alpha = .88f),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.1.sp
-            )
+            Spacer(Modifier.height(8.dp))
 
-            Text(
-                " • lxzrvi • © 2026",
-                color = Color.White.copy(alpha = .58f),
-                fontSize = 11.sp,
-                letterSpacing = .1.sp
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    "NMIX",
+                    color = Color.White.copy(alpha = .72f),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp
+                )
+
+                Text(
+                    "  •  lxzrvi  •  © 2026",
+                    color = Color.White.copy(alpha = .42f),
+                    fontSize = 9.sp,
+                    letterSpacing = .2.sp
+                )
+            }
         }
     }
 }
@@ -266,11 +265,11 @@ private fun AppInfoCard() {
 
     val messages = remember {
         listOf(
-            "NMIX brings everyday number tools into one focused native app. Calculate values, measure time, count things and generate numbers without jumping between different apps.",
-            "Designed around speed and simplicity, NMIX keeps useful tools close while maintaining a clean interface that stays comfortable during everyday use.",
-            "NMIX is built to work offline. Core calculator, timer, stopwatch, clock and counter tools do not depend on a web page or a continuous internet connection.",
-            "A native Android experience focused on smooth motion, responsive controls and useful number-based tools — brought together under EVERYTHING WITH NUMBERS.",
-            "From quick calculations to tracking seconds and counting values, NMIX is designed as a compact toolbox for the numbers that appear throughout your day."
+            "One place for the numbers you use every day.",
+            "Calculate, count and track time without leaving NMIX.",
+            "Fast number tools designed for a clean native experience.",
+            "Made to stay useful even when you're completely offline.",
+            "Numbers and time, brought together in one simple app."
         )
     }
 
@@ -343,8 +342,8 @@ private fun AppInfoCard() {
             ) {
                 Box(
                     Modifier
-                        .weight(1.18f)
-                        .height(132.dp)
+                        .weight(1f)
+                        .height(88.dp)
                         .clip(RoundedCornerShape(15.dp))
                         .background(Color.White.copy(alpha = .15f))
                         .padding(11.dp),
@@ -360,16 +359,16 @@ private fun AppInfoCard() {
                         Text(
                             messages[i],
                             color = Color.White.copy(alpha = .9f),
-                            fontSize = 10.5.sp,
-                            lineHeight = 16.sp
+                            fontSize = 10.sp,
+                            lineHeight = 15.sp
                         )
                     }
                 }
 
                 Box(
                     Modifier
-                        .weight(.82f)
-                        .height(132.dp)
+                        .weight(1f)
+                        .height(88.dp)
                         .clip(RoundedCornerShape(15.dp))
                         .background(Color.White.copy(alpha = .15f))
                         .padding(11.dp)
@@ -380,43 +379,30 @@ private fun AppInfoCard() {
                     ) {
                         Text(
                             "BUILT WITH",
-                            color = Color.White.copy(alpha = .62f),
-                            fontSize = 9.sp,
-                            letterSpacing = 1.1.sp,
-                            fontWeight = FontWeight.SemiBold
+                            color = Color.White.copy(alpha = .52f),
+                            fontSize = 7.sp,
+                            letterSpacing = 1.sp
                         )
 
-                        Spacer(Modifier.height(9.dp))
+                        Spacer(Modifier.height(5.dp))
 
-                        TechPill("Kotlin")
-                        Spacer(Modifier.height(5.dp))
-                        TechPill("Jetpack Compose")
-                        Spacer(Modifier.height(5.dp))
-                        TechPill("Android SDK")
-                        Spacer(Modifier.height(5.dp))
-                        TechPill("Gradle")
+                        Text(
+                            "Kotlin\nJetpack Compose\nAndroid",
+                            color = Color.White.copy(alpha = .9f),
+                            fontSize = 9.sp,
+                            lineHeight = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Text(
+                            "Native • Offline",
+                            color = Color(0xFF9DEBD1),
+                            fontSize = 8.sp
+                        )
                     }
-                }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun TechPill(text: String) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(Emerald.copy(alpha = .32f))
-            .padding(horizontal = 9.dp, vertical = 4.dp)
-    ) {
-        Text(
-            text = text,
-            color = Color(0xFFB9F7E1),
-            fontSize = 8.sp,
-            fontWeight = FontWeight.SemiBold
-        )
     }
 }
 
