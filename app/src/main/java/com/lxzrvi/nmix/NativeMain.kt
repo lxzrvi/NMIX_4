@@ -16,11 +16,6 @@ import java.util.Locale
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.ui.draw.rotate
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,12 +34,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-private val LocalNmixAccent =
-    staticCompositionLocalOf { Color(0xFF319B79) }
-
-private val LocalNmixDark =
-    staticCompositionLocalOf { false }
 
 private data class NmixColors(
     val accent: Color,
@@ -230,8 +219,8 @@ fun NativeMainPage(
     val topHeight by animateDpAsState(
         targetValue = when {
             !topOpen -> 0.dp
-            calculatorOpen -> 440.dp
-            else -> 365.dp
+            calculatorOpen -> 395.dp
+            else -> 325.dp
         },
         animationSpec = spring(
             dampingRatio = .85f,
@@ -243,8 +232,8 @@ fun NativeMainPage(
     val contentTop by animateDpAsState(
         targetValue = when {
             !topOpen -> 72.dp
-            calculatorOpen -> 460.dp
-            else -> 385.dp
+            calculatorOpen -> 415.dp
+            else -> 345.dp
         },
         animationSpec = spring(
             dampingRatio = .85f,
@@ -468,10 +457,6 @@ fun NativeMainPage(
         }
     }
 
-    CompositionLocalProvider(
-        LocalNmixAccent provides themeAccent,
-        LocalNmixDark provides darkMode
-    ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -481,7 +466,7 @@ fun NativeMainPage(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 top = contentTop,
-                bottom = 108.dp
+                bottom = 66.dp
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -532,29 +517,28 @@ fun NativeMainPage(
 
                         onTimerTap = {
                             calculatorOpen = false
-                            stopwatchRunning = false
                             activeMode = "timer"
-
-                            if (timerSeconds <= 0) {
-                                status = "Add five seconds before starting."
-                            } else {
-                                timerRunning = !timerRunning
-
-                                status = if (timerRunning)
-                                    "Timer running."
-                                else
-                                    "Timer paused."
-                            }
+                            display = timerText()
+                            displayLabel = "TIMER"
+                            status =
+                                "Use − / + for five seconds. Hold Timer to start."
                         },
 
                         onTimerHold = {
                             calculatorOpen = false
                             activeMode = "timer"
-                            timerRunning = false
-                            timerSeconds = 10
-                            display = "00:10"
-                            displayLabel = "TIMER"
-                            status = "Timer reset to 10 seconds."
+
+                            if (timerSeconds <= 0) {
+                                status =
+                                    "Add five seconds before starting."
+                            } else {
+                                timerRunning = !timerRunning
+
+                                status = if (timerRunning)
+                                    "Timer running. Hold Timer to pause."
+                                else
+                                    "Timer paused. Hold Timer to continue."
+                            }
                         },
 
                         onMinus = {
@@ -740,12 +724,11 @@ fun NativeMainPage(
                             )
                         )
                     )
-                    .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(
                         start = 12.dp,
                         end = 12.dp,
-                        top = 54.dp,
-                        bottom = 12.dp
+                        top = 27.dp,
+                        bottom = 11.dp
                     )
             ) {
                 Column(
@@ -826,22 +809,6 @@ fun NativeMainPage(
                         status = status,
                         accent = colors.accent,
                         light = colors.light,
-                        showTimerControls = activeMode == "timer",
-                        onTimerMinus = {
-                            timerSeconds =
-                                (timerSeconds - 5).coerceAtLeast(0)
-
-                            if (timerSeconds == 0) {
-                                timerRunning = false
-                                status = "Timer is at zero."
-                            } else {
-                                status = "Five seconds removed."
-                            }
-                        },
-                        onTimerPlus = {
-                            timerSeconds += 5
-                            status = "Five seconds added."
-                        },
                         onClick = {
                             if (
                                 calculatorOpen &&
@@ -867,47 +834,28 @@ fun NativeMainPage(
                     .clickable { settingsOpen = false }
             )
 
-            AnimatedVisibility(
-                visible = settingsOpen,
-                modifier = Modifier.align(Alignment.TopEnd),
-                enter = slideInHorizontally(
-                    initialOffsetX = { it },
-                    animationSpec = tween(
-                        360,
-                        easing = EaseOutCubic
-                    )
-                ) + fadeIn(tween(220)),
-                exit = slideOutHorizontally(
-                    targetOffsetX = { it },
-                    animationSpec = tween(
-                        320,
-                        easing = EaseInCubic
-                    )
-                ) + fadeOut(tween(180))
-            ) {
-                SettingsPanel(
-                    modifier = Modifier
-                        .windowInsetsPadding(WindowInsets.statusBars)
-                        .padding(top = 67.dp),
-                    darkMode = darkMode,
-                    themeName = themeName,
-                    onDarkChange = {
-                        darkMode = !darkMode
-                        prefs.edit()
-                            .putBoolean("dark", darkMode)
-                            .apply()
-                    },
-                    onTheme = {
-                        themeName = it
-                        prefs.edit()
-                            .putString("theme", it)
-                            .apply()
-                    },
-                    onClose = {
-                        settingsOpen = false
-                    }
-                )
-            }
+            SettingsPanel(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 82.dp, end = 13.dp),
+                darkMode = darkMode,
+                themeName = themeName,
+                onDarkChange = {
+                    darkMode = !darkMode
+                    prefs.edit()
+                        .putBoolean("dark", darkMode)
+                        .apply()
+                },
+                onTheme = {
+                    themeName = it
+                    prefs.edit()
+                        .putString("theme", it)
+                        .apply()
+                },
+                onClose = {
+                    settingsOpen = false
+                }
+            )
         }
 
         if (fullscreenClock) {
@@ -975,38 +923,14 @@ fun NativeMainPage(
             }
         }
 
-        AnimatedVisibility(
-            visible = !settingsOpen && !fullscreenClock,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(
-                    start = 22.dp,
-                    end = 22.dp,
-                    bottom = 34.dp
-                ),
-            enter = fadeIn(tween(220)) +
-                scaleIn(initialScale = .97f),
-            exit = fadeOut(tween(180)) +
-                scaleOut(targetScale = .97f)
-        ) {
-            NativePillButton(
-                text = "Back to the Start",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(44.dp),
-                background = themeAccent.copy(alpha = .90f),
-                textColor = Color.White,
-                onClick = onBack
-            )
-        }
-
         // Fixed branding footer — independent from scrolling tools.
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(bottom = 5.dp),
+                .padding(bottom = 8.dp)
+                .clip(RoundedCornerShape(50))
+                .background(Color(0xFFE0E2E1).copy(alpha = .92f))
+                .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -1028,17 +952,16 @@ fun NativeMainPage(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(
                     start = 14.dp,
                     end = 14.dp,
-                    top = 10.dp
+                    top = 36.dp
                 ),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             NativePressButton(
                 text = if (topOpen) "↑" else "↓",
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(50.dp),
                 background = themeAccent.copy(alpha = .94f),
                 textColor = Color.White,
                 onClick = {
@@ -1047,12 +970,12 @@ fun NativeMainPage(
             )
 
             NativePressButton(
-                text = if (settingsOpen) "×" else "☰",
-                modifier = Modifier.size(48.dp),
+                text = "☰",
+                modifier = Modifier.size(50.dp),
                 background = themeAccent.copy(alpha = .94f),
                 textColor = Color.White,
                 onClick = {
-                    settingsOpen = !settingsOpen
+                    settingsOpen = true
                 }
             )
         }
@@ -1067,14 +990,8 @@ private fun NativeResultDisplay(
     status: String,
     accent: Color,
     light: Color,
-    showTimerControls: Boolean = false,
-    onTimerMinus: () -> Unit = {},
-    onTimerPlus: () -> Unit = {},
     onClick: () -> Unit
-) {    val displayDark = LocalNmixDark.current
-    val liveAccent = LocalNmixAccent.current
-
-
+) {
     val motion = rememberInfiniteTransition(label = "resultMotion")
 
     val move by motion.animateFloat(
@@ -1093,10 +1010,8 @@ private fun NativeResultDisplay(
             .background(
                 Brush.linearGradient(
                     listOf(
-                        if (displayDark) Color(0xFF202725)
-                        else Color(0xFFF0F3F1),
-                        if (displayDark) Color(0xFF121816)
-                        else Color(0xFFD7DFDC)
+                        Color(0xFFF0F3F1),
+                        Color(0xFFD7DFDC)
                     )
                 )
             )
@@ -1138,53 +1053,10 @@ private fun NativeResultDisplay(
                 )
         )
 
-        AnimatedVisibility(
-            visible = showTimerControls,
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 12.dp),
-            enter = fadeIn(tween(240)) +
-                scaleIn(initialScale = .8f),
-            exit = fadeOut(tween(180)) +
-                scaleOut(targetScale = .8f)
-        ) {
-            NativePressButton(
-                text = "−",
-                modifier = Modifier.size(46.dp),
-                background = accent,
-                textColor = Color.White,
-                onClick = onTimerMinus
-            )
-        }
-
-        AnimatedVisibility(
-            visible = showTimerControls,
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 12.dp),
-            enter = fadeIn(tween(240)) +
-                scaleIn(initialScale = .8f),
-            exit = fadeOut(tween(180)) +
-                scaleOut(targetScale = .8f)
-        ) {
-            NativePressButton(
-                text = "+",
-                modifier = Modifier.size(46.dp),
-                background = accent,
-                textColor = Color.White,
-                onClick = onTimerPlus
-            )
-        }
-
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(
-                    start = if (showTimerControls) 65.dp else 12.dp,
-                    end = if (showTimerControls) 65.dp else 12.dp,
-                    top = 12.dp,
-                    bottom = 12.dp
-                ),
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -1199,7 +1071,7 @@ private fun NativeResultDisplay(
             Text(
                 value,
                 color = Color(0xFF152C24),
-                fontSize = 38.sp,
+                fontSize = 31.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
             )
@@ -1209,9 +1081,8 @@ private fun NativeResultDisplay(
             Text(
                 status,
                 color = Color(0xFF397C68),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 2
+                fontSize = 9.sp,
+                maxLines = 1
             )
         }
     }
@@ -1248,26 +1119,11 @@ private fun NativeToolSection(
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    val sectionAccent = LocalNmixAccent.current
-    val sectionDark = LocalNmixDark.current
-
-    val sectionSurface =
-        if (sectionDark)
-            Color.White.copy(alpha = .075f)
-        else
-            Color.White.copy(alpha = .58f)
-
-    val sectionText =
-        if (sectionDark)
-            Color(0xFFEDF4F1)
-        else
-            Color(0xFF202321)
-
     Column(
         modifier = Modifier
             .padding(horizontal = 12.dp)
             .clip(RoundedCornerShape(15.dp))
-            .background(sectionSurface)
+            .background(Color(0xFFF0F1F0))
     ) {
         Row(
             modifier = Modifier
@@ -1276,59 +1132,22 @@ private fun NativeToolSection(
                 .padding(13.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val outerSpin by animateFloatAsState(
-                targetValue = if (open) 180f else 0f,
-                animationSpec = tween(
-                    600,
-                    easing = EaseInOutCubic
-                ),
-                label = "outerSpin"
-            )
-
-            val innerSpin by animateFloatAsState(
-                targetValue = if (open) -180f else 0f,
-                animationSpec = tween(
-                    600,
-                    easing = EaseInOutCubic
-                ),
-                label = "innerSpin"
-            )
-
             Box(
                 Modifier
                     .size(42.dp)
-                    .rotate(outerSpin)
                     .clip(
-                        if (open)
-                            CircleShape
-                        else
-                            RoundedCornerShape(9.dp)
+                        if (open) CircleShape
+                        else RoundedCornerShape(9.dp)
                     )
-                    .background(sectionAccent),
+                    .background(Accent),
                 contentAlignment = Alignment.Center
             ) {
-                Box(
-                    Modifier
-                        .size(31.dp)
-                        .rotate(innerSpin)
-                        .clip(
-                            if (open)
-                                CircleShape
-                            else
-                                RoundedCornerShape(6.dp)
-                        )
-                        .background(
-                            Color.White.copy(alpha = .10f)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        icon,
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text(
+                    icon,
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             Spacer(Modifier.width(12.dp))
@@ -1336,7 +1155,7 @@ private fun NativeToolSection(
             Column(Modifier.weight(1f)) {
                 Text(
                     title,
-                    color = sectionText,
+                    color = Color(0xFF202321),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -1393,12 +1212,7 @@ private fun SettingsPanel(
     Box(
         modifier
             .width(330.dp)
-            .clip(
-                RoundedCornerShape(
-                    topStart = 22.dp,
-                    bottomStart = 22.dp
-                )
-            )
+            .clip(RoundedCornerShape(21.dp))
             .background(
                 if (darkMode) Color(0xFF171C1A)
                 else Color(0xFFF4F4F4)
@@ -1426,7 +1240,15 @@ private fun SettingsPanel(
                     )
                 }
 
-
+                NativePressButton(
+                    text = "×",
+                    modifier = Modifier.size(35.dp),
+                    background = Color(0xFF89928E)
+                        .copy(alpha = .18f),
+                    textColor = if (darkMode)
+                        Color.White else Color(0xFF202321),
+                    onClick = onClose
+                )
             }
 
             Spacer(Modifier.height(18.dp))
@@ -1557,55 +1379,82 @@ private fun ClockTools(
         Modifier
             .fillMaxWidth()
             .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(9.dp)
     ) {
-        ClockModeButton(
-            title = "Timer",
-            icon = "◴",
-            active = activeMode == "timer",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(58.dp),
-            onClick = onTimerTap,
-            onLongClick = onTimerHold
-        )
-
-        Box(
-            Modifier.fillMaxWidth()
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             ClockModeButton(
+                title = "Timer",
+                subtitle = if (timerRunning) "Running • $timerText"
+                else "Countdown • $timerText",
+                icon = "◴",
+                active = activeMode == "timer",
+                modifier = Modifier.weight(1f),
+                onClick = onTimerTap,
+                onLongClick = onTimerHold
+            )
+
+            ClockModeButton(
                 title = "Clock",
+                subtitle = clockText,
                 icon = "◷",
                 active = activeMode == "clock",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(58.dp),
+                modifier = Modifier.weight(1f),
                 onClick = onClock
             )
 
-            if (activeMode == "clock") {
+            ClockModeButton(
+                title = "Stopwatch",
+                subtitle = if (stopwatchRunning)
+                    "Running • $stopwatchText"
+                else stopwatchText,
+                icon = "◉",
+                active = activeMode == "stopwatch",
+                modifier = Modifier.weight(1f),
+                onClick = onStopwatchTap,
+                onLongClick = onStopwatchHold
+            )
+        }
+
+        AnimatedVisibility(
+            visible = activeMode == "timer",
+            enter = fadeIn(tween(250)) +
+                expandVertically(tween(300)),
+            exit = fadeOut(tween(180)) +
+                shrinkVertically(tween(250))
+        ) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                NativePressButton(
+                    text = "−",
+                    modifier = Modifier.size(44.dp),
+                    background = Accent,
+                    textColor = Color.White,
+                    onClick = onMinus
+                )
+
                 Text(
-                    "⛶",
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 15.dp),
-                    color = Color.White,
+                    timerText,
+                    modifier = Modifier.padding(horizontal = 22.dp),
+                    color = Color(0xFF202321),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
+
+                NativePressButton(
+                    text = "+",
+                    modifier = Modifier.size(44.dp),
+                    background = Accent,
+                    textColor = Color.White,
+                    onClick = onPlus
+                )
             }
         }
-
-        ClockModeButton(
-            title = "Stopwatch",
-            icon = "◉",
-            active = activeMode == "stopwatch",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(58.dp),
-            onClick = onStopwatchTap,
-            onLongClick = onStopwatchHold
-        )
     }
 }
 
@@ -1613,6 +1462,7 @@ private fun ClockTools(
 @Composable
 private fun ClockModeButton(
     title: String,
+    subtitle: String,
     icon: String,
     active: Boolean,
     modifier: Modifier,
@@ -1623,69 +1473,51 @@ private fun ClockModeButton(
     val pressed by interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (pressed) .965f else 1f,
-        animationSpec = spring(
-            dampingRatio = .7f,
-            stiffness = 700f
-        ),
-        label = "clockRowPress"
+        if (pressed) .94f else 1f,
+        spring(stiffness = 700f),
+        label = "clockPress"
     )
 
     Box(
-        modifier = modifier
+        modifier
             .scale(scale)
             .clip(RoundedCornerShape(13.dp))
             .background(
-                if (active)
-                    Accent.copy(alpha = .92f)
-                else
-                    Color.White.copy(alpha = .22f)
+                if (active) Accent
+                else Color(0xFFDEE1DF)
             )
             .combinedClickable(
                 interactionSource = interaction,
                 indication = null,
                 onClick = onClick,
-                onLongClick = {
-                    onLongClick?.invoke()
-                }
+                onLongClick = { onLongClick?.invoke() }
             )
-            .padding(horizontal = 14.dp),
-        contentAlignment = Alignment.CenterStart
+            .padding(10.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                Modifier
-                    .size(35.dp)
-                    .clip(
-                        if (active) CircleShape
-                        else RoundedCornerShape(9.dp)
-                    )
-                    .background(
-                        if (active)
-                            Color.White.copy(alpha = .92f)
-                        else Accent.copy(alpha = .20f)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    icon,
-                    color = if (active) Accent else Accent,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+        Column {
+            Text(
+                icon,
+                color = if (active) Color.White else Accent,
+                fontSize = 20.sp
+            )
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.height(6.dp))
 
             Text(
                 title,
-                color = if (active)
-                    Color.White
+                color = if (active) Color.White
                 else Color(0xFF202321),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                subtitle,
+                color = if (active)
+                    Color.White.copy(alpha = .75f)
+                else Color(0xFF66706C),
+                fontSize = 7.sp,
+                maxLines = 1
             )
         }
     }
@@ -2046,5 +1878,3 @@ private fun NativePressButton(
     }
 }
 
-
-}
