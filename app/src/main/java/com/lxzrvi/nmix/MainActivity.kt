@@ -69,7 +69,7 @@ fun NmixApp() {
     }
 
     if (started) {
-        NativeMainPage(
+        NativeMainPageV2(
             onBack = {
                 prefs.edit()
                     .putString("home_screen", "landing")
