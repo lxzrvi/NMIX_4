@@ -35,13 +35,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private data class NmixColors(
+private data class NmixColorsV2(
     val accent: Color,
     val dark: Color,
     val light: Color
 )
 
-private val NativeGreen = NmixColors(
+private val NativeGreenV2 = NmixColorsV2(
     Color(0xFF319B79),
     Color(0xFF19493A),
     Color(0xFF69D6B2)
@@ -214,7 +214,7 @@ fun NativeMainPageV2(
     var targetSecond by remember { mutableStateOf(false) }
 
 
-    val colors = NativeGreen
+    val colors = NativeGreenV2
 
     val topHeight by animateDpAsState(
         targetValue = when {
@@ -471,7 +471,7 @@ fun NativeMainPageV2(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                NativeToolSection(
+                NativeToolSectionV2(
                     icon = "÷",
                     title = "Calculator",
                     subtitle = "Numbers and operations",
@@ -485,14 +485,14 @@ fun NativeMainPageV2(
                         }
                     }
                 ) {
-                    NativeCalculatorGrid {
+                    NativeCalculatorGridV2 {
                         calculatorPress(it)
                     }
                 }
             }
 
             item {
-                NativeToolSection(
+                NativeToolSectionV2(
                     icon = "◷",
                     title = "Clock",
                     subtitle = "Timer, clock and stopwatch",
@@ -507,7 +507,7 @@ fun NativeMainPageV2(
                         }
                     }
                 ) {
-                    ClockTools(
+                    ClockToolsV2(
                         activeMode = activeMode,
                         timerText = timerText(),
                         timerRunning = timerRunning,
@@ -594,7 +594,7 @@ fun NativeMainPageV2(
             }
 
             item {
-                NativeToolSection(
+                NativeToolSectionV2(
                     icon = "+",
                     title = "Counters",
                     subtitle = "Count and generate",
@@ -616,7 +616,7 @@ fun NativeMainPageV2(
                         }
                     }
                 ) {
-                    CounterTools(
+                    CounterToolsV2(
                         value = counter,
                         onAdd = {
                             activeMode = "counter"
@@ -651,7 +651,7 @@ fun NativeMainPageV2(
             }
 
             item {
-                NativeToolSection(
+                NativeToolSectionV2(
                     icon = "?",
                     title = "How to use NMIX",
                     subtitle = "Instructions and controls",
@@ -668,7 +668,7 @@ fun NativeMainPageV2(
                         }
                     }
                 ) {
-                    InstructionsPanel()
+                    InstructionsPanelV2()
                 }
             }
 
@@ -681,7 +681,7 @@ fun NativeMainPageV2(
                         .padding(horizontal = 22.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    NativePillButton(
+                    NativePillButtonV2(
                         text = "Back to the Start",
                         modifier = Modifier
                             .fillMaxWidth()
@@ -783,24 +783,24 @@ fun NativeMainPageV2(
                             horizontalArrangement =
                                 Arrangement.spacedBy(7.dp)
                         ) {
-                            CalcValueBox(
+                            CalcValueBoxV2(
                                 text = first.ifEmpty { "_" },
                                 Modifier.weight(1f)
                             )
 
-                            CalcValueBox(
+                            CalcValueBoxV2(
                                 text = operator.ifEmpty { "sign" },
                                 Modifier.width(58.dp)
                             )
 
-                            CalcValueBox(
+                            CalcValueBoxV2(
                                 text = second.ifEmpty { "_" },
                                 Modifier.weight(1f)
                             )
                         }
                     }
 
-                    NativeResultDisplay(
+                    NativeResultDisplayV2(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f),
@@ -834,7 +834,7 @@ fun NativeMainPageV2(
                     .clickable { settingsOpen = false }
             )
 
-            SettingsPanel(
+            SettingsPanelV2(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 82.dp, end = 13.dp),
@@ -905,7 +905,7 @@ fun NativeMainPageV2(
                         )
                     }
 
-                    NativePillButton(
+                    NativePillButtonV2(
                         text = "×  Exit",
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -959,7 +959,7 @@ fun NativeMainPageV2(
                 ),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            NativePressButton(
+            NativePressButtonV2(
                 text = if (topOpen) "↑" else "↓",
                 modifier = Modifier.size(50.dp),
                 background = themeAccent.copy(alpha = .94f),
@@ -969,7 +969,7 @@ fun NativeMainPageV2(
                 }
             )
 
-            NativePressButton(
+            NativePressButtonV2(
                 text = "☰",
                 modifier = Modifier.size(50.dp),
                 background = themeAccent.copy(alpha = .94f),
@@ -983,7 +983,7 @@ fun NativeMainPageV2(
 }
 
 @Composable
-private fun NativeResultDisplay(
+private fun NativeResultDisplayV2(
     modifier: Modifier,
     label: String,
     value: String,
@@ -1089,7 +1089,7 @@ private fun NativeResultDisplay(
 }
 
 @Composable
-private fun CalcValueBox(
+private fun CalcValueBoxV2(
     text: String,
     modifier: Modifier
 ) {
@@ -1111,7 +1111,7 @@ private fun CalcValueBox(
 }
 
 @Composable
-private fun NativeToolSection(
+private fun NativeToolSectionV2(
     icon: String,
     title: String,
     subtitle: String,
@@ -1201,7 +1201,7 @@ private fun NativeToolSection(
 }
 
 @Composable
-private fun SettingsPanel(
+private fun SettingsPanelV2(
     modifier: Modifier,
     darkMode: Boolean,
     themeName: String,
@@ -1240,7 +1240,7 @@ private fun SettingsPanel(
                     )
                 }
 
-                NativePressButton(
+                NativePressButtonV2(
                     text = "×",
                     modifier = Modifier.size(35.dp),
                     background = Color(0xFF89928E)
@@ -1360,7 +1360,7 @@ private fun SettingsPanel(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ClockTools(
+private fun ClockToolsV2(
     activeMode: String,
     timerText: String,
     timerRunning: Boolean,
@@ -1385,7 +1385,7 @@ private fun ClockTools(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            ClockModeButton(
+            ClockModeButtonV2(
                 title = "Timer",
                 subtitle = if (timerRunning) "Running • $timerText"
                 else "Countdown • $timerText",
@@ -1396,7 +1396,7 @@ private fun ClockTools(
                 onLongClick = onTimerHold
             )
 
-            ClockModeButton(
+            ClockModeButtonV2(
                 title = "Clock",
                 subtitle = clockText,
                 icon = "◷",
@@ -1405,7 +1405,7 @@ private fun ClockTools(
                 onClick = onClock
             )
 
-            ClockModeButton(
+            ClockModeButtonV2(
                 title = "Stopwatch",
                 subtitle = if (stopwatchRunning)
                     "Running • $stopwatchText"
@@ -1430,7 +1430,7 @@ private fun ClockTools(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                NativePressButton(
+                NativePressButtonV2(
                     text = "−",
                     modifier = Modifier.size(44.dp),
                     background = Accent,
@@ -1446,7 +1446,7 @@ private fun ClockTools(
                     fontWeight = FontWeight.Bold
                 )
 
-                NativePressButton(
+                NativePressButtonV2(
                     text = "+",
                     modifier = Modifier.size(44.dp),
                     background = Accent,
@@ -1460,7 +1460,7 @@ private fun ClockTools(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ClockModeButton(
+private fun ClockModeButtonV2(
     title: String,
     subtitle: String,
     icon: String,
@@ -1524,7 +1524,7 @@ private fun ClockModeButton(
 }
 
 @Composable
-private fun CounterTools(
+private fun CounterToolsV2(
     value: Int,
     onAdd: () -> Unit,
     onMinus: () -> Unit,
@@ -1550,14 +1550,14 @@ private fun CounterTools(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CounterButton(
+            CounterButtonV2(
                 "Add",
                 "Increase",
                 Modifier.weight(1f),
                 onAdd
             )
 
-            CounterButton(
+            CounterButtonV2(
                 "Reset",
                 "Back to zero",
                 Modifier.weight(1f),
@@ -1571,14 +1571,14 @@ private fun CounterTools(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CounterButton(
+            CounterButtonV2(
                 "Random",
                 "1 – 1000",
                 Modifier.weight(1f),
                 onRandom
             )
 
-            CounterButton(
+            CounterButtonV2(
                 "Minus",
                 "Decrease",
                 Modifier.weight(1f),
@@ -1589,7 +1589,7 @@ private fun CounterTools(
 }
 
 @Composable
-private fun CounterButton(
+private fun CounterButtonV2(
     title: String,
     subtitle: String,
     modifier: Modifier,
@@ -1662,7 +1662,7 @@ private fun CounterButton(
 }
 
 @Composable
-private fun InstructionsPanel() {
+private fun InstructionsPanelV2() {
     val items = listOf(
         "Calculator" to
             "Use the NMIX keypad for numbers and operations. Press = to calculate.",
@@ -1727,7 +1727,7 @@ private fun InstructionsPanel() {
 }
 
 @Composable
-private fun NativeCalculatorGrid(
+private fun NativeCalculatorGridV2(
     onPress: (String) -> Unit
 ) {
     val keys = listOf(
@@ -1759,7 +1759,7 @@ private fun NativeCalculatorGrid(
 
                     val danger = key == "AC"
 
-                    NativePressButton(
+                    NativePressButtonV2(
                         text = key,
                         modifier = Modifier.size(55.dp),
                         background = when {
@@ -1795,7 +1795,7 @@ private fun NativeCalculatorGrid(
 }
 
 @Composable
-private fun NativePillButton(
+private fun NativePillButtonV2(
     text: String,
     modifier: Modifier,
     background: Color,
@@ -1836,7 +1836,7 @@ private fun NativePillButton(
 }
 
 @Composable
-private fun NativePressButton(
+private fun NativePressButtonV2(
     text: String,
     modifier: Modifier,
     background: Color,
