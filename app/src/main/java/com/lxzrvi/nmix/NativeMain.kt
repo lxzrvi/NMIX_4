@@ -1,4 +1,7 @@
 package com.lxzrvi.nmix
+import kotlin.random.Random
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -48,6 +51,9 @@ fun NativeMainPage(
     var topOpen by remember { mutableStateOf(true) }
     var calculatorOpen by remember { mutableStateOf(false) }
     var clockOpen by remember { mutableStateOf(false) }
+    var counterOpen by remember { mutableStateOf(false) }
+    var instructionsOpen by remember { mutableStateOf(false) }
+    var counter by remember { mutableIntStateOf(0) }
 
     var activeMode by remember { mutableStateOf("idle") }
 
@@ -547,12 +553,56 @@ fun NativeMainPage(
                     icon = "+",
                     title = "Counters",
                     subtitle = "Count and generate",
-                    open = false,
+                    open = counterOpen,
                     onClick = {
                         topOpen = true
-                        status = "Counters are coming next."
+                        calculatorOpen = false
+                        clockOpen = false
+                        instructionsOpen = false
+                        counterOpen = !counterOpen
+                        timerRunning = false
+                        stopwatchRunning = false
+
+                        if (counterOpen) {
+                            activeMode = "counter"
+                            displayLabel = "COUNTER"
+                            display = counter.toString()
+                            status = "Counter ready."
+                        }
                     }
-                ) {}
+                ) {
+                    CounterTools(
+                        value = counter,
+                        onAdd = {
+                            activeMode = "counter"
+                            counter++
+                            display = counter.toString()
+                            displayLabel = "COUNTER"
+                            status = "Counter increased."
+                        },
+                        onMinus = {
+                            activeMode = "counter"
+                            counter = (counter - 1).coerceAtLeast(0)
+                            display = counter.toString()
+                            displayLabel = "COUNTER"
+                            status = "Counter decreased."
+                        },
+                        onReset = {
+                            activeMode = "counter"
+                            counter = 0
+                            display = "0"
+                            displayLabel = "COUNTER"
+                            status = "Counter reset to zero."
+                        },
+                        onRandom = {
+                            activeMode = "counter"
+                            counter = Random.nextInt(1,1001)
+                            display = counter.toString()
+                            displayLabel = "COUNTER"
+                            status = "Random number generated."
+                        }
+                    )
+                }
             }
 
             item {
@@ -560,12 +610,21 @@ fun NativeMainPage(
                     icon = "?",
                     title = "How to use NMIX",
                     subtitle = "Instructions and controls",
-                    open = false,
+                    open = instructionsOpen,
                     onClick = {
                         topOpen = true
-                        status = "Instructions are coming next."
+                        calculatorOpen = false
+                        clockOpen = false
+                        counterOpen = false
+                        instructionsOpen = !instructionsOpen
+
+                        if (instructionsOpen) {
+                            status = "NMIX instructions opened."
+                        }
                     }
-                ) {}
+                ) {
+                    InstructionsPanel()
+                }
             }
 
             item {
@@ -1158,6 +1217,209 @@ private fun ClockModeButton(
                 fontSize = 7.sp,
                 maxLines = 1
             )
+        }
+    }
+}
+
+@Composable
+private fun CounterTools(
+    value: Int,
+    onAdd: () -> Unit,
+    onMinus: () -> Unit,
+    onReset: () -> Unit,
+    onRandom: () -> Unit
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(12.dp)
+    ) {
+        Text(
+            value.toString(),
+            modifier = Modifier.fillMaxWidth(),
+            color = Accent,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(Modifier.height(10.dp))
+
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            CounterButton(
+                "Add",
+                "Increase",
+                Modifier.weight(1f),
+                onAdd
+            )
+
+            CounterButton(
+                "Reset",
+                "Back to zero",
+                Modifier.weight(1f),
+                onReset
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            CounterButton(
+                "Random",
+                "1 – 1000",
+                Modifier.weight(1f),
+                onRandom
+            )
+
+            CounterButton(
+                "Minus",
+                "Decrease",
+                Modifier.weight(1f),
+                onMinus
+            )
+        }
+    }
+}
+
+@Composable
+private fun CounterButton(
+    title: String,
+    subtitle: String,
+    modifier: Modifier,
+    action: () -> Unit
+) {
+    var pressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        if (pressed) .94f else 1f,
+        spring(stiffness = 700f),
+        label = "counterPress"
+    )
+
+    Box(
+        modifier
+            .scale(scale)
+            .height(68.dp)
+            .clip(RoundedCornerShape(13.dp))
+            .background(Color(0xFFDEE1DF))
+            .pointerInput(action) {
+                detectTapGestures(
+                    onPress = {
+                        pressed = true
+
+                        val start =
+                            android.os.SystemClock.elapsedRealtime()
+
+                        val released = tryAwaitRelease()
+
+                        val duration =
+                            android.os.SystemClock.elapsedRealtime() - start
+
+                        pressed = false
+
+                        if (released) {
+                            action()
+
+                            // Long press gives a quick burst.
+                            if (duration >= 520) {
+                                repeat(
+                                    (duration / 120)
+                                        .toInt()
+                                        .coerceAtMost(20)
+                                ) {
+                                    action()
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+            .padding(11.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Column {
+            Text(
+                title,
+                color = Color(0xFF202321),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                subtitle,
+                color = Color(0xFF66706C),
+                fontSize = 8.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun InstructionsPanel() {
+    val items = listOf(
+        "Calculator" to
+            "Use the NMIX keypad for numbers and operations. Press = to calculate.",
+
+        "Operators" to
+            "NMIX supports +, −, ×, ÷ and remainder percentage (%).",
+
+        "Editing" to
+            "Use decimal, ±, backspace and AC to edit or clear calculations.",
+
+        "Timer" to
+            "Tap Timer to select it. Use − / + for five seconds and hold Timer to start or pause.",
+
+        "Clock" to
+            "Clock displays your device's local time. Full screen mode can be opened from Clock.",
+
+        "Stopwatch" to
+            "Tap Stopwatch to start or pause. Hold it to reset back to zero.",
+
+        "Counters" to
+            "Add and Minus change the value. Reset returns to zero. Random generates 1–1000.",
+
+        "Top Screen" to
+            "Use the top-left control to hide or restore the NMIX display.",
+
+        "Settings" to
+            "Use the top-right menu for appearance, themes and other personalization."
+    )
+
+    Column(
+        Modifier.padding(11.dp),
+        verticalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        items.forEach { (title,text) ->
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(11.dp))
+                    .background(Color(0xFFDEE1DF))
+                    .padding(11.dp)
+            ) {
+                Column {
+                    Text(
+                        title,
+                        color = Accent,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(Modifier.height(3.dp))
+
+                    Text(
+                        text,
+                        color = Color(0xFF66706C),
+                        fontSize = 9.sp,
+                        lineHeight = 14.sp
+                    )
+                }
+            }
         }
     }
 }
