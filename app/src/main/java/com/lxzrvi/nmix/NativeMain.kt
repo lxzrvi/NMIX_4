@@ -40,6 +40,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private val LocalNmixAccent =
+    staticCompositionLocalOf { Color(0xFF319B79) }
+
+private val LocalNmixDark =
+    staticCompositionLocalOf { false }
+
 private data class NmixColors(
     val accent: Color,
     val dark: Color,
@@ -462,6 +468,10 @@ fun NativeMainPage(
         }
     }
 
+    CompositionLocalProvider(
+        LocalNmixAccent provides themeAccent,
+        LocalNmixDark provides darkMode
+    ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -1061,7 +1071,10 @@ private fun NativeResultDisplay(
     onTimerMinus: () -> Unit = {},
     onTimerPlus: () -> Unit = {},
     onClick: () -> Unit
-) {
+) {    val displayDark = LocalNmixDark.current
+    val liveAccent = LocalNmixAccent.current
+
+
     val motion = rememberInfiniteTransition(label = "resultMotion")
 
     val move by motion.animateFloat(
@@ -1080,8 +1093,10 @@ private fun NativeResultDisplay(
             .background(
                 Brush.linearGradient(
                     listOf(
-                        Color(0xFFF0F3F1),
-                        Color(0xFFD7DFDC)
+                        if (displayDark) Color(0xFF202725)
+                        else Color(0xFFF0F3F1),
+                        if (displayDark) Color(0xFF121816)
+                        else Color(0xFFD7DFDC)
                     )
                 )
             )
@@ -1233,31 +1248,20 @@ private fun NativeToolSection(
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    val context = LocalContext.current
-    val appearance = remember {
-        context.getSharedPreferences(
-            "nmix_appearance",
-            android.content.Context.MODE_PRIVATE
-        )
-    }
-    val sectionDark = appearance.getBoolean("dark", false)
-    val sectionTheme = appearance.getString("theme", "green") ?: "green"
-
-    val sectionAccent = when(sectionTheme) {
-        "blue" -> Color(0xFF348BB8)
-        "purple" -> Color(0xFF8A62C8)
-        "orange" -> Color(0xFFD57D35)
-        "rose" -> Color(0xFFC85878)
-        else -> Color(0xFF319B79)
-    }
+    val sectionAccent = LocalNmixAccent.current
+    val sectionDark = LocalNmixDark.current
 
     val sectionSurface =
-        if(sectionDark) Color.White.copy(alpha = .075f)
-        else Color.White.copy(alpha = .60f)
+        if (sectionDark)
+            Color.White.copy(alpha = .075f)
+        else
+            Color.White.copy(alpha = .58f)
 
     val sectionText =
-        if(sectionDark) Color(0xFFEDF4F1)
-        else Color(0xFF202321)
+        if (sectionDark)
+            Color(0xFFEDF4F1)
+        else
+            Color(0xFF202321)
 
     Column(
         modifier = Modifier
@@ -1272,29 +1276,59 @@ private fun NativeToolSection(
                 .padding(13.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val iconRotation by animateFloatAsState(
+            val outerSpin by animateFloatAsState(
                 targetValue = if (open) 180f else 0f,
-                animationSpec = tween(520, easing = EaseInOutCubic),
-                label = "iconSpin"
+                animationSpec = tween(
+                    600,
+                    easing = EaseInOutCubic
+                ),
+                label = "outerSpin"
+            )
+
+            val innerSpin by animateFloatAsState(
+                targetValue = if (open) -180f else 0f,
+                animationSpec = tween(
+                    600,
+                    easing = EaseInOutCubic
+                ),
+                label = "innerSpin"
             )
 
             Box(
                 Modifier
                     .size(42.dp)
-                    .rotate(iconRotation)
+                    .rotate(outerSpin)
                     .clip(
-                        if (open) CircleShape
-                        else RoundedCornerShape(9.dp)
+                        if (open)
+                            CircleShape
+                        else
+                            RoundedCornerShape(9.dp)
                     )
                     .background(sectionAccent),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    icon,
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Box(
+                    Modifier
+                        .size(31.dp)
+                        .rotate(innerSpin)
+                        .clip(
+                            if (open)
+                                CircleShape
+                            else
+                                RoundedCornerShape(6.dp)
+                        )
+                        .background(
+                            Color.White.copy(alpha = .10f)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        icon,
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(Modifier.width(12.dp))
