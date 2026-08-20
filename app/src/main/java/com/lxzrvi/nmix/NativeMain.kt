@@ -94,6 +94,10 @@ fun NativeMainPage(
         else Color(0xFF202321)
     var topOpen by remember { mutableStateOf(true) }
     var calculatorOpen by remember { mutableStateOf(false) }
+
+    var display by remember { mutableStateOf("Ready") }
+    var displayLabel by remember { mutableStateOf("NMIX LIVE") }
+    var status by remember { mutableStateOf("Choose a tool below.") }
     var clockOpen by remember { mutableStateOf(false) }
     var counterOpen by remember { mutableStateOf(false) }
     var instructionsOpen by remember { mutableStateOf(false) }
@@ -209,9 +213,6 @@ fun NativeMainPage(
     var operator by remember { mutableStateOf("") }
     var targetSecond by remember { mutableStateOf(false) }
 
-    var display by remember { mutableStateOf("Ready") }
-    var displayLabel by remember { mutableStateOf("NMIX LIVE") }
-    var status by remember { mutableStateOf("Choose a tool below.") }
 
     val colors = NativeGreen
 
