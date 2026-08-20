@@ -522,28 +522,29 @@ fun NativeMainPage(
 
                         onTimerTap = {
                             calculatorOpen = false
+                            stopwatchRunning = false
                             activeMode = "timer"
-                            display = timerText()
-                            displayLabel = "TIMER"
-                            status =
-                                "Use − / + for five seconds. Hold Timer to start."
+
+                            if (timerSeconds <= 0) {
+                                status = "Add five seconds before starting."
+                            } else {
+                                timerRunning = !timerRunning
+
+                                status = if (timerRunning)
+                                    "Timer running."
+                                else
+                                    "Timer paused."
+                            }
                         },
 
                         onTimerHold = {
                             calculatorOpen = false
                             activeMode = "timer"
-
-                            if (timerSeconds <= 0) {
-                                status =
-                                    "Add five seconds before starting."
-                            } else {
-                                timerRunning = !timerRunning
-
-                                status = if (timerRunning)
-                                    "Timer running. Hold Timer to pause."
-                                else
-                                    "Timer paused. Hold Timer to continue."
-                            }
+                            timerRunning = false
+                            timerSeconds = 10
+                            display = "00:10"
+                            displayLabel = "TIMER"
+                            status = "Timer reset to 10 seconds."
                         },
 
                         onMinus = {
@@ -815,6 +816,22 @@ fun NativeMainPage(
                         status = status,
                         accent = colors.accent,
                         light = colors.light,
+                        showTimerControls = activeMode == "timer",
+                        onTimerMinus = {
+                            timerSeconds =
+                                (timerSeconds - 5).coerceAtLeast(0)
+
+                            if (timerSeconds == 0) {
+                                timerRunning = false
+                                status = "Timer is at zero."
+                            } else {
+                                status = "Five seconds removed."
+                            }
+                        },
+                        onTimerPlus = {
+                            timerSeconds += 5
+                            status = "Five seconds added."
+                        },
                         onClick = {
                             if (
                                 calculatorOpen &&
@@ -840,29 +857,47 @@ fun NativeMainPage(
                     .clickable { settingsOpen = false }
             )
 
-            SettingsPanel(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .windowInsetsPadding(WindowInsets.statusBars)
-                    .padding(top = 67.dp),
-                darkMode = darkMode,
-                themeName = themeName,
-                onDarkChange = {
-                    darkMode = !darkMode
-                    prefs.edit()
-                        .putBoolean("dark", darkMode)
-                        .apply()
-                },
-                onTheme = {
-                    themeName = it
-                    prefs.edit()
-                        .putString("theme", it)
-                        .apply()
-                },
-                onClose = {
-                    settingsOpen = false
-                }
-            )
+            AnimatedVisibility(
+                visible = settingsOpen,
+                modifier = Modifier.align(Alignment.TopEnd),
+                enter = slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(
+                        360,
+                        easing = EaseOutCubic
+                    )
+                ) + fadeIn(tween(220)),
+                exit = slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(
+                        320,
+                        easing = EaseInCubic
+                    )
+                ) + fadeOut(tween(180))
+            ) {
+                SettingsPanel(
+                    modifier = Modifier
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                        .padding(top = 67.dp),
+                    darkMode = darkMode,
+                    themeName = themeName,
+                    onDarkChange = {
+                        darkMode = !darkMode
+                        prefs.edit()
+                            .putBoolean("dark", darkMode)
+                            .apply()
+                    },
+                    onTheme = {
+                        themeName = it
+                        prefs.edit()
+                            .putString("theme", it)
+                            .apply()
+                    },
+                    onClose = {
+                        settingsOpen = false
+                    }
+                )
+            }
         }
 
         if (fullscreenClock) {
@@ -1022,6 +1057,9 @@ private fun NativeResultDisplay(
     status: String,
     accent: Color,
     light: Color,
+    showTimerControls: Boolean = false,
+    onTimerMinus: () -> Unit = {},
+    onTimerPlus: () -> Unit = {},
     onClick: () -> Unit
 ) {
     val motion = rememberInfiniteTransition(label = "resultMotion")
@@ -1085,10 +1123,53 @@ private fun NativeResultDisplay(
                 )
         )
 
+        AnimatedVisibility(
+            visible = showTimerControls,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 12.dp),
+            enter = fadeIn(tween(240)) +
+                scaleIn(initialScale = .8f),
+            exit = fadeOut(tween(180)) +
+                scaleOut(targetScale = .8f)
+        ) {
+            NativePressButton(
+                text = "−",
+                modifier = Modifier.size(46.dp),
+                background = accent,
+                textColor = Color.White,
+                onClick = onTimerMinus
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showTimerControls,
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 12.dp),
+            enter = fadeIn(tween(240)) +
+                scaleIn(initialScale = .8f),
+            exit = fadeOut(tween(180)) +
+                scaleOut(targetScale = .8f)
+        ) {
+            NativePressButton(
+                text = "+",
+                modifier = Modifier.size(46.dp),
+                background = accent,
+                textColor = Color.White,
+                onClick = onTimerPlus
+            )
+        }
+
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(12.dp),
+                .padding(
+                    start = if (showTimerControls) 65.dp else 12.dp,
+                    end = if (showTimerControls) 65.dp else 12.dp,
+                    top = 12.dp,
+                    bottom = 12.dp
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -1103,7 +1184,7 @@ private fun NativeResultDisplay(
             Text(
                 value,
                 color = Color(0xFF152C24),
-                fontSize = 31.sp,
+                fontSize = 38.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
             )
@@ -1113,8 +1194,9 @@ private fun NativeResultDisplay(
             Text(
                 status,
                 color = Color(0xFF397C68),
-                fontSize = 9.sp,
-                maxLines = 1
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 2
             )
         }
     }
@@ -1441,82 +1523,55 @@ private fun ClockTools(
         Modifier
             .fillMaxWidth()
             .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(9.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ClockModeButton(
+            title = "Timer",
+            icon = "◴",
+            active = activeMode == "timer",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(58.dp),
+            onClick = onTimerTap,
+            onLongClick = onTimerHold
+        )
+
+        Box(
+            Modifier.fillMaxWidth()
         ) {
             ClockModeButton(
-                title = "Timer",
-                subtitle = if (timerRunning) "Running • $timerText"
-                else "Countdown • $timerText",
-                icon = "◴",
-                active = activeMode == "timer",
-                modifier = Modifier.weight(1f),
-                onClick = onTimerTap,
-                onLongClick = onTimerHold
-            )
-
-            ClockModeButton(
                 title = "Clock",
-                subtitle = clockText,
                 icon = "◷",
                 active = activeMode == "clock",
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(58.dp),
                 onClick = onClock
             )
 
-            ClockModeButton(
-                title = "Stopwatch",
-                subtitle = if (stopwatchRunning)
-                    "Running • $stopwatchText"
-                else stopwatchText,
-                icon = "◉",
-                active = activeMode == "stopwatch",
-                modifier = Modifier.weight(1f),
-                onClick = onStopwatchTap,
-                onLongClick = onStopwatchHold
-            )
-        }
-
-        AnimatedVisibility(
-            visible = activeMode == "timer",
-            enter = fadeIn(tween(250)) +
-                expandVertically(tween(300)),
-            exit = fadeOut(tween(180)) +
-                shrinkVertically(tween(250))
-        ) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                NativePressButton(
-                    text = "−",
-                    modifier = Modifier.size(44.dp),
-                    background = Accent,
-                    textColor = Color.White,
-                    onClick = onMinus
-                )
-
+            if (activeMode == "clock") {
                 Text(
-                    timerText,
-                    modifier = Modifier.padding(horizontal = 22.dp),
-                    color = Color(0xFF202321),
+                    "⛶",
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 15.dp),
+                    color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
-
-                NativePressButton(
-                    text = "+",
-                    modifier = Modifier.size(44.dp),
-                    background = Accent,
-                    textColor = Color.White,
-                    onClick = onPlus
-                )
             }
         }
+
+        ClockModeButton(
+            title = "Stopwatch",
+            icon = "◉",
+            active = activeMode == "stopwatch",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(58.dp),
+            onClick = onStopwatchTap,
+            onLongClick = onStopwatchHold
+        )
     }
 }
 
@@ -1524,7 +1579,6 @@ private fun ClockTools(
 @Composable
 private fun ClockModeButton(
     title: String,
-    subtitle: String,
     icon: String,
     active: Boolean,
     modifier: Modifier,
@@ -1535,51 +1589,69 @@ private fun ClockModeButton(
     val pressed by interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if (pressed) .94f else 1f,
-        spring(stiffness = 700f),
-        label = "clockPress"
+        targetValue = if (pressed) .965f else 1f,
+        animationSpec = spring(
+            dampingRatio = .7f,
+            stiffness = 700f
+        ),
+        label = "clockRowPress"
     )
 
     Box(
-        modifier
+        modifier = modifier
             .scale(scale)
             .clip(RoundedCornerShape(13.dp))
             .background(
-                if (active) Accent
-                else Color(0xFFDEE1DF)
+                if (active)
+                    Accent.copy(alpha = .92f)
+                else
+                    Color.White.copy(alpha = .22f)
             )
             .combinedClickable(
                 interactionSource = interaction,
                 indication = null,
                 onClick = onClick,
-                onLongClick = { onLongClick?.invoke() }
+                onLongClick = {
+                    onLongClick?.invoke()
+                }
             )
-            .padding(10.dp)
+            .padding(horizontal = 14.dp),
+        contentAlignment = Alignment.CenterStart
     ) {
-        Column {
-            Text(
-                icon,
-                color = if (active) Color.White else Accent,
-                fontSize = 20.sp
-            )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier
+                    .size(35.dp)
+                    .clip(
+                        if (active) CircleShape
+                        else RoundedCornerShape(9.dp)
+                    )
+                    .background(
+                        if (active)
+                            Color.White.copy(alpha = .92f)
+                        else Accent.copy(alpha = .20f)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    icon,
+                    color = if (active) Accent else Accent,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.width(12.dp))
 
             Text(
                 title,
-                color = if (active) Color.White
-                else Color(0xFF202321),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                subtitle,
                 color = if (active)
-                    Color.White.copy(alpha = .75f)
-                else Color(0xFF66706C),
-                fontSize = 7.sp,
-                maxLines = 1
+                    Color.White
+                else Color(0xFF202321),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold
             )
         }
     }
