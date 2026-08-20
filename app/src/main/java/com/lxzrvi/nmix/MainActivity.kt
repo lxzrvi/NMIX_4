@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private val Emerald = Color(0xFF319B79)
+private val Accent = Color(0xFF319B79)
 
 @Composable
 fun NmixApp() {
@@ -57,167 +57,196 @@ fun NmixApp() {
 @Composable
 private fun LandingScreen(onStart: () -> Unit) {
     val context = LocalContext.current
-    val infinite = rememberInfiniteTransition(label = "bg")
+    val motion = rememberInfiniteTransition(label = "movingBackground")
 
-    val x1 by infinite.animateFloat(
-        -170f, 190f,
-        infiniteRepeatable(tween(8000, easing = EaseInOutSine), RepeatMode.Reverse),
-        label = "x1"
+    val moveOne by motion.animateFloat(
+        initialValue = -260f,
+        targetValue = 270f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3900, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "moveOne"
     )
 
-    val y1 by infinite.animateFloat(
-        -80f, 210f,
-        infiniteRepeatable(tween(10500, easing = EaseInOutSine), RepeatMode.Reverse),
-        label = "y1"
+    val moveTwo by motion.animateFloat(
+        initialValue = 250f,
+        targetValue = -280f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5100, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "moveTwo"
     )
 
-    val x2 by infinite.animateFloat(
-        170f, -180f,
-        infiniteRepeatable(tween(12000, easing = EaseInOutSine), RepeatMode.Reverse),
-        label = "x2"
+    val moveVertical by motion.animateFloat(
+        initialValue = -190f,
+        targetValue = 220f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4500, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "vertical"
     )
 
-    val pulse by infinite.animateFloat(
-        .88f, 1.18f,
-        infiniteRepeatable(tween(6000, easing = EaseInOutSine), RepeatMode.Reverse),
+    val pulse by motion.animateFloat(
+        initialValue = .92f,
+        targetValue = 1.16f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3200, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
         label = "pulse"
     )
 
     Box(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color(0xFF020A08),
-                        Color(0xFF063126),
-                        Color(0xFF0E5B45),
-                        Color(0xFF07362A),
-                        Color(0xFF020B08)
+                        Color(0xFF010A07),
+                        Color(0xFF07392B),
+                        Color(0xFF0D6249),
+                        Color(0xFF07382B),
+                        Color(0xFF020C09)
                     )
                 )
             )
     ) {
-        // Smooth full-screen animated color wash.
+        /*
+         * Oversized blurred circles.
+         * Their edges stay outside/soft, so movement looks like
+         * a changing gradient instead of moving rectangles.
+         */
         Box(
             Modifier
-                .fillMaxSize()
+                .size(560.dp)
+                .offset(x = (-220).dp, y = (-210).dp)
                 .graphicsLayer {
-                    translationX = x1 * .65f
-                    translationY = y1 * .42f
-                    scaleX = 1.55f
-                    scaleY = 1.55f
-                    rotationZ = x2 * .055f
+                    translationX = moveOne
+                    translationY = moveVertical * .55f
+                    scaleX = pulse
+                    scaleY = pulse
                 }
+                .blur(130.dp)
                 .background(
-                    Brush.linearGradient(
-                        listOf(
-                            Color(0xFF06291F).copy(alpha = .20f),
-                            Color(0xFF42C79A).copy(alpha = .42f),
-                            Color.Transparent,
-                            Color(0xFF137A5B).copy(alpha = .36f)
-                        )
-                    )
+                    Color(0xFF65E4B8).copy(alpha = .50f),
+                    CircleShape
                 )
         )
 
         Box(
             Modifier
-                .fillMaxSize()
+                .align(Alignment.BottomEnd)
+                .size(610.dp)
+                .offset(x = 240.dp, y = 230.dp)
                 .graphicsLayer {
-                    translationX = x2 * .55f
-                    translationY = -y1 * .38f
-                    scaleX = 1.65f
-                    scaleY = 1.65f
-                    rotationZ = x1 * .08f
+                    translationX = moveTwo
+                    translationY = -moveVertical * .48f
+                    scaleX = 1.12f
+                    scaleY = 1.12f
                 }
+                .blur(150.dp)
                 .background(
-                    Brush.radialGradient(
-                        listOf(
-                            Color(0xFF8BE6C6).copy(alpha = .28f),
-                            Color(0xFF249B76).copy(alpha = .14f),
-                            Color.Transparent
-                        )
-                    )
+                    Color(0xFF0EAD7B).copy(alpha = .52f),
+                    CircleShape
                 )
         )
 
-        // Main branding + actions stay centered independently.
+        Box(
+            Modifier
+                .align(Alignment.Center)
+                .size(490.dp)
+                .graphicsLayer {
+                    translationX = -moveOne * .65f
+                    translationY = moveTwo * .42f
+                    scaleX = pulse
+                    scaleY = pulse
+                }
+                .blur(155.dp)
+                .background(
+                    Color(0xFF9AF0D2).copy(alpha = .23f),
+                    CircleShape
+                )
+        )
+
+        // Logo and main actions stay centered.
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
-                .padding(horizontal = 22.dp)
-                .offset(y = (-38).dp),
+                .offset(y = (-55).dp)
+                .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "EVERYTHING WITH NUMBERS",
-                color = Color.White.copy(alpha = .72f),
+                text = "EVERYTHING WITH NUMBERS",
+                color = Color.White.copy(alpha = .76f),
                 fontSize = 10.sp,
-                letterSpacing = 2.35.sp,
+                letterSpacing = 2.4.sp,
                 fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(Modifier.height(3.dp))
-
             Text(
-                "NMIX",
+                text = "NMIX",
                 color = Color.White,
                 fontSize = 55.sp,
                 letterSpacing = 6.sp,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(Modifier.height(30.dp))
+            Spacer(Modifier.height(28.dp))
 
             GlassAction("Start", onStart)
 
-            Spacer(Modifier.height(11.dp))
+            Spacer(Modifier.height(10.dp))
 
             GlassAction("Share") {
-                val share = Intent(Intent.ACTION_SEND).apply {
+                val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(
                         Intent.EXTRA_TEXT,
                         "NMIX — EVERYTHING WITH NUMBERS\nhttps://lxzrvi.github.io/NMIX/"
                     )
                 }
-                context.startActivity(Intent.createChooser(share, "Share NMIX"))
+                context.startActivity(
+                    Intent.createChooser(intent, "Share NMIX")
+                )
             }
         }
 
-        // Bottom information area.
-        Column(
+        // Taller info card, deliberately separated from footer.
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 27.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 15.dp)
+                .padding(bottom = 70.dp)
         ) {
             AppInfoCard()
+        }
 
-            Spacer(Modifier.height(8.dp))
+        // Independent branding at absolute bottom.
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "NMIX",
+                color = Color.White.copy(alpha = .92f),
+                fontSize = 13.sp,
+                letterSpacing = 1.sp,
+                fontWeight = FontWeight.Bold
+            )
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    "NMIX",
-                    color = Color.White.copy(alpha = .72f),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp
-                )
-
-                Text(
-                    "  •  lxzrvi  •  © 2026",
-                    color = Color.White.copy(alpha = .42f),
-                    fontSize = 9.sp,
-                    letterSpacing = .2.sp
-                )
-            }
+            Text(
+                text = "  •  lxzrvi  •  © 2026",
+                color = Color.White.copy(alpha = .62f),
+                fontSize = 11.sp,
+                letterSpacing = .1.sp
+            )
         }
     }
 }
@@ -231,13 +260,16 @@ private fun GlassAction(
     val pressed by interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if (pressed) .955f else 1f,
-        spring(dampingRatio = .62f, stiffness = 650f),
-        label = "actionPress"
+        targetValue = if (pressed) .95f else 1f,
+        animationSpec = spring(
+            dampingRatio = .62f,
+            stiffness = 700f
+        ),
+        label = "press"
     )
 
     Box(
-        Modifier
+        modifier = Modifier
             .width(278.dp)
             .height(44.dp)
             .scale(scale)
@@ -251,8 +283,8 @@ private fun GlassAction(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text,
-            color = Color.White.copy(alpha = .94f),
+            text = text,
+            color = Color.White.copy(alpha = .95f),
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -265,11 +297,11 @@ private fun AppInfoCard() {
 
     val messages = remember {
         listOf(
-            "One place for the numbers you use every day.",
-            "Calculate, count and track time without leaving NMIX.",
-            "Fast number tools designed for a clean native experience.",
-            "Made to stay useful even when you're completely offline.",
-            "Numbers and time, brought together in one simple app."
+            "NMIX brings useful number tools together in one place. Calculate everyday values, count things, track time and generate numbers without moving between multiple apps.",
+            "Built around speed and simplicity, NMIX combines a calculator, timer, local clock, stopwatch, counters and random-number tools in one focused native Android experience.",
+            "NMIX is designed to work offline. Its core number and time tools stay available without depending on a website, browser or continuous internet connection.",
+            "EVERYTHING WITH NUMBERS is the idea behind NMIX: a clean toolbox where calculations, counting and time-based utilities can live together with a consistent interface.",
+            "The interface is being designed around smooth motion, clear controls and quick interactions so common number tasks feel simple whether they take seconds or stay open longer."
         )
     }
 
@@ -277,28 +309,28 @@ private fun AppInfoCard() {
 
     LaunchedEffect(Unit) {
         while (true) {
-            delay(3500)
+            delay(4800)
             index = (index + 1) % messages.size
         }
     }
 
     Box(
-        Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
-            .background(Color.White.copy(alpha = .20f))
-            .padding(14.dp)
+            .background(Color.White.copy(alpha = .21f))
+            .padding(15.dp)
     ) {
         Column {
             Row(
-                Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
                         "APP INFO",
-                        color = Color.White.copy(alpha = .6f),
-                        fontSize = 8.sp,
+                        color = Color.White.copy(alpha = .62f),
+                        fontSize = 9.sp,
                         letterSpacing = 1.3.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -306,13 +338,15 @@ private fun AppInfoCard() {
                     Text(
                         "NMIX",
                         color = Color.White,
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.2.sp
+                        fontSize = 21.sp,
+                        letterSpacing = 1.2.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
                     MiniGlassButton("Web") {
                         context.startActivity(
                             Intent(
@@ -333,76 +367,87 @@ private fun AppInfoCard() {
                 }
             }
 
-            Spacer(Modifier.height(11.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // Exactly two horizontal boxes.
             Row(
-                Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(9.dp)
             ) {
+                // Changing information
                 Box(
-                    Modifier
-                        .weight(1f)
-                        .height(88.dp)
-                        .clip(RoundedCornerShape(15.dp))
+                    modifier = Modifier
+                        .weight(1.18f)
+                        .height(144.dp)
+                        .clip(RoundedCornerShape(16.dp))
                         .background(Color.White.copy(alpha = .15f))
-                        .padding(11.dp),
+                        .padding(12.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     AnimatedContent(
                         targetState = index,
                         transitionSpec = {
-                            fadeIn(tween(550)) togetherWith fadeOut(tween(400))
+                            fadeIn(tween(500)) togetherWith
+                                fadeOut(tween(400))
                         },
-                        label = "details"
-                    ) { i ->
+                        label = "information"
+                    ) { current ->
                         Text(
-                            messages[i],
-                            color = Color.White.copy(alpha = .9f),
-                            fontSize = 10.sp,
-                            lineHeight = 15.sp
+                            text = messages[current],
+                            color = Color.White.copy(alpha = .91f),
+                            fontSize = 10.5.sp,
+                            lineHeight = 16.sp
                         )
                     }
                 }
 
+                // Technology section
                 Box(
-                    Modifier
-                        .weight(1f)
-                        .height(88.dp)
-                        .clip(RoundedCornerShape(15.dp))
+                    modifier = Modifier
+                        .weight(.82f)
+                        .height(144.dp)
+                        .clip(RoundedCornerShape(16.dp))
                         .background(Color.White.copy(alpha = .15f))
                         .padding(11.dp)
                 ) {
-                    Column(
-                        Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center
-                    ) {
+                    Column {
                         Text(
                             "BUILT WITH",
-                            color = Color.White.copy(alpha = .52f),
-                            fontSize = 7.sp,
-                            letterSpacing = 1.sp
-                        )
-
-                        Spacer(Modifier.height(5.dp))
-
-                        Text(
-                            "Kotlin\nJetpack Compose\nAndroid",
-                            color = Color.White.copy(alpha = .9f),
+                            color = Color.White.copy(alpha = .65f),
                             fontSize = 9.sp,
-                            lineHeight = 14.sp,
-                            fontWeight = FontWeight.Medium
+                            letterSpacing = 1.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
 
-                        Text(
-                            "Native • Offline",
-                            color = Color(0xFF9DEBD1),
-                            fontSize = 8.sp
-                        )
+                        Spacer(Modifier.height(9.dp))
+
+                        TechPill("Kotlin")
+                        Spacer(Modifier.height(5.dp))
+                        TechPill("Jetpack Compose")
+                        Spacer(Modifier.height(5.dp))
+                        TechPill("Android SDK")
+                        Spacer(Modifier.height(5.dp))
+                        TechPill("Gradle")
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TechPill(text: String) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(Accent.copy(alpha = .42f))
+            .padding(horizontal = 9.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = text,
+            color = Color(0xFFC5F8E7),
+            fontSize = 8.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
@@ -415,16 +460,16 @@ private fun MiniGlassButton(
     val pressed by interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if (pressed) .9f else 1f,
-        spring(stiffness = 700f),
-        label = "mini"
+        targetValue = if (pressed) .90f else 1f,
+        animationSpec = spring(stiffness = 700f),
+        label = "miniPress"
     )
 
     Box(
-        Modifier
+        modifier = Modifier
             .scale(scale)
             .clip(RoundedCornerShape(50))
-            .background(Color.White.copy(alpha = .18f))
+            .background(Color.White.copy(alpha = .20f))
             .clickable(
                 interactionSource = interaction,
                 indication = null,
@@ -434,7 +479,7 @@ private fun MiniGlassButton(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text,
+            text = text,
             color = Color.White,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold
@@ -445,15 +490,17 @@ private fun MiniGlassButton(
 @Composable
 private fun MainScreen() {
     Box(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFDEDEDE)),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
                 "NMIX",
-                color = Emerald,
+                color = Accent,
                 fontSize = 43.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 4.sp
