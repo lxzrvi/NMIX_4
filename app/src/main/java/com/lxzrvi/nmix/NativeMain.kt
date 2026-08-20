@@ -22,6 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -48,6 +51,47 @@ private val NativeGreen = NmixColors(
 fun NativeMainPage(
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    val prefs = remember {
+        context.getSharedPreferences(
+            "nmix_appearance",
+            android.content.Context.MODE_PRIVATE
+        )
+    }
+
+    var settingsOpen by remember { mutableStateOf(false) }
+    var fullscreenClock by remember { mutableStateOf(false) }
+
+    var darkMode by remember {
+        mutableStateOf(prefs.getBoolean("dark", false))
+    }
+
+    var themeName by remember {
+        mutableStateOf(
+            prefs.getString("theme", "green") ?: "green"
+        )
+    }
+
+    val themeAccent = when (themeName) {
+        "blue" -> Color(0xFF348BB8)
+        "purple" -> Color(0xFF8A62C8)
+        "orange" -> Color(0xFFD57D35)
+        "rose" -> Color(0xFFC85878)
+        else -> Color(0xFF319B79)
+    }
+
+    val pageBackground =
+        if (darkMode) Color(0xFF0D1110)
+        else Color(0xFFE0E2E1)
+
+    val surfaceColor =
+        if (darkMode) Color(0xFF171C1A)
+        else Color(0xFFF0F1F0)
+
+    val primaryText =
+        if (darkMode) Color(0xFFEDF4F1)
+        else Color(0xFF202321)
     var topOpen by remember { mutableStateOf(true) }
     var calculatorOpen by remember { mutableStateOf(false) }
     var clockOpen by remember { mutableStateOf(false) }
@@ -415,7 +459,7 @@ fun NativeMainPage(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFE0E2E1))
+            .background(pageBackground)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -673,9 +717,9 @@ fun NativeMainPage(
                     .background(
                         Brush.linearGradient(
                             listOf(
-                                colors.dark,
-                                colors.accent,
-                                Color(0xFF173E33)
+                                themeAccent.copy(alpha = .55f),
+                                themeAccent,
+                                Color(0xFF102B23)
                             )
                         )
                     )
@@ -772,7 +816,106 @@ fun NativeMainPage(
                                 second.isNotEmpty()
                             ) {
                                 calculate()
+                            } else if (activeMode == "clock") {
+                                fullscreenClock = true
                             }
+                        }
+                    )
+                }
+            }
+        }
+
+        if (settingsOpen) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = .32f))
+                    .clickable { settingsOpen = false }
+            )
+
+            SettingsPanel(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 82.dp, end = 13.dp),
+                darkMode = darkMode,
+                themeName = themeName,
+                onDarkChange = {
+                    darkMode = !darkMode
+                    prefs.edit()
+                        .putBoolean("dark", darkMode)
+                        .apply()
+                },
+                onTheme = {
+                    themeName = it
+                    prefs.edit()
+                        .putString("theme", it)
+                        .apply()
+                },
+                onClose = {
+                    settingsOpen = false
+                }
+            )
+        }
+
+        if (fullscreenClock) {
+            Dialog(
+                onDismissRequest = {
+                    fullscreenClock = false
+                },
+                properties = DialogProperties(
+                    usePlatformDefaultWidth = false
+                )
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    Color(0xFF07110F),
+                                    themeAccent.copy(alpha = .55f),
+                                    Color(0xFF070D0B)
+                                )
+                            )
+                        )
+                ) {
+                    Column(
+                        Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "NMIX • LOCAL TIME",
+                            color = Color.White.copy(alpha = .65f),
+                            fontSize = 11.sp,
+                            letterSpacing = 2.sp
+                        )
+
+                        Text(
+                            liveTime(),
+                            color = Color.White,
+                            fontSize = 54.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            liveDate(),
+                            color = Color.White.copy(alpha = .65f),
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    NativePillButton(
+                        text = "×  Exit",
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(22.dp)
+                            .width(90.dp)
+                            .height(42.dp),
+                        background =
+                            Color.White.copy(alpha = .15f),
+                        textColor = Color.White,
+                        onClick = {
+                            fullscreenClock = false
                         }
                     )
                 }
@@ -817,8 +960,8 @@ fun NativeMainPage(
         ) {
             NativePressButton(
                 text = if (topOpen) "↑" else "↓",
-                modifier = Modifier.size(43.dp),
-                background = colors.accent.copy(alpha = .90f),
+                modifier = Modifier.size(50.dp),
+                background = themeAccent.copy(alpha = .94f),
                 textColor = Color.White,
                 onClick = {
                     topOpen = !topOpen
@@ -827,11 +970,11 @@ fun NativeMainPage(
 
             NativePressButton(
                 text = "☰",
-                modifier = Modifier.size(43.dp),
-                background = colors.accent.copy(alpha = .90f),
+                modifier = Modifier.size(50.dp),
+                background = themeAccent.copy(alpha = .94f),
                 textColor = Color.White,
                 onClick = {
-                    status = "Settings will be added next."
+                    settingsOpen = true
                 }
             )
         }
@@ -1052,6 +1195,164 @@ private fun NativeToolSection(
                 )
         ) {
             content()
+        }
+    }
+}
+
+@Composable
+private fun SettingsPanel(
+    modifier: Modifier,
+    darkMode: Boolean,
+    themeName: String,
+    onDarkChange: () -> Unit,
+    onTheme: (String) -> Unit,
+    onClose: () -> Unit
+) {
+    Box(
+        modifier
+            .width(330.dp)
+            .clip(RoundedCornerShape(21.dp))
+            .background(
+                if (darkMode) Color(0xFF171C1A)
+                else Color(0xFFF4F4F4)
+            )
+            .padding(17.dp)
+    ) {
+        Column {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "NMIX Settings",
+                        color = if (darkMode) Color.White
+                        else Color(0xFF202321),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        "Personalize your interface",
+                        color = Color(0xFF89928E),
+                        fontSize = 9.sp
+                    )
+                }
+
+                NativePressButton(
+                    text = "×",
+                    modifier = Modifier.size(35.dp),
+                    background = Color(0xFF89928E)
+                        .copy(alpha = .18f),
+                    textColor = if (darkMode)
+                        Color.White else Color(0xFF202321),
+                    onClick = onClose
+                )
+            }
+
+            Spacer(Modifier.height(18.dp))
+
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onDarkChange),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "Appearance",
+                        color = if (darkMode) Color.White
+                        else Color(0xFF202321),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp
+                    )
+
+                    Text(
+                        if (darkMode) "Dark mode" else "Light mode",
+                        color = Color(0xFF89928E),
+                        fontSize = 9.sp
+                    )
+                }
+
+                Box(
+                    Modifier
+                        .width(48.dp)
+                        .height(28.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(
+                            if (darkMode) Accent
+                            else Color(0xFFD0D5D2)
+                        )
+                        .padding(4.dp)
+                ) {
+                    Box(
+                        Modifier
+                            .align(
+                                if (darkMode)
+                                    Alignment.CenterEnd
+                                else Alignment.CenterStart
+                            )
+                            .size(20.dp)
+                            .background(Color.White,CircleShape)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(22.dp))
+
+            Text(
+                "Color Theme",
+                color = if (darkMode) Color.White
+                else Color(0xFF202321),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Spacer(Modifier.height(10.dp))
+
+            val options = listOf(
+                "green" to Color(0xFF319B79),
+                "blue" to Color(0xFF348BB8),
+                "purple" to Color(0xFF8A62C8),
+                "orange" to Color(0xFFD57D35),
+                "rose" to Color(0xFFC85878)
+            )
+
+            Row(
+                horizontalArrangement =
+                    Arrangement.spacedBy(12.dp)
+            ) {
+                options.forEach { (name,color) ->
+                    val selected = name == themeName
+
+                    Box(
+                        Modifier
+                            .size(if (selected) 42.dp else 38.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .clickable {
+                                onTheme(name)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (selected) {
+                            Text(
+                                "✓",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(18.dp))
+
+            Text(
+                "Theme and dark mode are saved on this device.",
+                color = Color(0xFF89928E),
+                fontSize = 8.sp
+            )
         }
     }
 }
