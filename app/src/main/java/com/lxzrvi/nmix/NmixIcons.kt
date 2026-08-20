@@ -4,672 +4,265 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 
-enum class NmixIcon {
-    CALCULATOR,
-    CLOCK,
-    COUNTER,
-    HELP,
-    TIMER,
-    STOPWATCH,
-
-    ARROW_UP,
-    ARROW_DOWN,
-    CHEVRON_DOWN,
-
-    MENU,
-    CLOSE,
-
-    FULLSCREEN,
-    BACK,
-
-    PLUS,
-    MINUS,
-    RESET,
-    RANDOM,
-
-    DECIMAL,
-    PLUS_MINUS,
-    BACKSPACE,
-
-    CHECK
+enum class NmixIcon{
+    CALCULATOR,CLOCK,COUNTER,HELP,TIMER,STOPWATCH,
+    ARROW_UP,ARROW_DOWN,CHEVRON_DOWN,MENU,CLOSE,
+    FULLSCREEN,BACK,PLUS,MINUS,RESET,RANDOM,
+    DECIMAL,PLUS_MINUS,BACKSPACE,CHECK
 }
 
 @Composable
 fun NmixIcon(
-    icon: NmixIcon,
-    modifier: Modifier = Modifier,
-    color: Color = Color.White
-) {
-    Canvas(modifier = modifier) {
-        val w = size.width
-        val h = size.height
-        val unit = size.minDimension
+    icon:NmixIcon,
+    modifier:Modifier=Modifier,
+    color:Color=Color.White
+){
+    Canvas(modifier){
+        val w=size.width
+        val h=size.height
+        val u=size.minDimension
+        val sw=u*.075f
 
-        val strokeWidth = unit * 0.095f
-
-        val stroke = Stroke(
-            width = strokeWidth,
-            cap = StrokeCap.Round,
-            join = StrokeJoin.Round
+        val stroke=Stroke(
+            width=sw,
+            cap=StrokeCap.Round,
+            join=StrokeJoin.Round
         )
 
-        fun point(
-            x: Float,
-            y: Float
-        ) = Offset(
-            x = w * x,
-            y = h * y
-        )
+        fun p(x:Float,y:Float)=Offset(w*x,h*y)
 
         fun line(
-            x1: Float,
-            y1: Float,
-            x2: Float,
-            y2: Float
-        ) {
+            x1:Float,y1:Float,
+            x2:Float,y2:Float
+        ){
             drawLine(
-                color = color,
-                start = point(x1, y1),
-                end = point(x2, y2),
-                strokeWidth = strokeWidth,
-                cap = StrokeCap.Round
+                color,
+                p(x1,y1),
+                p(x2,y2),
+                sw,
+                StrokeCap.Round
             )
         }
 
-        fun circle(
-            x: Float,
-            y: Float,
-            radius: Float
-        ) {
+        fun dot(x:Float,y:Float,r:Float){
             drawCircle(
-                color = color,
-                radius = unit * radius,
-                center = point(x, y)
+                color,
+                u*r,
+                p(x,y)
             )
         }
 
-        when (icon) {
-            NmixIcon.CALCULATOR -> {
-                circle(
-                    x = 0.50f,
-                    y = 0.23f,
-                    radius = 0.055f
-                )
+        fun ring(
+            x:Float,
+            y:Float,
+            r:Float
+        ){
+            drawCircle(
+                color,
+                u*r,
+                p(x,y),
+                style=stroke
+            )
+        }
 
-                line(
-                    0.22f,
-                    0.50f,
-                    0.78f,
-                    0.50f
-                )
-
-                circle(
-                    x = 0.50f,
-                    y = 0.77f,
-                    radius = 0.055f
-                )
+        when(icon){
+            NmixIcon.CALCULATOR->{
+                dot(.5f,.23f,.045f)
+                line(.24f,.5f,.76f,.5f)
+                dot(.5f,.77f,.045f)
             }
 
-            NmixIcon.CLOCK -> {
-                drawCircle(
-                    color = color,
-                    radius = unit * 0.34f,
-                    center = point(
-                        0.50f,
-                        0.50f
-                    ),
-                    style = stroke
-                )
-
-                line(
-                    0.50f,
-                    0.50f,
-                    0.50f,
-                    0.29f
-                )
-
-                line(
-                    0.50f,
-                    0.50f,
-                    0.68f,
-                    0.59f
-                )
+            NmixIcon.CLOCK->{
+                ring(.5f,.5f,.34f)
+                line(.5f,.5f,.5f,.30f)
+                line(.5f,.5f,.66f,.59f)
             }
 
             NmixIcon.COUNTER,
-            NmixIcon.PLUS -> {
-                line(
-                    0.50f,
-                    0.20f,
-                    0.50f,
-                    0.80f
-                )
-
-                line(
-                    0.20f,
-                    0.50f,
-                    0.80f,
-                    0.50f
-                )
+            NmixIcon.PLUS->{
+                line(.5f,.22f,.5f,.78f)
+                line(.22f,.5f,.78f,.5f)
             }
 
-            NmixIcon.MINUS -> {
-                line(
-                    0.20f,
-                    0.50f,
-                    0.80f,
-                    0.50f
-                )
+            NmixIcon.MINUS->{
+                line(.22f,.5f,.78f,.5f)
             }
 
-            NmixIcon.HELP -> {
-                val path = Path().apply {
-                    moveTo(
-                        w * 0.29f,
-                        h * 0.31f
-                    )
-
+            NmixIcon.HELP->{
+                val path=Path().apply{
+                    moveTo(w*.31f,h*.31f)
                     cubicTo(
-                        w * 0.34f,
-                        h * 0.12f,
-                        w * 0.72f,
-                        h * 0.10f,
-                        w * 0.72f,
-                        h * 0.35f
+                        w*.35f,h*.16f,
+                        w*.48f,h*.12f,
+                        w*.59f,h*.16f
                     )
-
                     cubicTo(
-                        w * 0.72f,
-                        h * 0.53f,
-                        w * 0.50f,
-                        h * 0.56f,
-                        w * 0.50f,
-                        h * 0.67f
+                        w*.73f,h*.21f,
+                        w*.75f,h*.36f,
+                        w*.69f,h*.46f
+                    )
+                    cubicTo(
+                        w*.64f,h*.54f,
+                        w*.51f,h*.55f,
+                        w*.51f,h*.67f
                     )
                 }
-
-                drawPath(
-                    path = path,
-                    color = color,
-                    style = stroke
-                )
-
-                circle(
-                    x = 0.50f,
-                    y = 0.84f,
-                    radius = 0.055f
-                )
+                drawPath(path,color,style=stroke)
+                dot(.51f,.82f,.045f)
             }
 
-            NmixIcon.TIMER -> {
-                drawCircle(
-                    color = color,
-                    radius = unit * 0.31f,
-                    center = point(
-                        0.50f,
-                        0.55f
-                    ),
-                    style = stroke
-                )
-
-                line(
-                    0.41f,
-                    0.16f,
-                    0.59f,
-                    0.16f
-                )
-
-                line(
-                    0.50f,
-                    0.16f,
-                    0.50f,
-                    0.24f
-                )
-
-                line(
-                    0.50f,
-                    0.55f,
-                    0.63f,
-                    0.41f
-                )
+            NmixIcon.TIMER->{
+                ring(.5f,.56f,.30f)
+                line(.41f,.17f,.59f,.17f)
+                line(.5f,.17f,.5f,.25f)
+                line(.70f,.31f,.77f,.38f)
+                line(.5f,.56f,.5f,.39f)
+                line(.5f,.56f,.63f,.47f)
             }
 
-            NmixIcon.STOPWATCH -> {
-                drawCircle(
-                    color = color,
-                    radius = unit * 0.31f,
-                    center = point(
-                        0.50f,
-                        0.53f
-                    ),
-                    style = stroke
-                )
-
-                line(
-                    0.42f,
-                    0.14f,
-                    0.58f,
-                    0.14f
-                )
-
-                line(
-                    0.50f,
-                    0.14f,
-                    0.50f,
-                    0.22f
-                )
-
-                circle(
-                    x = 0.50f,
-                    y = 0.53f,
-                    radius = 0.075f
-                )
+            NmixIcon.STOPWATCH->{
+                ring(.5f,.56f,.30f)
+                line(.41f,.17f,.59f,.17f)
+                line(.5f,.17f,.5f,.25f)
+                line(.70f,.31f,.77f,.38f)
+                line(.5f,.56f,.5f,.38f)
+                dot(.5f,.56f,.035f)
             }
 
-            NmixIcon.ARROW_UP -> {
-                line(
-                    0.50f,
-                    0.78f,
-                    0.50f,
-                    0.24f
-                )
-
-                line(
-                    0.50f,
-                    0.24f,
-                    0.30f,
-                    0.44f
-                )
-
-                line(
-                    0.50f,
-                    0.24f,
-                    0.70f,
-                    0.44f
-                )
+            NmixIcon.ARROW_UP->{
+                line(.5f,.77f,.5f,.25f)
+                line(.5f,.25f,.31f,.44f)
+                line(.5f,.25f,.69f,.44f)
             }
 
-            NmixIcon.ARROW_DOWN -> {
-                line(
-                    0.50f,
-                    0.22f,
-                    0.50f,
-                    0.76f
-                )
-
-                line(
-                    0.50f,
-                    0.76f,
-                    0.30f,
-                    0.56f
-                )
-
-                line(
-                    0.50f,
-                    0.76f,
-                    0.70f,
-                    0.56f
-                )
+            NmixIcon.ARROW_DOWN->{
+                line(.5f,.23f,.5f,.75f)
+                line(.5f,.75f,.31f,.56f)
+                line(.5f,.75f,.69f,.56f)
             }
 
-            NmixIcon.CHEVRON_DOWN -> {
-                line(
-                    0.27f,
-                    0.38f,
-                    0.50f,
-                    0.62f
-                )
-
-                line(
-                    0.50f,
-                    0.62f,
-                    0.73f,
-                    0.38f
-                )
+            NmixIcon.CHEVRON_DOWN->{
+                line(.28f,.39f,.5f,.61f)
+                line(.5f,.61f,.72f,.39f)
             }
 
-            NmixIcon.MENU -> {
-                line(
-                    0.20f,
-                    0.28f,
-                    0.80f,
-                    0.28f
-                )
-
-                line(
-                    0.20f,
-                    0.50f,
-                    0.80f,
-                    0.50f
-                )
-
-                line(
-                    0.20f,
-                    0.72f,
-                    0.80f,
-                    0.72f
-                )
+            NmixIcon.MENU->{
+                line(.22f,.30f,.78f,.30f)
+                line(.22f,.50f,.78f,.50f)
+                line(.22f,.70f,.78f,.70f)
             }
 
-            NmixIcon.CLOSE -> {
-                line(
-                    0.27f,
-                    0.27f,
-                    0.73f,
-                    0.73f
-                )
-
-                line(
-                    0.73f,
-                    0.27f,
-                    0.27f,
-                    0.73f
-                )
+            NmixIcon.CLOSE->{
+                line(.29f,.29f,.71f,.71f)
+                line(.71f,.29f,.29f,.71f)
             }
 
-            NmixIcon.FULLSCREEN -> {
-                line(
-                    0.18f,
-                    0.38f,
-                    0.18f,
-                    0.18f
-                )
-
-                line(
-                    0.18f,
-                    0.18f,
-                    0.38f,
-                    0.18f
-                )
-
-                line(
-                    0.62f,
-                    0.18f,
-                    0.82f,
-                    0.18f
-                )
-
-                line(
-                    0.82f,
-                    0.18f,
-                    0.82f,
-                    0.38f
-                )
-
-                line(
-                    0.18f,
-                    0.62f,
-                    0.18f,
-                    0.82f
-                )
-
-                line(
-                    0.18f,
-                    0.82f,
-                    0.38f,
-                    0.82f
-                )
-
-                line(
-                    0.62f,
-                    0.82f,
-                    0.82f,
-                    0.82f
-                )
-
-                line(
-                    0.82f,
-                    0.82f,
-                    0.82f,
-                    0.62f
-                )
+            NmixIcon.FULLSCREEN->{
+                line(.20f,.39f,.20f,.20f)
+                line(.20f,.20f,.39f,.20f)
+                line(.61f,.20f,.80f,.20f)
+                line(.80f,.20f,.80f,.39f)
+                line(.20f,.61f,.20f,.80f)
+                line(.20f,.80f,.39f,.80f)
+                line(.61f,.80f,.80f,.80f)
+                line(.80f,.80f,.80f,.61f)
             }
 
-            NmixIcon.BACK -> {
-                line(
-                    0.78f,
-                    0.50f,
-                    0.24f,
-                    0.50f
-                )
-
-                line(
-                    0.24f,
-                    0.50f,
-                    0.44f,
-                    0.30f
-                )
-
-                line(
-                    0.24f,
-                    0.50f,
-                    0.44f,
-                    0.70f
-                )
+            NmixIcon.BACK->{
+                line(.77f,.5f,.25f,.5f)
+                line(.25f,.5f,.43f,.32f)
+                line(.25f,.5f,.43f,.68f)
             }
 
-            NmixIcon.RESET -> {
-                val path = Path().apply {
-                    moveTo(
-                        w * 0.73f,
-                        h * 0.35f
-                    )
-
+            NmixIcon.RESET->{
+                val path=Path().apply{
+                    moveTo(w*.72f,h*.34f)
                     cubicTo(
-                        w * 0.59f,
-                        h * 0.16f,
-                        w * 0.27f,
-                        h * 0.20f,
-                        w * 0.22f,
-                        h * 0.48f
+                        w*.61f,h*.20f,
+                        w*.41f,h*.17f,
+                        w*.28f,h*.29f
                     )
-
                     cubicTo(
-                        w * 0.17f,
-                        h * 0.75f,
-                        w * 0.48f,
-                        h * 0.88f,
-                        w * 0.68f,
-                        h * 0.69f
+                        w*.12f,h*.43f,
+                        w*.18f,h*.70f,
+                        w*.36f,h*.79f
+                    )
+                    cubicTo(
+                        w*.50f,h*.86f,
+                        w*.67f,h*.79f,
+                        w*.73f,h*.67f
                     )
                 }
-
-                drawPath(
-                    path,
-                    color,
-                    style = stroke
-                )
-
-                line(
-                    0.73f,
-                    0.35f,
-                    0.73f,
-                    0.17f
-                )
-
-                line(
-                    0.73f,
-                    0.35f,
-                    0.55f,
-                    0.34f
-                )
+                drawPath(path,color,style=stroke)
+                line(.72f,.34f,.72f,.18f)
+                line(.72f,.34f,.56f,.34f)
             }
 
-            NmixIcon.RANDOM -> {
-                line(
-                    0.18f,
-                    0.30f,
-                    0.34f,
-                    0.30f
-                )
+            NmixIcon.RANDOM->{
+                val top=Path().apply{
+                    moveTo(w*.18f,h*.31f)
+                    lineTo(w*.31f,h*.31f)
+                    cubicTo(
+                        w*.42f,h*.31f,
+                        w*.55f,h*.69f,
+                        w*.69f,h*.69f
+                    )
+                    lineTo(w*.81f,h*.69f)
+                }
 
-                line(
-                    0.34f,
-                    0.30f,
-                    0.67f,
-                    0.69f
-                )
+                val bottom=Path().apply{
+                    moveTo(w*.18f,h*.69f)
+                    lineTo(w*.31f,h*.69f)
+                    cubicTo(
+                        w*.42f,h*.69f,
+                        w*.55f,h*.31f,
+                        w*.69f,h*.31f
+                    )
+                    lineTo(w*.81f,h*.31f)
+                }
 
-                line(
-                    0.67f,
-                    0.69f,
-                    0.82f,
-                    0.69f
-                )
+                drawPath(top,color,style=stroke)
+                drawPath(bottom,color,style=stroke)
 
-                line(
-                    0.70f,
-                    0.59f,
-                    0.82f,
-                    0.69f
-                )
-
-                line(
-                    0.70f,
-                    0.79f,
-                    0.82f,
-                    0.69f
-                )
-
-                line(
-                    0.18f,
-                    0.70f,
-                    0.34f,
-                    0.70f
-                )
-
-                line(
-                    0.34f,
-                    0.70f,
-                    0.67f,
-                    0.31f
-                )
-
-                line(
-                    0.67f,
-                    0.31f,
-                    0.82f,
-                    0.31f
-                )
-
-                line(
-                    0.70f,
-                    0.21f,
-                    0.82f,
-                    0.31f
-                )
-
-                line(
-                    0.70f,
-                    0.41f,
-                    0.82f,
-                    0.31f
-                )
+                line(.70f,.59f,.81f,.69f)
+                line(.70f,.79f,.81f,.69f)
+                line(.70f,.21f,.81f,.31f)
+                line(.70f,.41f,.81f,.31f)
             }
 
-            NmixIcon.DECIMAL -> {
-                circle(
-                    0.50f,
-                    0.68f,
-                    0.07f
-                )
+            NmixIcon.DECIMAL->{
+                dot(.5f,.67f,.065f)
             }
 
-            NmixIcon.PLUS_MINUS -> {
-                line(
-                    0.23f,
-                    0.31f,
-                    0.57f,
-                    0.31f
-                )
-
-                line(
-                    0.40f,
-                    0.14f,
-                    0.40f,
-                    0.48f
-                )
-
-                line(
-                    0.27f,
-                    0.73f,
-                    0.73f,
-                    0.73f
-                )
+            NmixIcon.PLUS_MINUS->{
+                line(.24f,.31f,.56f,.31f)
+                line(.40f,.15f,.40f,.47f)
+                line(.27f,.72f,.73f,.72f)
             }
 
-            NmixIcon.BACKSPACE -> {
-                val path = Path().apply {
-                    moveTo(
-                        w * 0.20f,
-                        h * 0.50f
-                    )
-
-                    lineTo(
-                        w * 0.36f,
-                        h * 0.29f
-                    )
-
-                    lineTo(
-                        w * 0.80f,
-                        h * 0.29f
-                    )
-
-                    lineTo(
-                        w * 0.80f,
-                        h * 0.71f
-                    )
-
-                    lineTo(
-                        w * 0.36f,
-                        h * 0.71f
-                    )
-
+            NmixIcon.BACKSPACE->{
+                val path=Path().apply{
+                    moveTo(w*.19f,h*.5f)
+                    lineTo(w*.35f,h*.30f)
+                    lineTo(w*.79f,h*.30f)
+                    lineTo(w*.79f,h*.70f)
+                    lineTo(w*.35f,h*.70f)
                     close()
                 }
-
-                drawPath(
-                    path,
-                    color,
-                    style = stroke
-                )
-
-                line(
-                    0.47f,
-                    0.40f,
-                    0.65f,
-                    0.60f
-                )
-
-                line(
-                    0.65f,
-                    0.40f,
-                    0.47f,
-                    0.60f
-                )
+                drawPath(path,color,style=stroke)
+                line(.48f,.41f,.64f,.59f)
+                line(.64f,.41f,.48f,.59f)
             }
 
-            NmixIcon.CHECK -> {
-                line(
-                    0.24f,
-                    0.52f,
-                    0.43f,
-                    0.70f
-                )
-
-                line(
-                    0.43f,
-                    0.70f,
-                    0.77f,
-                    0.31f
-                )
+            NmixIcon.CHECK->{
+                line(.25f,.52f,.43f,.69f)
+                line(.43f,.69f,.76f,.32f)
             }
         }
     }
