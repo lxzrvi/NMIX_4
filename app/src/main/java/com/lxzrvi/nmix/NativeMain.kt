@@ -4,6 +4,12 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
@@ -41,6 +47,112 @@ fun NativeMainPage(
 ) {
     var topOpen by remember { mutableStateOf(true) }
     var calculatorOpen by remember { mutableStateOf(false) }
+    var clockOpen by remember { mutableStateOf(false) }
+
+    var activeMode by remember { mutableStateOf("idle") }
+
+    var timerSeconds by remember { mutableIntStateOf(10) }
+    var timerRunning by remember { mutableStateOf(false) }
+
+    var stopwatchMs by remember { mutableLongStateOf(0L) }
+    var stopwatchRunning by remember { mutableStateOf(false) }
+    var stopwatchBase by remember { mutableLongStateOf(0L) }
+
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            now = System.currentTimeMillis()
+            delay(250)
+        }
+    }
+
+    LaunchedEffect(timerRunning) {
+        if (timerRunning) {
+            while (timerRunning && timerSeconds > 0) {
+                delay(1000)
+                if (timerRunning) {
+                    timerSeconds = (timerSeconds - 1).coerceAtLeast(0)
+
+                    if (timerSeconds == 0) {
+                        timerRunning = false
+                        display = "00:00"
+                        displayLabel = "TIMER"
+                        status = "Time's up!"
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(stopwatchRunning) {
+        if (stopwatchRunning) {
+            stopwatchBase =
+                android.os.SystemClock.elapsedRealtime() - stopwatchMs
+
+            while (stopwatchRunning) {
+                stopwatchMs =
+                    android.os.SystemClock.elapsedRealtime() - stopwatchBase
+
+                delay(30)
+            }
+        }
+    }
+
+    fun timerText(): String {
+        val m = timerSeconds / 60
+        val sec = timerSeconds % 60
+        return "%02d:%02d".format(m, sec)
+    }
+
+    fun stopwatchText(): String {
+        val total = stopwatchMs / 1000
+        val minutes = total / 60
+        val seconds = total % 60
+        val hundredths = (stopwatchMs % 1000) / 10
+
+        return "%02d:%02d.%02d".format(
+            minutes,
+            seconds,
+            hundredths
+        )
+    }
+
+    fun liveTime(): String =
+        SimpleDateFormat(
+            "hh:mm:ss a",
+            Locale.getDefault()
+        ).format(Date(now))
+
+    fun liveDate(): String =
+        SimpleDateFormat(
+            "EEEE, d MMMM yyyy",
+            Locale.getDefault()
+        ).format(Date(now))
+
+    LaunchedEffect(
+        activeMode,
+        timerSeconds,
+        stopwatchMs,
+        now
+    ) {
+        when (activeMode) {
+            "timer" -> {
+                display = timerText()
+                displayLabel = "TIMER"
+            }
+
+            "stopwatch" -> {
+                display = stopwatchText()
+                displayLabel = "STOPWATCH"
+            }
+
+            "clock" -> {
+                display = liveTime()
+                displayLabel = "LIVE CLOCK"
+            }
+        }
+    }
 
     var first by remember { mutableStateOf("") }
     var second by remember { mutableStateOf("") }
@@ -82,6 +194,10 @@ fun NativeMainPage(
     fun openCalculator() {
         topOpen = true
         calculatorOpen = true
+        clockOpen = false
+        timerRunning = false
+        stopwatchRunning = false
+        activeMode = "calculator"
         displayLabel = "CALCULATOR"
 
         status = when {
@@ -329,12 +445,101 @@ fun NativeMainPage(
                     icon = "◷",
                     title = "Clock",
                     subtitle = "Timer, clock and stopwatch",
-                    open = false,
+                    open = clockOpen,
                     onClick = {
                         topOpen = true
-                        status = "Clock tools are coming next."
+                        calculatorOpen = false
+                        clockOpen = !clockOpen
+
+                        if (clockOpen) {
+                            status = "Choose Timer, Clock or Stopwatch."
+                        }
                     }
-                ) {}
+                ) {
+                    ClockTools(
+                        activeMode = activeMode,
+                        timerText = timerText(),
+                        timerRunning = timerRunning,
+                        clockText = liveTime(),
+                        stopwatchText = stopwatchText(),
+                        stopwatchRunning = stopwatchRunning,
+
+                        onTimerTap = {
+                            calculatorOpen = false
+                            activeMode = "timer"
+                            display = timerText()
+                            displayLabel = "TIMER"
+                            status =
+                                "Use − / + for five seconds. Hold Timer to start."
+                        },
+
+                        onTimerHold = {
+                            calculatorOpen = false
+                            activeMode = "timer"
+
+                            if (timerSeconds <= 0) {
+                                status =
+                                    "Add five seconds before starting."
+                            } else {
+                                timerRunning = !timerRunning
+
+                                status = if (timerRunning)
+                                    "Timer running. Hold Timer to pause."
+                                else
+                                    "Timer paused. Hold Timer to continue."
+                            }
+                        },
+
+                        onMinus = {
+                            activeMode = "timer"
+                            timerSeconds =
+                                (timerSeconds - 5).coerceAtLeast(0)
+
+                            if (timerSeconds == 0) {
+                                timerRunning = false
+                                status = "Timer is at zero."
+                            } else {
+                                status = "Five seconds removed."
+                            }
+                        },
+
+                        onPlus = {
+                            activeMode = "timer"
+                            timerSeconds += 5
+                            status = "Five seconds added."
+                        },
+
+                        onClock = {
+                            timerRunning = false
+                            stopwatchRunning = false
+                            activeMode = "clock"
+                            display = liveTime()
+                            displayLabel = "LIVE CLOCK"
+                            status = "Live clock is active."
+                        },
+
+                        onStopwatchTap = {
+                            timerRunning = false
+                            activeMode = "stopwatch"
+
+                            stopwatchRunning = !stopwatchRunning
+
+                            status = if (stopwatchRunning)
+                                "Stopwatch running."
+                            else
+                                "Stopwatch paused. Tap again to continue."
+                        },
+
+                        onStopwatchHold = {
+                            activeMode = "stopwatch"
+                            stopwatchRunning = false
+                            stopwatchMs = 0L
+                            display = "00:00.00"
+                            displayLabel = "STOPWATCH"
+                            status = "Stopwatch reset."
+                        }
+                    )
+                }
             }
 
             item {
@@ -788,6 +993,171 @@ private fun NativeToolSection(
                 )
         ) {
             content()
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ClockTools(
+    activeMode: String,
+    timerText: String,
+    timerRunning: Boolean,
+    clockText: String,
+    stopwatchText: String,
+    stopwatchRunning: Boolean,
+    onTimerTap: () -> Unit,
+    onTimerHold: () -> Unit,
+    onMinus: () -> Unit,
+    onPlus: () -> Unit,
+    onClock: () -> Unit,
+    onStopwatchTap: () -> Unit,
+    onStopwatchHold: () -> Unit
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(9.dp)
+    ) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ClockModeButton(
+                title = "Timer",
+                subtitle = if (timerRunning) "Running • $timerText"
+                else "Countdown • $timerText",
+                icon = "◴",
+                active = activeMode == "timer",
+                modifier = Modifier.weight(1f),
+                onClick = onTimerTap,
+                onLongClick = onTimerHold
+            )
+
+            ClockModeButton(
+                title = "Clock",
+                subtitle = clockText,
+                icon = "◷",
+                active = activeMode == "clock",
+                modifier = Modifier.weight(1f),
+                onClick = onClock
+            )
+
+            ClockModeButton(
+                title = "Stopwatch",
+                subtitle = if (stopwatchRunning)
+                    "Running • $stopwatchText"
+                else stopwatchText,
+                icon = "◉",
+                active = activeMode == "stopwatch",
+                modifier = Modifier.weight(1f),
+                onClick = onStopwatchTap,
+                onLongClick = onStopwatchHold
+            )
+        }
+
+        AnimatedVisibility(
+            visible = activeMode == "timer",
+            enter = fadeIn(tween(250)) +
+                expandVertically(tween(300)),
+            exit = fadeOut(tween(180)) +
+                shrinkVertically(tween(250))
+        ) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                NativePressButton(
+                    text = "−",
+                    modifier = Modifier.size(44.dp),
+                    background = Accent,
+                    textColor = Color.White,
+                    onClick = onMinus
+                )
+
+                Text(
+                    timerText,
+                    modifier = Modifier.padding(horizontal = 22.dp),
+                    color = Color(0xFF202321),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                NativePressButton(
+                    text = "+",
+                    modifier = Modifier.size(44.dp),
+                    background = Accent,
+                    textColor = Color.White,
+                    onClick = onPlus
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ClockModeButton(
+    title: String,
+    subtitle: String,
+    icon: String,
+    active: Boolean,
+    modifier: Modifier,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        if (pressed) .94f else 1f,
+        spring(stiffness = 700f),
+        label = "clockPress"
+    )
+
+    Box(
+        modifier
+            .scale(scale)
+            .clip(RoundedCornerShape(13.dp))
+            .background(
+                if (active) Accent
+                else Color(0xFFDEE1DF)
+            )
+            .combinedClickable(
+                interactionSource = interaction,
+                indication = null,
+                onClick = onClick,
+                onLongClick = { onLongClick?.invoke() }
+            )
+            .padding(10.dp)
+    ) {
+        Column {
+            Text(
+                icon,
+                color = if (active) Color.White else Accent,
+                fontSize = 20.sp
+            )
+
+            Spacer(Modifier.height(6.dp))
+
+            Text(
+                title,
+                color = if (active) Color.White
+                else Color(0xFF202321),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                subtitle,
+                color = if (active)
+                    Color.White.copy(alpha = .75f)
+                else Color(0xFF66706C),
+                fontSize = 7.sp,
+                maxLines = 1
+            )
         }
     }
 }
