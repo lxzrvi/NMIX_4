@@ -32,12 +32,19 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+private val LocalV2Accent =
+    staticCompositionLocalOf { Color(0xFF319B79) }
+
+private val LocalV2Dark =
+    staticCompositionLocalOf { false }
 
 private data class NmixColorsV2(
     val accent: Color,
@@ -939,8 +946,6 @@ fun NativeMainPageV2(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 8.dp)
-                .clip(RoundedCornerShape(50))
-                .background(Color(0xFFE0E2E1).copy(alpha = .92f))
                 .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -1003,7 +1008,10 @@ private fun NativeResultDisplayV2(
     accent: Color,
     light: Color,
     onClick: () -> Unit
-) {
+) {    val displayDarkV2 = LocalV2Dark.current
+    val displayAccentV2 = LocalV2Accent.current
+
+
     val motion = rememberInfiniteTransition(label = "resultMotion")
 
     val move by motion.animateFloat(
@@ -1022,8 +1030,12 @@ private fun NativeResultDisplayV2(
             .background(
                 Brush.linearGradient(
                     listOf(
-                        Color(0xFFF0F3F1),
-                        Color(0xFFD7DFDC)
+                        if (displayDarkV2)
+                            Color(0xFF202725)
+                        else Color(0xFFF0F3F1),
+                        if (displayDarkV2)
+                            Color(0xFF121816)
+                        else Color(0xFFD7DFDC)
                     )
                 )
             )
@@ -1082,7 +1094,9 @@ private fun NativeResultDisplayV2(
 
             Text(
                 value,
-                color = Color(0xFF152C24),
+                color = if (displayDarkV2)
+                    Color.White
+                else Color(0xFF152C24),
                 fontSize = 39.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
@@ -1549,16 +1563,6 @@ private fun CounterToolsV2(
             .fillMaxWidth()
             .padding(12.dp)
     ) {
-        Text(
-            value.toString(),
-            modifier = Modifier.fillMaxWidth(),
-            color = Accent,
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(Modifier.height(10.dp))
-
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
