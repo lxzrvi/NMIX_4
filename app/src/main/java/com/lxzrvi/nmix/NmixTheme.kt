@@ -3,13 +3,16 @@ package com.lxzrvi.nmix
 import android.content.Context
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 
-enum class NmixThemeName {
-    GREEN,
-    BLUE,
-    PURPLE,
-    ORANGE,
-    ROSE
+enum class NmixThemeName{
+    GREEN,BLUE,PURPLE,ORANGE,ROSE
+}
+
+enum class NmixFontName{
+    INTER,NUNITO,OUTFIT,POPPINS,QUICKSAND
 }
 
 @Stable
@@ -75,20 +78,73 @@ fun NmixThemeName.palette():NmixPalette=when(this){
     NmixThemeName.ROSE->RosePalette
 }
 
+val NmixInter=FontFamily(
+    Font(R.font.inter_regular,FontWeight.Normal),
+    Font(R.font.inter_bold,FontWeight.Bold)
+)
+
+val NmixNunito=FontFamily(
+    Font(R.font.nunito_regular,FontWeight.Normal),
+    Font(R.font.nunito_bold,FontWeight.Bold)
+)
+
+val NmixOutfit=FontFamily(
+    Font(R.font.outfit_regular,FontWeight.Normal),
+    Font(R.font.outfit_bold,FontWeight.Bold)
+)
+
+val NmixPoppins=FontFamily(
+    Font(R.font.poppins_regular,FontWeight.Normal),
+    Font(R.font.poppins_bold,FontWeight.Bold)
+)
+
+val NmixQuicksand=FontFamily(
+    Font(R.font.quicksand_regular,FontWeight.Normal),
+    Font(R.font.quicksand_bold,FontWeight.Bold)
+)
+
+val NmixLogoFont=FontFamily(
+    Font(R.font.cinzel_decorative_bold,FontWeight.Bold)
+)
+
+fun NmixFontName.family():FontFamily=when(this){
+    NmixFontName.INTER->NmixInter
+    NmixFontName.NUNITO->NmixNunito
+    NmixFontName.OUTFIT->NmixOutfit
+    NmixFontName.POPPINS->NmixPoppins
+    NmixFontName.QUICKSAND->NmixQuicksand
+}
+
+fun NmixFontName.label():String=when(this){
+    NmixFontName.INTER->"Inter"
+    NmixFontName.NUNITO->"Nunito"
+    NmixFontName.OUTFIT->"Outfit"
+    NmixFontName.POPPINS->"Poppins"
+    NmixFontName.QUICKSAND->"Quicksand"
+}
+
 @Stable
 class NmixAppearanceState internal constructor(
     initialTheme:NmixThemeName,
     initialDark:Boolean,
+    initialFont:NmixFontName,
     private val context:Context
 ){
     private var themeState by mutableStateOf(initialTheme)
     private var darkModeState by mutableStateOf(initialDark)
+    private var fontState by mutableStateOf(initialFont)
 
     val theme:NmixThemeName
         get()=themeState
 
     val darkMode:Boolean
         get()=darkModeState
+
+    val font:NmixFontName
+        get()=fontState
+
+    val fontFamily:FontFamily
+        get()=fontState.family()
 
     val palette:NmixPalette
         get()=themeState.palette()
@@ -115,10 +171,20 @@ class NmixAppearanceState internal constructor(
         setDarkMode(!darkModeState)
     }
 
+    fun setFont(value:NmixFontName){
+        if(fontState==value)return
+        fontState=value
+        context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_FONT,value.name)
+            .apply()
+    }
+
     companion object{
         const val PREFS="nmix_appearance"
         const val KEY_THEME="theme_v2"
         const val KEY_DARK="dark_v2"
+        const val KEY_FONT="font_v1"
     }
 }
 
@@ -140,6 +206,15 @@ fun rememberNmixAppearance(context:Context):NmixAppearanceState{
             )
         }.getOrDefault(NmixThemeName.GREEN)
 
+        val savedFont=runCatching{
+            NmixFontName.valueOf(
+                prefs.getString(
+                    NmixAppearanceState.KEY_FONT,
+                    NmixFontName.INTER.name
+                )?:NmixFontName.INTER.name
+            )
+        }.getOrDefault(NmixFontName.INTER)
+
         val savedDark=prefs.getBoolean(
             NmixAppearanceState.KEY_DARK,
             false
@@ -148,6 +223,7 @@ fun rememberNmixAppearance(context:Context):NmixAppearanceState{
         NmixAppearanceState(
             initialTheme=savedTheme,
             initialDark=savedDark,
+            initialFont=savedFont,
             context=appContext
         )
     }
