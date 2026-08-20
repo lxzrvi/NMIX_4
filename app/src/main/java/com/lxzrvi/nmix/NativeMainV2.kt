@@ -16,6 +16,10 @@ import java.util.Locale
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -219,8 +223,8 @@ fun NativeMainPageV2(
     val topHeight by animateDpAsState(
         targetValue = when {
             !topOpen -> 0.dp
-            calculatorOpen -> 395.dp
-            else -> 325.dp
+            calculatorOpen -> 430.dp
+            else -> 355.dp
         },
         animationSpec = spring(
             dampingRatio = .85f,
@@ -231,9 +235,9 @@ fun NativeMainPageV2(
 
     val contentTop by animateDpAsState(
         targetValue = when {
-            !topOpen -> 72.dp
-            calculatorOpen -> 415.dp
-            else -> 345.dp
+            !topOpen -> 92.dp
+            calculatorOpen -> 450.dp
+            else -> 375.dp
         },
         animationSpec = spring(
             dampingRatio = .85f,
@@ -724,10 +728,11 @@ fun NativeMainPageV2(
                             )
                         )
                     )
+                    .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(
                         start = 12.dp,
                         end = 12.dp,
-                        top = 27.dp,
+                        top = 52.dp,
                         bottom = 11.dp
                     )
             ) {
@@ -737,20 +742,26 @@ fun NativeMainPageV2(
                 ) {
                     Spacer(Modifier.height(7.dp))
 
-                    Text(
-                        "EVERYTHING WITH NUMBERS",
-                        color = Color.White.copy(alpha = .68f),
-                        fontSize = 7.sp,
-                        letterSpacing = 1.8.sp
-                    )
+                    Column(
+                        modifier = Modifier.height(45.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            "EVERYTHING WITH NUMBERS",
+                            color = Color.White.copy(alpha = .68f),
+                            fontSize = 6.5.sp,
+                            letterSpacing = 1.6.sp
+                        )
 
-                    Text(
-                        "NMIX",
-                        color = Color.White,
-                        fontSize = 27.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 4.sp
-                    )
+                        Text(
+                            "NMIX",
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 4.sp
+                        )
+                    }
 
                     AnimatedVisibility(
                         visible = calculatorOpen,
@@ -777,8 +788,8 @@ fun NativeMainPageV2(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(
-                                    top = 15.dp,
-                                    bottom = 9.dp
+                                    top = 11.dp,
+                                    bottom = 10.dp
                                 ),
                             horizontalArrangement =
                                 Arrangement.spacedBy(7.dp)
@@ -952,10 +963,11 @@ fun NativeMainPageV2(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(
                     start = 14.dp,
                     end = 14.dp,
-                    top = 36.dp
+                    top = 8.dp
                 ),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -1071,7 +1083,7 @@ private fun NativeResultDisplayV2(
             Text(
                 value,
                 color = Color(0xFF152C24),
-                fontSize = 31.sp,
+                fontSize = 39.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
             )
@@ -1081,8 +1093,9 @@ private fun NativeResultDisplayV2(
             Text(
                 status,
                 color = Color(0xFF397C68),
-                fontSize = 9.sp,
-                maxLines = 1
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 2
             )
         }
     }
