@@ -52,9 +52,13 @@ fun NmixApp() {
     var started by remember { mutableStateOf(false) }
 
     if (started) {
-        MainScreen()
+        NativeMainPage(
+            onBack = { started = false }
+        )
     } else {
-        LandingScreen { started = true }
+        LandingScreen(
+            onStart = { started = true }
+        )
     }
 }
 
@@ -499,22 +503,6 @@ private fun MiniGlassButton(
     }
 }
 
-@Composable
-private fun MainScreen() {
-    var showMain by remember { mutableStateOf(true) }
-
-    if (showMain) {
-        NativeMainPage(
-            onBack = { showMain = false }
-        )
-    } else {
-        LandingReturn {
-            showMain = true
-        }
-    }
-}
-
-
 /* =========================================================
    MAIN PAGE — NATIVE NMIX
    ========================================================= */
@@ -552,8 +540,8 @@ private fun NativeMainPage(
     val topHeight by animateDpAsState(
         targetValue = when {
             !topOpen -> 0.dp
-            calculatorOpen -> 345.dp
-            else -> 280.dp
+            calculatorOpen -> 395.dp
+            else -> 325.dp
         },
         animationSpec = spring(
             dampingRatio = .85f,
@@ -565,8 +553,8 @@ private fun NativeMainPage(
     val contentTop by animateDpAsState(
         targetValue = when {
             !topOpen -> 72.dp
-            calculatorOpen -> 365.dp
-            else -> 300.dp
+            calculatorOpen -> 415.dp
+            else -> 345.dp
         },
         animationSpec = spring(
             dampingRatio = .85f,
@@ -863,12 +851,16 @@ private fun NativeMainPage(
                 Spacer(Modifier.height(5.dp))
 
                 Box(
-                    Modifier.fillMaxWidth(),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 22.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    NativePressButton(
-                        text = "←",
-                        modifier = Modifier.size(56.dp),
+                    NativePillButton(
+                        text = "Back to the Start",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp),
                         background = colors.accent,
                         textColor = Color.White,
                         onClick = onBack
@@ -880,21 +872,26 @@ private fun NativeMainPage(
                 Column(
                     Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp),
+                        .padding(top = 2.dp, bottom = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        "NMIX  •  lxzrvi  •  © 2026",
-                        color = Color(0xFF66706C),
-                        fontSize = 10.sp
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "NMIX",
+                            color = Color(0xFF4E5753),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = .7.sp
+                        )
 
-                    Text(
-                        "EVERYTHING WITH NUMBERS",
-                        color = Color(0xFF8B9390),
-                        fontSize = 8.sp,
-                        letterSpacing = 1.sp
-                    )
+                        Text(
+                            "  •  lxzrvi  •  © 2026",
+                            color = Color(0xFF737C78),
+                            fontSize = 12.sp
+                        )
+                    }
                 }
             }
         }
@@ -930,7 +927,7 @@ private fun NativeMainPage(
                     .padding(
                         start = 12.dp,
                         end = 12.dp,
-                        top = 13.dp,
+                        top = 27.dp,
                         bottom = 11.dp
                     )
             ) {
@@ -938,6 +935,8 @@ private fun NativeMainPage(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Spacer(Modifier.height(7.dp))
+
                     Text(
                         "EVERYTHING WITH NUMBERS",
                         color = Color.White.copy(alpha = .68f),
@@ -948,7 +947,7 @@ private fun NativeMainPage(
                     Text(
                         "NMIX",
                         color = Color.White,
-                        fontSize = 26.sp,
+                        fontSize = 27.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 4.sp
                     )
@@ -1014,7 +1013,7 @@ private fun NativeMainPage(
                 .padding(
                     start = 14.dp,
                     end = 14.dp,
-                    top = 16.dp
+                    top = 36.dp
                 ),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -1307,6 +1306,47 @@ private fun NativeCalculatorGrid(
 }
 
 @Composable
+private fun NativePillButton(
+    text: String,
+    modifier: Modifier,
+    background: Color,
+    textColor: Color,
+    onClick: () -> Unit
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) .96f else 1f,
+        animationSpec = spring(
+            dampingRatio = .65f,
+            stiffness = 700f
+        ),
+        label = "pillPress"
+    )
+
+    Box(
+        modifier = modifier
+            .scale(scale)
+            .clip(RoundedCornerShape(50))
+            .background(background)
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = textColor,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Composable
 private fun NativePressButton(
     text: String,
     modifier: Modifier,
@@ -1349,42 +1389,3 @@ private fun NativePressButton(
     }
 }
 
-@Composable
-private fun LandingReturn(onReturn: () -> Unit) {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color(0xFF03140F),
-                        Color(0xFF16785B),
-                        Color(0xFF03140F)
-                    )
-                )
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                "EVERYTHING WITH NUMBERS",
-                color = Color.White.copy(alpha = .7f),
-                fontSize = 10.sp,
-                letterSpacing = 2.sp
-            )
-
-            Text(
-                "NMIX",
-                color = Color.White,
-                fontSize = 50.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(Modifier.height(25.dp))
-
-            GlassAction("Return to NMIX", onReturn)
-        }
-    }
-}
