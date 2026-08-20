@@ -14,248 +14,199 @@ enum class NmixThemeName {
 
 @Stable
 data class NmixPalette(
-    val name: NmixThemeName,
-    val accent: Color,
-    val accentDark: Color,
-    val accentLight: Color,
-    val topDark: Color,
-    val topEnd: Color
+    val name:NmixThemeName,
+    val accent:Color,
+    val accentDark:Color,
+    val accentLight:Color,
+    val topDark:Color,
+    val topEnd:Color
 )
 
-private val GreenPalette = NmixPalette(
-    name = NmixThemeName.GREEN,
-    accent = Color(0xFF319B79),
-    accentDark = Color(0xFF216E56),
-    accentLight = Color(0xFF69D6B2),
-    topDark = Color(0xFF19493A),
-    topEnd = Color(0xFF173E33)
+private val GreenPalette=NmixPalette(
+    NmixThemeName.GREEN,
+    Color(0xFF319B79),
+    Color(0xFF216E56),
+    Color(0xFF69D6B2),
+    Color(0xFF19493A),
+    Color(0xFF173E33)
 )
 
-private val BluePalette = NmixPalette(
-    name = NmixThemeName.BLUE,
-    accent = Color(0xFF348BB8),
-    accentDark = Color(0xFF225E7D),
-    accentLight = Color(0xFF75C8EF),
-    topDark = Color(0xFF143A50),
-    topEnd = Color(0xFF102C3E)
+private val BluePalette=NmixPalette(
+    NmixThemeName.BLUE,
+    Color(0xFF348BB8),
+    Color(0xFF225E7D),
+    Color(0xFF75C8EF),
+    Color(0xFF143A50),
+    Color(0xFF102C3E)
 )
 
-private val PurplePalette = NmixPalette(
-    name = NmixThemeName.PURPLE,
-    accent = Color(0xFF8A62C8),
-    accentDark = Color(0xFF60428F),
-    accentLight = Color(0xFFC2A1EF),
-    topDark = Color(0xFF33224D),
-    topEnd = Color(0xFF241B37)
+private val PurplePalette=NmixPalette(
+    NmixThemeName.PURPLE,
+    Color(0xFF8A62C8),
+    Color(0xFF60428F),
+    Color(0xFFC2A1EF),
+    Color(0xFF33224D),
+    Color(0xFF241B37)
 )
 
-private val OrangePalette = NmixPalette(
-    name = NmixThemeName.ORANGE,
-    accent = Color(0xFFD57D35),
-    accentDark = Color(0xFF92531F),
-    accentLight = Color(0xFFEFAD73),
-    topDark = Color(0xFF563116),
-    topEnd = Color(0xFF392313)
+private val OrangePalette=NmixPalette(
+    NmixThemeName.ORANGE,
+    Color(0xFFD57D35),
+    Color(0xFF92531F),
+    Color(0xFFEFAD73),
+    Color(0xFF563116),
+    Color(0xFF392313)
 )
 
-private val RosePalette = NmixPalette(
-    name = NmixThemeName.ROSE,
-    accent = Color(0xFFC85878),
-    accentDark = Color(0xFF893950),
-    accentLight = Color(0xFFEF91AD),
-    topDark = Color(0xFF542338),
-    topEnd = Color(0xFF351722)
+private val RosePalette=NmixPalette(
+    NmixThemeName.ROSE,
+    Color(0xFFC85878),
+    Color(0xFF893950),
+    Color(0xFFEF91AD),
+    Color(0xFF542338),
+    Color(0xFF351722)
 )
 
-fun NmixThemeName.palette(): NmixPalette {
-    return when (this) {
-        NmixThemeName.GREEN -> GreenPalette
-        NmixThemeName.BLUE -> BluePalette
-        NmixThemeName.PURPLE -> PurplePalette
-        NmixThemeName.ORANGE -> OrangePalette
-        NmixThemeName.ROSE -> RosePalette
-    }
+fun NmixThemeName.palette():NmixPalette=when(this){
+    NmixThemeName.GREEN->GreenPalette
+    NmixThemeName.BLUE->BluePalette
+    NmixThemeName.PURPLE->PurplePalette
+    NmixThemeName.ORANGE->OrangePalette
+    NmixThemeName.ROSE->RosePalette
 }
 
 @Stable
 class NmixAppearanceState internal constructor(
-    initialTheme: NmixThemeName,
-    initialDark: Boolean,
-    private val context: Context
-) {
-    var theme by mutableStateOf(initialTheme)
-        private set
+    initialTheme:NmixThemeName,
+    initialDark:Boolean,
+    private val context:Context
+){
+    private var themeState by mutableStateOf(initialTheme)
+    private var darkModeState by mutableStateOf(initialDark)
 
-    var darkMode by mutableStateOf(initialDark)
-        private set
+    val theme:NmixThemeName
+        get()=themeState
 
-    val palette: NmixPalette
-        get() = theme.palette()
+    val darkMode:Boolean
+        get()=darkModeState
 
-    fun setTheme(value: NmixThemeName) {
-        if (theme == value) return
+    val palette:NmixPalette
+        get()=themeState.palette()
 
-        theme = value
-
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
+    fun setTheme(value:NmixThemeName){
+        if(themeState==value)return
+        themeState=value
+        context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
             .edit()
-            .putString(KEY_THEME, value.name)
+            .putString(KEY_THEME,value.name)
             .apply()
     }
 
-    fun setDarkMode(value: Boolean) {
-        if (darkMode == value) return
-
-        darkMode = value
-
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
+    fun setDarkMode(value:Boolean){
+        if(darkModeState==value)return
+        darkModeState=value
+        context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
             .edit()
-            .putBoolean(KEY_DARK, value)
+            .putBoolean(KEY_DARK,value)
             .apply()
     }
 
-    fun toggleDarkMode() {
-        setDarkMode(!darkMode)
+    fun toggleDarkMode(){
+        setDarkMode(!darkModeState)
     }
 
-    companion object {
-        const val PREFS = "nmix_appearance"
-        const val KEY_THEME = "theme_v2"
-        const val KEY_DARK = "dark_v2"
+    companion object{
+        const val PREFS="nmix_appearance"
+        const val KEY_THEME="theme_v2"
+        const val KEY_DARK="dark_v2"
     }
 }
 
 @Composable
-fun rememberNmixAppearance(
-    context: Context
-): NmixAppearanceState {
-    return remember(context) {
-        val prefs = context.getSharedPreferences(
+fun rememberNmixAppearance(context:Context):NmixAppearanceState{
+    return remember(context){
+        val appContext=context.applicationContext
+        val prefs=appContext.getSharedPreferences(
             NmixAppearanceState.PREFS,
             Context.MODE_PRIVATE
         )
 
-        val savedTheme = runCatching {
+        val savedTheme=runCatching{
             NmixThemeName.valueOf(
                 prefs.getString(
                     NmixAppearanceState.KEY_THEME,
                     NmixThemeName.GREEN.name
-                ) ?: NmixThemeName.GREEN.name
+                )?:NmixThemeName.GREEN.name
             )
         }.getOrDefault(NmixThemeName.GREEN)
 
-        val savedDark = prefs.getBoolean(
+        val savedDark=prefs.getBoolean(
             NmixAppearanceState.KEY_DARK,
             false
         )
 
         NmixAppearanceState(
-            initialTheme = savedTheme,
-            initialDark = savedDark,
-            context = context.applicationContext
+            initialTheme=savedTheme,
+            initialDark=savedDark,
+            context=appContext
         )
     }
 }
 
-/*
- * Shared visual values.
- *
- * Landing, main screen, result display, labels and buttons
- * should all use these instead of hard-coded colors.
- */
 @Stable
 data class NmixUiColors(
-    val page: Color,
-    val glass: Color,
-    val glassStrong: Color,
-    val accentGlass: Color,
-    val accentGlassStrong: Color,
-    val text: Color,
-    val muted: Color,
-    val displayStart: Color,
-    val displayEnd: Color
+    val page:Color,
+    val glass:Color,
+    val glassStrong:Color,
+    val accentGlass:Color,
+    val accentGlassStrong:Color,
+    val text:Color,
+    val muted:Color,
+    val displayStart:Color,
+    val displayEnd:Color
 )
 
-fun NmixAppearanceState.uiColors(): NmixUiColors {
-    val p = palette
+fun NmixAppearanceState.uiColors():NmixUiColors{
+    val p=palette
 
-    return if (darkMode) {
+    return if(darkMode){
         NmixUiColors(
-            page = Color(0xFF0D1110),
-
-            glass = Color.White.copy(
-                alpha = 0.075f
-            ),
-
-            glassStrong = Color.White.copy(
-                alpha = 0.11f
-            ),
-
-            accentGlass = p.accent.copy(
-                alpha = 0.13f
-            ),
-
-            accentGlassStrong = p.accent.copy(
-                alpha = 0.22f
-            ),
-
-            text = Color(0xFFEDF4F1),
-            muted = Color(0xFFA4AFAA),
-
-            displayStart = Color(0xFF202725),
-            displayEnd = Color(0xFF121816)
+            page=Color(0xFF0D1110),
+            glass=Color.White.copy(alpha=.075f),
+            glassStrong=Color.White.copy(alpha=.11f),
+            accentGlass=p.accent.copy(alpha=.13f),
+            accentGlassStrong=p.accent.copy(alpha=.22f),
+            text=Color(0xFFEDF4F1),
+            muted=Color(0xFFA4AFAA),
+            displayStart=Color(0xFF202725),
+            displayEnd=Color(0xFF121816)
         )
-    } else {
+    }else{
         NmixUiColors(
-            page = Color(0xFFE0E2E1),
-
-            glass = Color.White.copy(
-                alpha = 0.60f
-            ),
-
-            glassStrong = Color.White.copy(
-                alpha = 0.78f
-            ),
-
-            accentGlass = p.accent.copy(
-                alpha = 0.10f
-            ),
-
-            accentGlassStrong = p.accent.copy(
-                alpha = 0.17f
-            ),
-
-            text = Color(0xFF202321),
-            muted = Color(0xFF66706C),
-
-            displayStart = Color(0xFFF0F3F1),
-            displayEnd = Color(0xFFD7DFDC)
+            page=Color(0xFFE0E2E1),
+            glass=Color.White.copy(alpha=.60f),
+            glassStrong=Color.White.copy(alpha=.78f),
+            accentGlass=p.accent.copy(alpha=.10f),
+            accentGlassStrong=p.accent.copy(alpha=.17f),
+            text=Color(0xFF202321),
+            muted=Color(0xFF66706C),
+            displayStart=Color(0xFFF0F3F1),
+            displayEnd=Color(0xFFD7DFDC)
         )
     }
 }
 
-val LocalNmixAppearance =
-    staticCompositionLocalOf<NmixAppearanceState> {
-        error(
-            "NMIX appearance has not been provided."
-        )
-    }
+val LocalNmixAppearance=staticCompositionLocalOf<NmixAppearanceState>{
+    error("NMIX appearance has not been provided.")
+}
 
 @Composable
 fun ProvideNmixAppearance(
-    appearance: NmixAppearanceState,
-    content: @Composable () -> Unit
-) {
+    appearance:NmixAppearanceState,
+    content:@Composable ()->Unit
+){
     CompositionLocalProvider(
         LocalNmixAppearance provides appearance,
-        content = content
+        content=content
     )
 }
