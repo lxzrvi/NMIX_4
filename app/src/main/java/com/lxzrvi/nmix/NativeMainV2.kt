@@ -1,9 +1,7 @@
 package com.lxzrvi.nmix
 
-import android.app.Activity
 import android.os.SystemClock
 import androidx.activity.compose.LocalActivity
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
