@@ -29,6 +29,7 @@ import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.random.Random
+import androidx.compose.runtime.saveable.rememberSaveable
 
 @Composable
 fun NativeMainPageV2(onBack:()->Unit){
@@ -39,7 +40,8 @@ fun NativeMainPageV2(onBack:()->Unit){
     var top by remember{mutableStateOf(true)}
     var section by remember{mutableStateOf<String?>(null)}
     var settings by remember{mutableStateOf(false)}
-    var fullscreen by remember{mutableStateOf(false)}
+    var fullscreen by rememberSaveable{
+    mutableStateOf(false)}
 
     var mode by remember{mutableStateOf("idle")}
     var display by remember{mutableStateOf("Ready")}
@@ -894,7 +896,7 @@ fun NativeMainPageV2(onBack:()->Unit){
             enter=fadeIn(tween(420)),
             exit=fadeOut(tween(340))
         ){
-            FullClock(
+            NmixFullscreenClock(
                 time=timeText(),
                 date=dateText(),
                 onExit={
@@ -902,227 +904,5 @@ fun NativeMainPageV2(onBack:()->Unit){
                 }
             )
         }
-    }
-}
-
-@Composable
-private fun FullClock(
-    time:String,
-    date:String,
-    onExit:()->Unit
-){
-    val a=LocalNmixAppearance.current
-    val p=a.palette
-    val activity=LocalActivity.current
-
-    DisposableEffect(activity){
-        val window=
-            activity?.window
-
-        if(window!=null){
-            WindowCompat.setDecorFitsSystemWindows(
-                window,
-                false
-            )
-
-            WindowInsetsControllerCompat(
-                window,
-                window.decorView
-            ).apply{
-                hide(
-                    WindowInsetsCompat.Type.statusBars() or
-                    WindowInsetsCompat.Type.navigationBars()
-                )
-
-                systemBarsBehavior=
-                    WindowInsetsControllerCompat
-                        .BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-        }
-
-        onDispose{
-            if(window!=null){
-                WindowInsetsControllerCompat(
-                    window,
-                    window.decorView
-                ).show(
-                    WindowInsetsCompat.Type.statusBars() or
-                    WindowInsetsCompat.Type.navigationBars()
-                )
-            }
-        }
-    }
-
-    val motion=
-        rememberInfiniteTransition(
-            label="fullClock"
-        )
-
-    val x by motion.animateFloat(
-        -1f,
-        1f,
-        infiniteRepeatable(
-            tween(
-                3400,
-                easing=EaseInOutSine
-            ),
-            RepeatMode.Reverse
-        ),
-        label="clockX"
-    )
-
-    val y by motion.animateFloat(
-        1f,
-        -1f,
-        infiniteRepeatable(
-            tween(
-                4300,
-                easing=EaseInOutSine
-            ),
-            RepeatMode.Reverse
-        ),
-        label="clockY"
-    )
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color(0xFF020403),
-                        p.topDark,
-                        Color(0xFF07100D),
-                        Color(0xFF010201)
-                    )
-                )
-            )
-    ){
-        Box(
-            Modifier
-                .size(680.dp)
-                .align(Alignment.TopStart)
-                .offset(
-                    x=(-300).dp,
-                    y=(-290).dp
-                )
-                .graphicsLayer{
-                    translationX=x*340f
-                    translationY=y*160f
-                }
-                .background(
-                    Brush.radialGradient(
-                        listOf(
-                            p.accent.copy(alpha=.38f),
-                            p.accent.copy(alpha=.12f),
-                            Color.Transparent
-                        )
-                    ),
-                    CircleShape
-                )
-        )
-
-        Box(
-            Modifier
-                .size(600.dp)
-                .align(Alignment.BottomEnd)
-                .offset(
-                    x=260.dp,
-                    y=250.dp
-                )
-                .graphicsLayer{
-                    translationX=-x*280f
-                    translationY=-y*140f
-                }
-                .background(
-                    Brush.radialGradient(
-                        listOf(
-                            p.accentLight.copy(alpha=.24f),
-                            Color.Transparent
-                        )
-                    ),
-                    CircleShape
-                )
-        )
-
-        Column(
-            Modifier
-                .align(Alignment.TopStart)
-                .padding(22.dp)
-        ){
-            Text(
-                "EVERYTHING WITH NUMBERS",
-                color=
-                    Color.White.copy(
-                        alpha=.54f
-                    ),
-                fontSize=7.sp,
-                letterSpacing=1.5.sp,
-                fontFamily=a.fontFamily
-            )
-
-            Text(
-                "NMIX",
-                color=Color.White,
-                fontSize=24.sp,
-                fontWeight=FontWeight.Bold,
-                letterSpacing=2.sp,
-                fontFamily=NmixLogoFont
-            )
-        }
-
-        Column(
-            Modifier.align(Alignment.Center),
-            horizontalAlignment=
-                Alignment.CenterHorizontally
-        ){
-            Text(
-                "NMIX • LOCAL TIME",
-                color=
-                    p.accentLight.copy(
-                        alpha=.92f
-                    ),
-                fontSize=10.sp,
-                letterSpacing=2.sp,
-                fontWeight=FontWeight.Bold,
-                fontFamily=a.fontFamily
-            )
-
-            Spacer(
-                Modifier.height(13.dp)
-            )
-
-            Text(
-                time,
-                color=Color.White,
-                fontSize=50.sp,
-                fontWeight=FontWeight.Bold,
-                fontFamily=a.fontFamily
-            )
-
-            Spacer(
-                Modifier.height(8.dp)
-            )
-
-            Text(
-                date,
-                color=
-                    Color.White.copy(
-                        alpha=.68f
-                    ),
-                fontSize=12.sp,
-                fontFamily=a.fontFamily
-            )
-        }
-
-        NmixTextButton(
-            text="Exit",
-            modifier=Modifier
-                .align(Alignment.BottomEnd)
-                .padding(20.dp)
-                .width(94.dp)
-                .height(42.dp),
-            onClick=onExit
-        )
     }
 }
