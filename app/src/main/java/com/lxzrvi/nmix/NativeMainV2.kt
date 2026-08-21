@@ -107,7 +107,8 @@ fun NativeMainPageV2(onBack:()->Unit){
             delay(1000)
 
             if(timerRun){
-                timer=(timer-1).coerceAtLeast(0)
+                timer=(timer-1)
+                    .coerceAtLeast(0)
 
                 if(timer==0){
                     timerRun=false
@@ -161,8 +162,9 @@ fun NativeMainPageV2(onBack:()->Unit){
     }
 
     fun fmt(v:Double):String{
-        if(!v.isFinite())
+        if(!v.isFinite()){
             return "Overflow"
+        }
 
         val i=v.toLong()
 
@@ -173,7 +175,9 @@ fun NativeMainPageV2(onBack:()->Unit){
                 Locale.US,
                 "%.10f",
                 v
-            ).trimEnd('0').trimEnd('.')
+            )
+                .trimEnd('0')
+                .trimEnd('.')
         }
     }
 
@@ -215,6 +219,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                         "Division by zero is not allowed."
                     return
                 }
+
                 x/y
             }
 
@@ -225,6 +230,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                         "Remainder by zero is not allowed."
                     return
                 }
+
                 x%y
             }
 
@@ -263,14 +269,20 @@ fun NativeMainPageV2(onBack:()->Unit){
             "."->if(second){
                 if(!n2.contains(".")){
                     n2+=
-                        if(n2.isEmpty())"0."
-                        else "."
+                        if(n2.isEmpty())
+                            "0."
+                        else
+                            "."
+
                     display=n2
                 }
             }else if(!n1.contains(".")){
                 n1+=
-                    if(n1.isEmpty())"0."
-                    else "."
+                    if(n1.isEmpty())
+                        "0."
+                    else
+                        "."
+
                 display=n1
             }
 
@@ -347,7 +359,7 @@ fun NativeMainPageV2(onBack:()->Unit){
     val headerHeight by animateDpAsState(
         targetValue=headerTarget,
         animationSpec=tween(
-            390,
+            420,
             easing=EaseInOutCubic
         ),
         label="header"
@@ -360,17 +372,19 @@ fun NativeMainPageV2(onBack:()->Unit){
             else
                 112.dp,
         animationSpec=tween(
-            390,
+            420,
             easing=EaseInOutCubic
         ),
         label="list"
     )
 
-    Box(
+    BoxWithConstraints(
         Modifier
             .fillMaxSize()
             .background(ui.page)
     ){
+        val pageHeight=maxHeight
+
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding=PaddingValues(
@@ -493,8 +507,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                         add={
                             count++
                             mode="counter"
-                            status=
-                                "Counter increased."
+                            status="Counter increased."
                         },
 
                         reset={
@@ -519,8 +532,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                                 (count-1)
                                     .coerceAtLeast(0)
                             mode="counter"
-                            status=
-                                "Counter decreased."
+                            status="Counter decreased."
                         }
                     )
                 }
@@ -542,8 +554,18 @@ fun NativeMainPageV2(onBack:()->Unit){
             }
 
             item{
+                val footerGap=when{
+                    section!=null->36.dp
+                    !top->140.dp
+                    else->(
+                        pageHeight-
+                        listTop-
+                        320.dp
+                    ).coerceAtLeast(70.dp)
+                }
+
                 Spacer(
-                    Modifier.height(70.dp)
+                    Modifier.height(footerGap)
                 )
             }
 
@@ -597,8 +619,20 @@ fun NativeMainPageV2(onBack:()->Unit){
 
         AnimatedVisibility(
             visible=top,
-            enter=fadeIn(tween(240)),
-            exit=fadeOut(tween(180))
+            enter=
+                fadeIn(
+                    tween(
+                        280,
+                        easing=EaseOutCubic
+                    )
+                ),
+            exit=
+                fadeOut(
+                    tween(
+                        220,
+                        easing=EaseInCubic
+                    )
+                )
         ){
             Box(
                 Modifier
@@ -673,7 +707,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                         enter=
                             expandVertically(
                                 animationSpec=tween(
-                                    390,
+                                    420,
                                     easing=
                                         EaseInOutCubic
                                 ),
@@ -684,14 +718,14 @@ fun NativeMainPageV2(onBack:()->Unit){
                         exit=
                             shrinkVertically(
                                 animationSpec=tween(
-                                    390,
+                                    420,
                                     easing=
                                         EaseInOutCubic
                                 ),
                                 shrinkTowards=
                                     Alignment.Top
                             )+
-                            fadeOut(tween(190))
+                            fadeOut(tween(200))
                     ){
                         Row(
                             Modifier
@@ -770,6 +804,14 @@ fun NativeMainPageV2(onBack:()->Unit){
             Box(
                 Modifier
                     .fillMaxSize()
+                    .background(
+                        Color.Black.copy(
+                            alpha=if(a.darkMode)
+                                .18f
+                            else
+                                .07f
+                        )
+                    )
                     .clickable(
                         interactionSource=remember{
                             MutableInteractionSource()
@@ -791,40 +833,46 @@ fun NativeMainPageV2(onBack:()->Unit){
                 slideInHorizontally(
                     initialOffsetX={it},
                     animationSpec=tween(
-                        360,
+                        440,
                         easing=EaseOutCubic
                     )
                 )+
-                fadeIn(tween(180)),
+                fadeIn(
+                    tween(
+                        260,
+                        easing=EaseOutCubic
+                    )
+                ),
             exit=
                 slideOutHorizontally(
                     targetOffsetX={it},
                     animationSpec=tween(
-                        310,
-                        easing=EaseInCubic
+                        400,
+                        easing=EaseInOutCubic
                     )
                 )+
-                fadeOut(tween(150))
+                fadeOut(
+                    tween(
+                        220,
+                        easing=EaseInCubic
+                    )
+                )
         ){
             Box(
                 Modifier
                     .width(330.dp)
                     .fillMaxHeight()
-                    .windowInsetsPadding(
-                        WindowInsets.statusBars
-                    )
-                    .windowInsetsPadding(
-                        WindowInsets.navigationBars
-                    )
-                    .padding(
-                        top=9.dp,
-                        bottom=9.dp
-                    )
                     .clip(
                         RoundedCornerShape(
                             topStart=24.dp,
                             bottomStart=24.dp
                         )
+                    )
+                    .background(
+                        if(a.darkMode)
+                            Color(0xFF151917)
+                        else
+                            Color(0xFFF0F3F1)
                     )
                     .clickable(
                         interactionSource=remember{
@@ -883,8 +931,20 @@ fun NativeMainPageV2(onBack:()->Unit){
         AnimatedVisibility(
             visible=fullscreen,
             modifier=Modifier.fillMaxSize(),
-            enter=fadeIn(tween(380)),
-            exit=fadeOut(tween(300))
+            enter=
+                fadeIn(
+                    tween(
+                        420,
+                        easing=EaseOutCubic
+                    )
+                ),
+            exit=
+                fadeOut(
+                    tween(
+                        340,
+                        easing=EaseInOutCubic
+                    )
+                )
         ){
             FullClock(
                 time=timeText(),
@@ -950,31 +1010,46 @@ private fun FullClock(
 
     val motion=
         rememberInfiniteTransition(
-            label="fullClockGlow"
+            label="fullClockMotion"
         )
 
-    val move by motion.animateFloat(
+    val moveX by motion.animateFloat(
         initialValue=-1f,
         targetValue=1f,
         animationSpec=
             infiniteRepeatable(
                 animation=tween(
-                    6500,
+                    3400,
                     easing=EaseInOutSine
                 ),
                 repeatMode=
                     RepeatMode.Reverse
             ),
-        label="clockMove"
+        label="clockX"
     )
 
-    val pulse by motion.animateFloat(
-        initialValue=.88f,
-        targetValue=1.18f,
+    val moveY by motion.animateFloat(
+        initialValue=1f,
+        targetValue=-1f,
         animationSpec=
             infiniteRepeatable(
                 animation=tween(
-                    4800,
+                    4300,
+                    easing=EaseInOutSine
+                ),
+                repeatMode=
+                    RepeatMode.Reverse
+            ),
+        label="clockY"
+    )
+
+    val pulse by motion.animateFloat(
+        initialValue=.86f,
+        targetValue=1.17f,
+        animationSpec=
+            infiniteRepeatable(
+                animation=tween(
+                    3100,
                     easing=EaseInOutSine
                 ),
                 repeatMode=
@@ -989,41 +1064,38 @@ private fun FullClock(
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color(0xFF030504),
+                        Color(0xFF020403),
                         p.topDark,
-                        Color(0xFF080D0B),
-                        Color(0xFF010202)
+                        Color(0xFF07100D),
+                        Color(0xFF010201)
                     )
                 )
             )
     ){
         Box(
             Modifier
-                .size(650.dp)
+                .size(680.dp)
                 .align(Alignment.TopStart)
                 .offset(
-                    x=(-280).dp,
-                    y=(-275).dp
+                    x=(-300).dp,
+                    y=(-290).dp
                 )
                 .graphicsLayer{
-                    translationX=move*260f
-                    translationY=move*120f
+                    translationX=moveX*340f
+                    translationY=moveY*160f
                     scaleX=pulse
                     scaleY=pulse
                 }
                 .background(
                     Brush.radialGradient(
-                        colorStops=arrayOf(
-                            0f to
-                                p.accent.copy(
-                                    alpha=.34f
-                                ),
-                            .48f to
-                                p.accent.copy(
-                                    alpha=.13f
-                                ),
-                            1f to
-                                Color.Transparent
+                        listOf(
+                            p.accent.copy(
+                                alpha=.38f
+                            ),
+                            p.accent.copy(
+                                alpha=.12f
+                            ),
+                            Color.Transparent
                         )
                     ),
                     CircleShape
@@ -1032,21 +1104,21 @@ private fun FullClock(
 
         Box(
             Modifier
-                .size(570.dp)
+                .size(600.dp)
                 .align(Alignment.BottomEnd)
                 .offset(
-                    x=240.dp,
-                    y=240.dp
+                    x=260.dp,
+                    y=250.dp
                 )
                 .graphicsLayer{
-                    translationX=-move*210f
-                    translationY=-move*120f
+                    translationX=-moveX*280f
+                    translationY=-moveY*140f
                 }
                 .background(
                     Brush.radialGradient(
                         listOf(
                             p.accentLight.copy(
-                                alpha=.22f
+                                alpha=.24f
                             ),
                             Color.Transparent
                         )
@@ -1057,14 +1129,16 @@ private fun FullClock(
 
         Column(
             Modifier
-                .align(Alignment.TopStart)
+                .align(
+                    Alignment.TopStart
+                )
                 .padding(22.dp)
         ){
             Text(
                 "EVERYTHING WITH NUMBERS",
                 color=
                     Color.White.copy(
-                        alpha=.52f
+                        alpha=.54f
                     ),
                 fontSize=7.sp,
                 letterSpacing=1.5.sp,
