@@ -8,7 +8,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 
 enum class NmixThemeName{
-    GREEN,BLUE,PURPLE,ORANGE,ROSE
+    GREEN,BLUE,PURPLE,ORANGE,ROSE,CYAN
 }
 
 enum class NmixFontName{
@@ -70,12 +70,22 @@ private val RosePalette=NmixPalette(
     Color(0xFF351722)
 )
 
+private val CyanPalette=NmixPalette(
+    NmixThemeName.CYAN,
+    Color(0xFF26A6B5),
+    Color(0xFF176B76),
+    Color(0xFF69DCE7),
+    Color(0xFF123F46),
+    Color(0xFF0D3035)
+)
+
 fun NmixThemeName.palette():NmixPalette=when(this){
     NmixThemeName.GREEN->GreenPalette
     NmixThemeName.BLUE->BluePalette
     NmixThemeName.PURPLE->PurplePalette
     NmixThemeName.ORANGE->OrangePalette
     NmixThemeName.ROSE->RosePalette
+    NmixThemeName.CYAN->CyanPalette
 }
 
 val NmixInter=FontFamily(
@@ -104,7 +114,10 @@ val NmixQuicksand=FontFamily(
 )
 
 val NmixLogoFont=FontFamily(
-    Font(R.font.cinzel_decorative_bold,FontWeight.Bold)
+    Font(
+        R.font.cinzel_decorative_bold,
+        FontWeight.Bold
+    )
 )
 
 fun NmixFontName.family():FontFamily=when(this){
@@ -130,9 +143,14 @@ class NmixAppearanceState internal constructor(
     initialFont:NmixFontName,
     private val context:Context
 ){
-    private var themeState by mutableStateOf(initialTheme)
-    private var darkModeState by mutableStateOf(initialDark)
-    private var fontState by mutableStateOf(initialFont)
+    private var themeState by
+        mutableStateOf(initialTheme)
+
+    private var darkModeState by
+        mutableStateOf(initialDark)
+
+    private var fontState by
+        mutableStateOf(initialFont)
 
     val theme:NmixThemeName
         get()=themeState
@@ -151,19 +169,37 @@ class NmixAppearanceState internal constructor(
 
     fun setTheme(value:NmixThemeName){
         if(themeState==value)return
+
         themeState=value
-        context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
+
+        context
+            .getSharedPreferences(
+                PREFS,
+                Context.MODE_PRIVATE
+            )
             .edit()
-            .putString(KEY_THEME,value.name)
+            .putString(
+                KEY_THEME,
+                value.name
+            )
             .apply()
     }
 
     fun setDarkMode(value:Boolean){
         if(darkModeState==value)return
+
         darkModeState=value
-        context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
+
+        context
+            .getSharedPreferences(
+                PREFS,
+                Context.MODE_PRIVATE
+            )
             .edit()
-            .putBoolean(KEY_DARK,value)
+            .putBoolean(
+                KEY_DARK,
+                value
+            )
             .apply()
     }
 
@@ -173,10 +209,19 @@ class NmixAppearanceState internal constructor(
 
     fun setFont(value:NmixFontName){
         if(fontState==value)return
+
         fontState=value
-        context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
+
+        context
+            .getSharedPreferences(
+                PREFS,
+                Context.MODE_PRIVATE
+            )
             .edit()
-            .putString(KEY_FONT,value.name)
+            .putString(
+                KEY_FONT,
+                value.name
+            )
             .apply()
     }
 
@@ -189,13 +234,18 @@ class NmixAppearanceState internal constructor(
 }
 
 @Composable
-fun rememberNmixAppearance(context:Context):NmixAppearanceState{
+fun rememberNmixAppearance(
+    context:Context
+):NmixAppearanceState{
     return remember(context){
-        val appContext=context.applicationContext
-        val prefs=appContext.getSharedPreferences(
-            NmixAppearanceState.PREFS,
-            Context.MODE_PRIVATE
-        )
+        val appContext=
+            context.applicationContext
+
+        val prefs=
+            appContext.getSharedPreferences(
+                NmixAppearanceState.PREFS,
+                Context.MODE_PRIVATE
+            )
 
         val savedTheme=runCatching{
             NmixThemeName.valueOf(
@@ -204,7 +254,9 @@ fun rememberNmixAppearance(context:Context):NmixAppearanceState{
                     NmixThemeName.GREEN.name
                 )?:NmixThemeName.GREEN.name
             )
-        }.getOrDefault(NmixThemeName.GREEN)
+        }.getOrDefault(
+            NmixThemeName.GREEN
+        )
 
         val savedFont=runCatching{
             NmixFontName.valueOf(
@@ -213,12 +265,15 @@ fun rememberNmixAppearance(context:Context):NmixAppearanceState{
                     NmixFontName.INTER.name
                 )?:NmixFontName.INTER.name
             )
-        }.getOrDefault(NmixFontName.INTER)
-
-        val savedDark=prefs.getBoolean(
-            NmixAppearanceState.KEY_DARK,
-            false
+        }.getOrDefault(
+            NmixFontName.INTER
         )
+
+        val savedDark=
+            prefs.getBoolean(
+                NmixAppearanceState.KEY_DARK,
+                false
+            )
 
         NmixAppearanceState(
             initialTheme=savedTheme,
@@ -272,9 +327,12 @@ fun NmixAppearanceState.uiColors():NmixUiColors{
     }
 }
 
-val LocalNmixAppearance=staticCompositionLocalOf<NmixAppearanceState>{
-    error("NMIX appearance has not been provided.")
-}
+val LocalNmixAppearance=
+    staticCompositionLocalOf<NmixAppearanceState>{
+        error(
+            "NMIX appearance has not been provided."
+        )
+    }
 
 @Composable
 fun ProvideNmixAppearance(
