@@ -127,7 +127,11 @@ private fun ModeRow(
     val a=LocalNmixAppearance.current
     val p=a.palette
     val ui=a.uiColors()
-    val interaction=remember{MutableInteractionSource()}
+
+    val interaction=remember{
+        MutableInteractionSource()
+    }
+
     val pressed by interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
@@ -384,14 +388,14 @@ fun NmixSettings(){
     val p=a.palette
     val scroll=rememberScrollState()
 
-    var info by remember{
+    var detail by remember{
         mutableIntStateOf(0)
     }
 
     LaunchedEffect(Unit){
         while(true){
-            delay(3000)
-            info=(info+1)%3
+            delay(3200)
+            detail=(detail+1)%2
         }
     }
 
@@ -406,27 +410,20 @@ fun NmixSettings(){
                 bottom=22.dp
             )
     ){
-        Row(
-            Modifier.fillMaxWidth(),
-            verticalAlignment=Alignment.CenterVertically
-        ){
-            Column{
-                Text(
-                    "NMIX",
-                    color=ui.text,
-                    fontSize=17.sp,
-                    fontWeight=FontWeight.Bold,
-                    fontFamily=NmixLogoFont
-                )
+        Text(
+            "NMIX",
+            color=ui.text,
+            fontSize=17.sp,
+            fontWeight=FontWeight.Bold,
+            fontFamily=NmixLogoFont
+        )
 
-                Text(
-                    "Appearance Settings",
-                    color=ui.muted,
-                    fontSize=9.sp,
-                    fontFamily=a.fontFamily
-                )
-            }
-        }
+        Text(
+            "Appearance Settings",
+            color=ui.muted,
+            fontSize=9.sp,
+            fontFamily=a.fontFamily
+        )
 
         Spacer(Modifier.height(17.dp))
 
@@ -483,7 +480,7 @@ fun NmixSettings(){
 
         Spacer(Modifier.height(10.dp))
 
-        ThemeGrid(info)
+        ThemeGrid(detail)
 
         Spacer(Modifier.height(20.dp))
 
@@ -510,8 +507,8 @@ fun NmixSettings(){
         ){
             NmixFontName.values().forEach{font->
                 FontPill(
-                    font=font,
-                    selected=a.font==font
+                    font,
+                    a.font==font
                 ){
                     a.setFont(font)
                 }
@@ -530,7 +527,7 @@ fun NmixSettings(){
 }
 
 @Composable
-private fun ThemeGrid(info:Int){
+private fun ThemeGrid(detail:Int){
     val a=LocalNmixAppearance.current
 
     Column(
@@ -547,10 +544,10 @@ private fun ThemeGrid(info:Int){
                 ){
                     row.forEach{theme->
                         ThemeCard(
-                            theme=theme,
-                            selected=a.theme==theme,
-                            info=info,
-                            modifier=Modifier.weight(1f)
+                            theme,
+                            a.theme==theme,
+                            detail,
+                            Modifier.weight(1f)
                         ){
                             a.setTheme(theme)
                         }
@@ -591,7 +588,7 @@ private fun themeDetail(theme:NmixThemeName)=when(theme){
 private fun ThemeCard(
     theme:NmixThemeName,
     selected:Boolean,
-    info:Int,
+    detail:Int,
     modifier:Modifier,
     onClick:()->Unit
 ){
@@ -611,15 +608,15 @@ private fun ThemeCard(
         label="themePress"
     )
 
-    val shape=RoundedCornerShape(15.dp)
+    val shape=RoundedCornerShape(14.dp)
 
-    val background=
+    val bg=
         if(a.darkMode)
             Color.White.copy(alpha=.035f)
         else
             Color.White.copy(alpha=.70f)
 
-    val border=
+    val outline=
         if(selected)
             current.accent
         else
@@ -629,19 +626,17 @@ private fun ThemeCard(
 
     val name=theme.name
         .lowercase()
-        .replaceFirstChar{
-            it.uppercase()
-        }
+        .replaceFirstChar{it.uppercase()}
 
     Column(
         modifier
-            .height(158.dp)
+            .height(132.dp)
             .scale(scale)
             .clip(shape)
-            .background(background)
+            .background(bg)
             .border(
                 if(selected)1.1.dp else .4.dp,
-                border,
+                outline,
                 shape
             )
             .combinedClickable(
@@ -655,19 +650,27 @@ private fun ThemeCard(
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(88.dp)
-                .clip(
-                    RoundedCornerShape(11.dp)
-                )
-                .background(palette.accent)
+                .height(66.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(palette.accent),
+            contentAlignment=Alignment.Center
         ){
+            Text(
+                themeHex(theme),
+                color=Color.White,
+                fontSize=7.5.sp,
+                fontWeight=FontWeight.Bold,
+                fontFamily=a.fontFamily,
+                maxLines=1
+            )
+
             if(selected){
                 NmixIcon(
                     NmixIcon.CHECK,
                     Modifier
                         .align(Alignment.TopEnd)
-                        .padding(7.dp)
-                        .size(15.dp),
+                        .padding(6.dp)
+                        .size(13.dp),
                     Color.White
                 )
             }
@@ -684,16 +687,16 @@ private fun ThemeCard(
             maxLines=1
         )
 
-        Spacer(Modifier.height(3.dp))
+        Spacer(Modifier.height(2.dp))
 
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(36.dp),
+                .height(34.dp),
             contentAlignment=Alignment.TopStart
         ){
             AnimatedContent(
-                targetState=info,
+                targetState=detail,
                 transitionSpec={
                     (
                         fadeIn(tween(320))+
@@ -715,19 +718,18 @@ private fun ThemeCard(
                         )
                     )
                 },
-                label="colorInfo"
+                label="themeDetail"
             ){state->
                 Text(
-                    when(state){
-                        0->themeHex(theme)
-                        1->themeMood(theme)
-                        else->themeDetail(theme)
-                    },
+                    if(state==0)
+                        themeMood(theme)
+                    else
+                        themeDetail(theme),
                     color=ui.muted,
-                    fontSize=7.2.sp,
+                    fontSize=7.1.sp,
                     lineHeight=9.sp,
                     fontWeight=
-                        if(state==1)
+                        if(state==0)
                             FontWeight.SemiBold
                         else
                             FontWeight.Normal,
@@ -763,7 +765,7 @@ private fun FontPill(
 
     val shape=RoundedCornerShape(50)
 
-    val background=
+    val bg=
         if(a.darkMode)
             Color.White.copy(alpha=.035f)
         else
@@ -783,7 +785,7 @@ private fun FontPill(
             .height(40.dp)
             .scale(scale)
             .clip(shape)
-            .background(background)
+            .background(bg)
             .border(
                 if(selected)1.05.dp else .4.dp,
                 outline,
@@ -800,7 +802,7 @@ private fun FontPill(
     ){
         Text(
             font.label(),
-            modifier=Modifier.weight(1f),
+            Modifier.weight(1f),
             color=ui.text,
             fontSize=13.5.sp,
             fontWeight=FontWeight.Bold,
@@ -844,8 +846,7 @@ private fun NmixSwitch(
                 if(on)
                     accent
                 else
-                    Color(0xFF6F7773)
-                        .copy(alpha=.42f)
+                    Color(0xFF6F7773).copy(alpha=.42f)
             )
             .combinedClickable(
                 interactionSource=interaction,
