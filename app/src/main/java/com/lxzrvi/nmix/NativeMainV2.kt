@@ -112,16 +112,24 @@ fun NativeMainPageV2(onBack:()->Unit){
 
     LaunchedEffect(swRun){
         if(swRun){
-            swBase=SystemClock.elapsedRealtime()-sw
+            swBase=
+                SystemClock.elapsedRealtime()-sw
 
             while(swRun){
-                sw=SystemClock.elapsedRealtime()-swBase
+                sw=
+                    SystemClock.elapsedRealtime()-swBase
                 delay(30)
             }
         }
     }
 
-    LaunchedEffect(mode,timer,sw,now,count){
+    LaunchedEffect(
+        mode,
+        timer,
+        sw,
+        now,
+        count
+    ){
         when(mode){
             "timer"->{
                 display=timerText()
@@ -157,16 +165,25 @@ fun NativeMainPageV2(onBack:()->Unit){
                 Locale.US,
                 "%.10f",
                 v
-            ).trimEnd('0').trimEnd('.')
+            )
+                .trimEnd('0')
+                .trimEnd('.')
         }
     }
 
     fun calcStatus(){
         status=when{
-            n1.isEmpty()->"Enter your first number."
-            op.isEmpty()->"Choose an operator."
-            n2.isEmpty()->"Enter the second number."
-            else->"Ready — tap = or the large display."
+            n1.isEmpty()->
+                "Enter your first number."
+
+            op.isEmpty()->
+                "Choose an operator."
+
+            n2.isEmpty()->
+                "Enter the second number."
+
+            else->
+                "Ready — tap = or the large display."
         }
     }
 
@@ -188,7 +205,8 @@ fun NativeMainPageV2(onBack:()->Unit){
             "÷"->{
                 if(y==0.0){
                     display="Error"
-                    status="Division by zero is not allowed."
+                    status=
+                        "Division by zero is not allowed."
                     return
                 }
                 x/y
@@ -197,7 +215,8 @@ fun NativeMainPageV2(onBack:()->Unit){
             "%"->{
                 if(y==0.0){
                     display="Error"
-                    status="Remainder by zero is not allowed."
+                    status=
+                        "Remainder by zero is not allowed."
                     return
                 }
                 x%y
@@ -222,7 +241,8 @@ fun NativeMainPageV2(onBack:()->Unit){
         when(k){
             "+","−","×","÷","%"->{
                 if(n1.isEmpty()){
-                    status="Enter the first number first."
+                    status=
+                        "Enter the first number first."
                     return
                 }
 
@@ -236,11 +256,19 @@ fun NativeMainPageV2(onBack:()->Unit){
 
             "."->if(second){
                 if(!n2.contains(".")){
-                    n2+=if(n2.isEmpty())"0." else "."
+                    n2+=
+                        if(n2.isEmpty())
+                            "0."
+                        else
+                            "."
                     display=n2
                 }
             }else if(!n1.contains(".")){
-                n1+=if(n1.isEmpty())"0." else "."
+                n1+=
+                    if(n1.isEmpty())
+                        "0."
+                    else
+                        "."
                 display=n1
             }
 
@@ -279,12 +307,20 @@ fun NativeMainPageV2(onBack:()->Unit){
                 status="Calculator cleared."
             }
 
-            else->if(k.all(Char::isDigit)){
-                if(second&&n2.length<18){
+            else->if(
+                k.all(Char::isDigit)
+            ){
+                if(
+                    second&&
+                    n2.length<18
+                ){
                     n2+=k
                     display=n2
                     label="SECOND NUMBER"
-                }else if(!second&&n1.length<18){
+                }else if(
+                    !second&&
+                    n1.length<18
+                ){
                     n1+=k
                     display=n1
                     label="FIRST NUMBER"
@@ -297,7 +333,8 @@ fun NativeMainPageV2(onBack:()->Unit){
         }
     }
 
-    val calcOpen=section=="calculator"
+    val calcOpen=
+        section=="calculator"
 
     val headerTarget=when{
         !top->0.dp
@@ -306,22 +343,25 @@ fun NativeMainPageV2(onBack:()->Unit){
     }
 
     val headerHeight by animateDpAsState(
-        headerTarget,
-        tween(420,easing=EaseInOutCubic),
+        targetValue=headerTarget,
+        animationSpec=tween(
+            420,
+            easing=EaseInOutCubic
+        ),
         label="header"
     )
 
-    /*
-     * The LazyColumn itself moves instead of only receiving top
-     * content padding. This creates a real clipping/safe boundary.
-     */
-    val listBoundary by animateDpAsState(
-        if(top)
-            headerTarget+16.dp
-        else
-            108.dp,
-        tween(420,easing=EaseInOutCubic),
-        label="listBoundary"
+    val listTop by animateDpAsState(
+        targetValue=
+            if(top)
+                headerTarget+16.dp
+            else
+                112.dp,
+        animationSpec=tween(
+            420,
+            easing=EaseInOutCubic
+        ),
+        label="listTop"
     )
 
     BoxWithConstraints(
@@ -332,21 +372,20 @@ fun NativeMainPageV2(onBack:()->Unit){
         val pageHeight=maxHeight
 
         LazyColumn(
-            Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .padding(top=listBoundary),
+            Modifier.fillMaxSize(),
             contentPadding=PaddingValues(
-                top=0.dp,
+                top=listTop,
                 bottom=14.dp
             ),
-            verticalArrangement=Arrangement.spacedBy(12.dp)
+            verticalArrangement=
+                Arrangement.spacedBy(12.dp)
         ){
             item{
                 NmixToolSection(
                     icon=NmixIcon.CALCULATOR,
                     title="Calculator",
-                    subtitle="Numbers and operations",
+                    subtitle=
+                        "Numbers and operations",
                     open=calcOpen,
                     onClick={
                         open("calculator")
@@ -363,7 +402,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                 NmixToolSection(
                     icon=NmixIcon.CLOCK,
                     title="Clock",
-                    subtitle="Timer, clock and stopwatch",
+                    subtitle=
+                        "Timer, clock and stopwatch",
                     open=section=="clock",
                     onClick={
                         open("clock")
@@ -371,7 +411,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                         mode="clock"
                         label="LIVE CLOCK"
                         display=timeText()
-                        status="Live clock is active."
+                        status=
+                            "Live clock is active."
                     }
                 ){
                     NmixClockTools(
@@ -382,13 +423,16 @@ fun NativeMainPageV2(onBack:()->Unit){
                             mode="timer"
 
                             if(timer<=0){
-                                status="Add five seconds before starting."
+                                status=
+                                    "Add five seconds before starting."
                             }else{
                                 timerRun=!timerRun
-                                status=if(timerRun)
-                                    "Timer running."
-                                else
-                                    "Timer paused."
+
+                                status=
+                                    if(timerRun)
+                                        "Timer running."
+                                    else
+                                        "Timer paused."
                             }
                         },
 
@@ -396,7 +440,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                             timerRun=false
                             timer=0
                             mode="timer"
-                            status="Timer reset to zero."
+                            status=
+                                "Timer reset to zero."
                         },
 
                         onClock={
@@ -404,7 +449,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                             mode="clock"
                             label="LIVE CLOCK"
                             display=timeText()
-                            status="Live clock is active."
+                            status=
+                                "Live clock is active."
                         },
 
                         onFullscreen={
@@ -418,17 +464,20 @@ fun NativeMainPageV2(onBack:()->Unit){
                             timerRun=false
                             mode="stopwatch"
                             swRun=!swRun
-                            status=if(swRun)
-                                "Stopwatch running."
-                            else
-                                "Stopwatch paused."
+
+                            status=
+                                if(swRun)
+                                    "Stopwatch running."
+                                else
+                                    "Stopwatch paused."
                         },
 
                         onStopwatchReset={
                             swRun=false
                             sw=0
                             mode="stopwatch"
-                            status="Stopwatch reset."
+                            status=
+                                "Stopwatch reset."
                         }
                     )
                 }
@@ -453,25 +502,35 @@ fun NativeMainPageV2(onBack:()->Unit){
                         add={
                             count++
                             mode="counter"
-                            status="Counter increased."
+                            status=
+                                "Counter increased."
                         },
 
                         reset={
                             count=0
                             mode="counter"
-                            status="Counter reset to zero."
+                            status=
+                                "Counter reset to zero."
                         },
 
                         random={
-                            count=Random.nextInt(1,1001)
+                            count=
+                                Random.nextInt(
+                                    1,
+                                    1001
+                                )
                             mode="counter"
-                            status="Random number generated."
+                            status=
+                                "Random number generated."
                         },
 
                         minus={
-                            count=(count-1).coerceAtLeast(0)
+                            count=
+                                (count-1)
+                                    .coerceAtLeast(0)
                             mode="counter"
-                            status="Counter decreased."
+                            status=
+                                "Counter decreased."
                         }
                     )
                 }
@@ -481,7 +540,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                 NmixToolSection(
                     icon=NmixIcon.HELP,
                     title="How to use NMIX",
-                    subtitle="Instructions and controls",
+                    subtitle=
+                        "Instructions and controls",
                     open=section=="help",
                     onClick={
                         open("help")
@@ -489,26 +549,36 @@ fun NativeMainPageV2(onBack:()->Unit){
                         mode="idle"
                         label="NMIX LIVE"
                         display="Ready"
-                        status="NMIX instructions."
+                        status=
+                            "NMIX instructions."
                     }
                 ){
                     NmixInstructions()
                 }
             }
 
+            /*
+             * Closed content keeps the footer at its normal
+             * bottom position regardless of top display collapse.
+             * Only an expanded tool changes the natural page length.
+             */
             item{
-                val available=
-                    pageHeight-listBoundary
-
                 val footerGap=
-                    if(section==null)
-                        (available-430.dp)
-                            .coerceAtLeast(90.dp)
-                    else
-                        42.dp
+                    if(section==null){
+                        (
+                            pageHeight-
+                            690.dp
+                        ).coerceAtLeast(
+                            80.dp
+                        )
+                    }else{
+                        38.dp
+                    }
 
                 Spacer(
-                    Modifier.height(footerGap)
+                    Modifier.height(
+                        footerGap
+                    )
                 )
             }
 
@@ -517,7 +587,9 @@ fun NativeMainPageV2(onBack:()->Unit){
                     text="Back to the Start",
                     modifier=Modifier
                         .fillMaxWidth()
-                        .padding(horizontal=22.dp)
+                        .padding(
+                            horizontal=22.dp
+                        )
                         .height(44.dp),
                     accent=true,
                     onClick=onBack
@@ -525,7 +597,9 @@ fun NativeMainPageV2(onBack:()->Unit){
             }
 
             item{
-                Spacer(Modifier.height(17.dp))
+                Spacer(
+                    Modifier.height(17.dp)
+                )
             }
 
             item{
@@ -533,20 +607,30 @@ fun NativeMainPageV2(onBack:()->Unit){
                     Modifier
                         .fillMaxWidth()
                         .padding(bottom=8.dp),
-                    horizontalArrangement=Arrangement.Center,
-                    verticalAlignment=Alignment.CenterVertically
+                    horizontalArrangement=
+                        Arrangement.Center,
+                    verticalAlignment=
+                        Alignment.CenterVertically
                 ){
                     Text(
                         "NMIX",
-                        color=ui.text.copy(alpha=.82f),
+                        color=
+                            ui.text.copy(
+                                alpha=.82f
+                            ),
                         fontSize=12.sp,
-                        fontWeight=FontWeight.Bold,
-                        fontFamily=NmixLogoFont
+                        fontWeight=
+                            FontWeight.Bold,
+                        fontFamily=
+                            NmixLogoFont
                     )
 
                     Text(
                         "  •  lxzrvi  •  © 2026",
-                        color=ui.text.copy(alpha=.55f),
+                        color=
+                            ui.text.copy(
+                                alpha=.55f
+                            ),
                         fontSize=12.sp,
                         fontFamily=a.fontFamily
                     )
@@ -556,8 +640,20 @@ fun NativeMainPageV2(onBack:()->Unit){
 
         AnimatedVisibility(
             visible=top,
-            enter=fadeIn(tween(280)),
-            exit=fadeOut(tween(220))
+            enter=
+                fadeIn(
+                    tween(
+                        280,
+                        easing=EaseOutCubic
+                    )
+                ),
+            exit=
+                fadeOut(
+                    tween(
+                        220,
+                        easing=EaseInCubic
+                    )
+                )
         ){
             Box(
                 Modifier
@@ -590,20 +686,26 @@ fun NativeMainPageV2(onBack:()->Unit){
             ){
                 Column(
                     Modifier.fillMaxSize(),
-                    horizontalAlignment=Alignment.CenterHorizontally
+                    horizontalAlignment=
+                        Alignment.CenterHorizontally
                 ){
                     Box(
                         Modifier
                             .fillMaxWidth()
                             .height(62.dp),
-                        contentAlignment=Alignment.Center
+                        contentAlignment=
+                            Alignment.Center
                     ){
                         Column(
-                            horizontalAlignment=Alignment.CenterHorizontally
+                            horizontalAlignment=
+                                Alignment.CenterHorizontally
                         ){
                             Text(
                                 "EVERYTHING WITH NUMBERS",
-                                color=Color.White.copy(alpha=.72f),
+                                color=
+                                    Color.White.copy(
+                                        alpha=.72f
+                                    ),
                                 fontSize=7.5.sp,
                                 letterSpacing=1.9.sp,
                                 fontFamily=a.fontFamily
@@ -613,9 +715,11 @@ fun NativeMainPageV2(onBack:()->Unit){
                                 "NMIX",
                                 color=Color.White,
                                 fontSize=27.sp,
-                                fontWeight=FontWeight.Bold,
+                                fontWeight=
+                                    FontWeight.Bold,
                                 letterSpacing=2.2.sp,
-                                fontFamily=NmixLogoFont
+                                fontFamily=
+                                    NmixLogoFont
                             )
                         }
                     }
@@ -624,20 +728,24 @@ fun NativeMainPageV2(onBack:()->Unit){
                         visible=calcOpen,
                         enter=
                             expandVertically(
-                                tween(
+                                animationSpec=tween(
                                     420,
-                                    easing=EaseInOutCubic
+                                    easing=
+                                        EaseInOutCubic
                                 ),
-                                expandFrom=Alignment.Top
+                                expandFrom=
+                                    Alignment.Top
                             )+
                             fadeIn(tween(250)),
                         exit=
                             shrinkVertically(
-                                tween(
+                                animationSpec=tween(
                                     420,
-                                    easing=EaseInOutCubic
+                                    easing=
+                                        EaseInOutCubic
                                 ),
-                                shrinkTowards=Alignment.Top
+                                shrinkTowards=
+                                    Alignment.Top
                             )+
                             fadeOut(tween(200))
                     ){
@@ -648,7 +756,10 @@ fun NativeMainPageV2(onBack:()->Unit){
                                     top=7.dp,
                                     bottom=8.dp
                                 ),
-                            horizontalArrangement=Arrangement.spacedBy(7.dp)
+                            horizontalArrangement=
+                                Arrangement.spacedBy(
+                                    7.dp
+                                )
                         ){
                             NmixCalcField(
                                 n1.ifEmpty{"_"},
@@ -674,14 +785,22 @@ fun NativeMainPageV2(onBack:()->Unit){
                         timer=mode=="timer",
 
                         onMinus={
-                            timer=(timer-5).coerceAtLeast(0)
-                            if(timer==0)timerRun=false
-                            status="Five seconds removed."
+                            timer=
+                                (timer-5)
+                                    .coerceAtLeast(0)
+
+                            if(timer==0){
+                                timerRun=false
+                            }
+
+                            status=
+                                "Five seconds removed."
                         },
 
                         onPlus={
                             timer+=5
-                            status="Five seconds added."
+                            status=
+                                "Five seconds added."
                         },
 
                         onClick={
@@ -729,7 +848,10 @@ fun NativeMainPageV2(onBack:()->Unit){
 
         AnimatedVisibility(
             visible=settings,
-            modifier=Modifier.align(Alignment.CenterEnd),
+            modifier=
+                Modifier.align(
+                    Alignment.CenterEnd
+                ),
             enter=
                 slideInHorizontally(
                     initialOffsetX={it},
@@ -772,7 +894,21 @@ fun NativeMainPageV2(onBack:()->Unit){
                         indication=null
                     ){}
             ){
-                NmixSettings()
+                /*
+                 * Header in NmixSettings now starts at the
+                 * hamburger's visual level instead of under
+                 * the status bar.
+                 */
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .windowInsetsPadding(
+                            WindowInsets.statusBars
+                        )
+                        .padding(top=10.dp)
+                ){
+                    NmixSettings()
+                }
             }
         }
 
@@ -786,8 +922,10 @@ fun NativeMainPageV2(onBack:()->Unit){
                     start=14.dp,
                     top=9.dp
                 ),
-            horizontalArrangement=Arrangement.SpaceBetween,
-            verticalAlignment=Alignment.CenterVertically
+            horizontalArrangement=
+                Arrangement.SpaceBetween,
+            verticalAlignment=
+                Alignment.CenterVertically
         ){
             NmixCircleButton(
                 icon=
@@ -795,10 +933,14 @@ fun NativeMainPageV2(onBack:()->Unit){
                         NmixIcon.ARROW_UP
                     else
                         NmixIcon.ARROW_DOWN,
-                modifier=Modifier.size(48.dp),
+                modifier=
+                    Modifier.size(48.dp),
                 onClick={
                     top=!top
-                    if(!top)settings=false
+
+                    if(!top){
+                        settings=false
+                    }
                 }
             )
 
@@ -821,22 +963,29 @@ fun NativeMainPageV2(onBack:()->Unit){
                     ){
                         settings=!settings
                     },
-                contentAlignment=Alignment.Center
+                contentAlignment=
+                    Alignment.Center
             ){
                 AnimatedContent(
                     targetState=settings,
                     transitionSpec={
                         (
-                            fadeIn(tween(180))+
+                            fadeIn(
+                                tween(180)
+                            )+
                             scaleIn(
                                 initialScale=.82f,
-                                animationSpec=tween(220)
+                                animationSpec=
+                                    tween(220)
                             )
                         ) togetherWith (
-                            fadeOut(tween(140))+
+                            fadeOut(
+                                tween(140)
+                            )+
                             scaleOut(
                                 targetScale=.82f,
-                                animationSpec=tween(180)
+                                animationSpec=
+                                    tween(180)
                             )
                         )
                     },
@@ -856,14 +1005,19 @@ fun NativeMainPageV2(onBack:()->Unit){
 
         AnimatedVisibility(
             visible=fullscreen,
-            modifier=Modifier.fillMaxSize(),
-            enter=fadeIn(tween(420)),
-            exit=fadeOut(tween(340))
+            modifier=
+                Modifier.fillMaxSize(),
+            enter=
+                fadeIn(tween(420)),
+            exit=
+                fadeOut(tween(340))
         ){
             FullClock(
                 time=timeText(),
                 date=dateText(),
-                onExit={fullscreen=false}
+                onExit={
+                    fullscreen=false
+                }
             )
         }
     }
@@ -883,18 +1037,21 @@ private fun FullClock(
         val window=activity?.window
 
         if(window!=null){
-            WindowCompat.setDecorFitsSystemWindows(
-                window,
-                false
-            )
+            WindowCompat
+                .setDecorFitsSystemWindows(
+                    window,
+                    false
+                )
 
             WindowInsetsControllerCompat(
                 window,
                 window.decorView
             ).apply{
                 hide(
-                    WindowInsetsCompat.Type.statusBars() or
-                    WindowInsetsCompat.Type.navigationBars()
+                    WindowInsetsCompat
+                        .Type.statusBars() or
+                    WindowInsetsCompat
+                        .Type.navigationBars()
                 )
 
                 systemBarsBehavior=
@@ -909,16 +1066,19 @@ private fun FullClock(
                     window,
                     window.decorView
                 ).show(
-                    WindowInsetsCompat.Type.statusBars() or
-                    WindowInsetsCompat.Type.navigationBars()
+                    WindowInsetsCompat
+                        .Type.statusBars() or
+                    WindowInsetsCompat
+                        .Type.navigationBars()
                 )
             }
         }
     }
 
-    val motion=rememberInfiniteTransition(
-        label="fullClockMotion"
-    )
+    val motion=
+        rememberInfiniteTransition(
+            label="fullClockMotion"
+        )
 
     val x by motion.animateFloat(
         -1f,
@@ -975,8 +1135,12 @@ private fun FullClock(
                 .background(
                     Brush.radialGradient(
                         listOf(
-                            p.accent.copy(alpha=.38f),
-                            p.accent.copy(alpha=.12f),
+                            p.accent.copy(
+                                alpha=.38f
+                            ),
+                            p.accent.copy(
+                                alpha=.12f
+                            ),
                             Color.Transparent
                         )
                     ),
@@ -987,7 +1151,9 @@ private fun FullClock(
         Box(
             Modifier
                 .size(600.dp)
-                .align(Alignment.BottomEnd)
+                .align(
+                    Alignment.BottomEnd
+                )
                 .offset(
                     x=260.dp,
                     y=250.dp
@@ -999,7 +1165,9 @@ private fun FullClock(
                 .background(
                     Brush.radialGradient(
                         listOf(
-                            p.accentLight.copy(alpha=.24f),
+                            p.accentLight.copy(
+                                alpha=.24f
+                            ),
                             Color.Transparent
                         )
                     ),
@@ -1009,12 +1177,17 @@ private fun FullClock(
 
         Column(
             Modifier
-                .align(Alignment.TopStart)
+                .align(
+                    Alignment.TopStart
+                )
                 .padding(22.dp)
         ){
             Text(
                 "EVERYTHING WITH NUMBERS",
-                color=Color.White.copy(alpha=.54f),
+                color=
+                    Color.White.copy(
+                        alpha=.54f
+                    ),
                 fontSize=7.sp,
                 letterSpacing=1.5.sp,
                 fontFamily=a.fontFamily
@@ -1031,19 +1204,27 @@ private fun FullClock(
         }
 
         Column(
-            Modifier.align(Alignment.Center),
-            horizontalAlignment=Alignment.CenterHorizontally
+            Modifier.align(
+                Alignment.Center
+            ),
+            horizontalAlignment=
+                Alignment.CenterHorizontally
         ){
             Text(
                 "NMIX • LOCAL TIME",
-                color=p.accentLight.copy(alpha=.92f),
+                color=
+                    p.accentLight.copy(
+                        alpha=.92f
+                    ),
                 fontSize=10.sp,
                 letterSpacing=2.sp,
                 fontWeight=FontWeight.Bold,
                 fontFamily=a.fontFamily
             )
 
-            Spacer(Modifier.height(13.dp))
+            Spacer(
+                Modifier.height(13.dp)
+            )
 
             Text(
                 time,
@@ -1053,11 +1234,16 @@ private fun FullClock(
                 fontFamily=a.fontFamily
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(
+                Modifier.height(8.dp)
+            )
 
             Text(
                 date,
-                color=Color.White.copy(alpha=.68f),
+                color=
+                    Color.White.copy(
+                        alpha=.68f
+                    ),
                 fontSize=12.sp,
                 fontFamily=a.fontFamily
             )
@@ -1066,7 +1252,9 @@ private fun FullClock(
         NmixTextButton(
             text="Exit",
             modifier=Modifier
-                .align(Alignment.BottomEnd)
+                .align(
+                    Alignment.BottomEnd
+                )
                 .padding(20.dp)
                 .width(94.dp)
                 .height(42.dp),
