@@ -577,43 +577,45 @@ fun NativeMainPageV2(onBack:()->Unit){
                 }
             }
 
-            item{
-                Spacer(
-                    Modifier.height(24.dp)
+        item{
+            Spacer(
+                Modifier.height(4.dp)
+            )
+        }
+        
+        item{
+            NmixContribution(
+                Modifier.fillMaxWidth()
+            )
+        }
+        
+        item{
+            Spacer(
+                Modifier.height(2.dp)
+            )
+        }
+        
+        item{
+            Box(
+                Modifier.fillMaxWidth(),
+                contentAlignment=Alignment.Center
+            ){
+                NmixTextButton(
+                    text="Back to the Start",
+                    modifier=Modifier
+                        .width(178.dp)
+                        .height(42.dp),
+                    accent=false,
+                    onClick=onBack
                 )
             }
-
-            item{
-                NmixContribution(
-                    Modifier.fillMaxWidth()
-                )
-            }
-
-            item{
-                Spacer(
-                    Modifier.height(5.dp)
-                )
-            }
-
-            item{
-                PageFooter()
-            }
-
-            item{
-                Spacer(
-                    Modifier.height(5.dp)
-                )
-            }
-
-            item{
-                PageBackButton(onBack)
-            }
-
-            item{
-                Spacer(
-                    Modifier.height(10.dp)
-                )
-            }
+        }
+        
+        item{
+            Spacer(
+                Modifier.height(8.dp)
+            )
+        }
         }
 
         AnimatedVisibility(
@@ -990,52 +992,6 @@ fun NativeMainPageV2(onBack:()->Unit){
             )
         }
     }
-}
-
-@Composable
-private fun PageFooter(){
-    val a=LocalNmixAppearance.current
-    val ui=a.uiColors()
-
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(vertical=4.dp),
-        horizontalArrangement=
-            Arrangement.Center,
-        verticalAlignment=
-            Alignment.CenterVertically
-    ){
-        Text(
-            "NMIX",
-            color=ui.text.copy(alpha=.82f),
-            fontSize=12.sp,
-            fontWeight=FontWeight.Bold,
-            fontFamily=NmixLogoFont
-        )
-
-        Text(
-            "  •  lxzrvi  •  © 2026",
-            color=ui.text.copy(alpha=.55f),
-            fontSize=12.sp,
-            fontFamily=a.fontFamily
-        )
-    }
-}
-
-@Composable
-private fun PageBackButton(
-    onBack:()->Unit
-){
-    NmixTextButton(
-        text="Back to the Start",
-        modifier=Modifier
-            .fillMaxWidth()
-            .padding(horizontal=22.dp)
-            .height(44.dp),
-        accent=true,
-        onClick=onBack
-    )
 }
 
 @Composable
