@@ -319,10 +319,11 @@ fun NativeMainPageV2(onBack:()->Unit){
     )
 
     val listTop by animateDpAsState(
-        targetValue=if(top)
-            headerTarget+16.dp
-        else
-            112.dp,
+        targetValue=
+            if(top)
+                headerTarget+16.dp
+            else
+                112.dp,
         animationSpec=tween(
             420,
             easing=EaseInOutCubic
@@ -370,7 +371,11 @@ fun NativeMainPageV2(onBack:()->Unit){
                     open=section=="clock",
                     onClick={
                         open("clock")
-                        status="Choose Timer, Clock or Stopwatch."
+                        stop()
+                        mode="clock"
+                        label="LIVE CLOCK"
+                        display=timeText()
+                        status="Live clock is active."
                     }
                 ){
                     NmixClockTools(
@@ -401,6 +406,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                         onClock={
                             stop()
                             mode="clock"
+                            label="LIVE CLOCK"
+                            display=timeText()
                             status="Live clock is active."
                         },
 
@@ -442,6 +449,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                         open("counter")
                         stop()
                         mode="counter"
+                        display=count.toString()
+                        label="COUNTER"
                         status="Counter ready."
                     }
                 ){
@@ -479,26 +488,25 @@ fun NativeMainPageV2(onBack:()->Unit){
                     title="How to use NMIX",
                     subtitle="Instructions and controls",
                     open=section=="help",
-                    onClick={open("help")}
+                    onClick={
+                        open("help")
+                        stop()
+                        mode="idle"
+                        label="NMIX LIVE"
+                        display="Ready"
+                        status="NMIX instructions."
+                    }
                 ){
                     NmixInstructions()
                 }
             }
 
             item{
-                /*
-                 * The collapsed top display must not pull the footer
-                 * upward. For short pages this reserves enough natural
-                 * paper-space to keep Back/footer near the bottom.
-                 * Expanded accordions still push them down normally.
-                 */
-                val footerGap=when{
-                    section!=null->42.dp
-
-                    else->(
-                        pageHeight-
-                        545.dp
-                    ).coerceAtLeast(95.dp)
+                val footerGap=if(section==null){
+                    (pageHeight-545.dp)
+                        .coerceAtLeast(95.dp)
+                }else{
+                    42.dp
                 }
 
                 Spacer(
@@ -519,7 +527,9 @@ fun NativeMainPageV2(onBack:()->Unit){
             }
 
             item{
-                Spacer(Modifier.height(17.dp))
+                Spacer(
+                    Modifier.height(17.dp)
+                )
             }
 
             item{
@@ -717,10 +727,11 @@ fun NativeMainPageV2(onBack:()->Unit){
                     .fillMaxSize()
                     .background(
                         Color.Black.copy(
-                            alpha=if(a.darkMode)
-                                .16f
-                            else
-                                .055f
+                            alpha=
+                                if(a.darkMode)
+                                    .15f
+                                else
+                                    .05f
                         )
                     )
                     .clickable(
@@ -746,12 +757,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                         easing=EaseOutCubic
                     )
                 )+
-                fadeIn(
-                    tween(
-                        260,
-                        easing=EaseOutCubic
-                    )
-                ),
+                fadeIn(tween(250)),
 
             exit=
                 slideOutHorizontally(
@@ -761,19 +767,15 @@ fun NativeMainPageV2(onBack:()->Unit){
                         easing=EaseInOutCubic
                     )
                 )+
-                fadeOut(
-                    tween(
-                        220,
-                        easing=EaseInCubic
-                    )
-                )
+                fadeOut(tween(220))
         ){
-            val drawerBg=if(a.darkMode)
-                Color(0xFF151917)
-            else
-                Color(0xFFF0F3F1)
+            val drawerBg=
+                if(a.darkMode)
+                    Color(0xFF151917)
+                else
+                    Color(0xFFF0F3F1)
 
-            Column(
+            Box(
                 Modifier
                     .width(330.dp)
                     .fillMaxHeight()
@@ -793,55 +795,19 @@ fun NativeMainPageV2(onBack:()->Unit){
                         indication=null
                     ){}
             ){
-                /*
-                 * The drawer owns a clean top header. Settings content
-                 * begins below it instead of running to the very top.
-                 */
-                Row(
+                Box(
                     Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .windowInsetsPadding(
                             WindowInsets.statusBars
                         )
-                        .height(72.dp)
-                        .padding(
-                            start=20.dp,
-                            end=72.dp
-                        ),
-                    verticalAlignment=Alignment.CenterVertically
-                ){
-                    Column{
-                        Text(
-                            "NMIX Appearance",
-                            color=ui.text,
-                            fontSize=14.sp,
-                            fontWeight=FontWeight.Bold,
-                            fontFamily=a.fontFamily
-                        )
-
-                        Text(
-                            "Settings",
-                            color=ui.muted,
-                            fontSize=9.sp,
-                            fontFamily=a.fontFamily
-                        )
-                    }
-                }
-
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                        .padding(top=62.dp)
                 ){
                     NmixSettings()
                 }
             }
         }
 
-        /*
-         * Top controls intentionally live AFTER the drawer so the
-         * hamburger/X stays above the panel.
-         */
         Row(
             Modifier
                 .fillMaxWidth()
@@ -856,10 +822,11 @@ fun NativeMainPageV2(onBack:()->Unit){
             verticalAlignment=Alignment.CenterVertically
         ){
             NmixCircleButton(
-                icon=if(top)
-                    NmixIcon.ARROW_UP
-                else
-                    NmixIcon.ARROW_DOWN,
+                icon=
+                    if(top)
+                        NmixIcon.ARROW_UP
+                    else
+                        NmixIcon.ARROW_DOWN,
                 modifier=Modifier.size(48.dp),
                 onClick={
                     top=!top
@@ -870,29 +837,20 @@ fun NativeMainPageV2(onBack:()->Unit){
                 }
             )
 
-            val menuShape=RoundedCornerShape(
-                topStart=26.dp,
-                bottomStart=26.dp,
-                topEnd=0.dp,
-                bottomEnd=0.dp
-            )
+            val menuShape=
+                RoundedCornerShape(
+                    topStart=25.dp,
+                    bottomStart=25.dp,
+                    topEnd=0.dp,
+                    bottomEnd=0.dp
+                )
 
             Box(
                 Modifier
-                    .width(
-                        if(settings)
-                            72.dp
-                        else
-                            64.dp
-                    )
+                    .width(66.dp)
                     .height(48.dp)
                     .clip(menuShape)
-                    .background(
-                        if(a.darkMode)
-                            Color(0xFF171C1A)
-                        else
-                            Color(0xFFF4F6F5)
-                    )
+                    .background(p.accent)
                     .clickable(
                         interactionSource=remember{
                             MutableInteractionSource()
@@ -903,14 +861,35 @@ fun NativeMainPageV2(onBack:()->Unit){
                     },
                 contentAlignment=Alignment.Center
             ){
-                NmixIcon(
-                    icon=if(settings)
-                        NmixIcon.CLOSE
-                    else
-                        NmixIcon.MENU,
-                    modifier=Modifier.size(21.dp),
-                    color=p.accent
-                )
+                AnimatedContent(
+                    targetState=settings,
+                    transitionSpec={
+                        (
+                            fadeIn(tween(180))+
+                            scaleIn(
+                                initialScale=.78f,
+                                animationSpec=tween(220)
+                            )
+                        ) togetherWith (
+                            fadeOut(tween(140))+
+                            scaleOut(
+                                targetScale=.78f,
+                                animationSpec=tween(180)
+                            )
+                        )
+                    },
+                    label="menuIcon"
+                ){open->
+                    NmixIcon(
+                        icon=
+                            if(open)
+                                NmixIcon.CLOSE
+                            else
+                                NmixIcon.MENU,
+                        modifier=Modifier.size(21.dp),
+                        color=Color.White
+                    )
+                }
             }
         }
 
@@ -996,11 +975,11 @@ private fun FullClock(
         -1f,
         1f,
         infiniteRepeatable(
-            animation=tween(
+            tween(
                 3400,
                 easing=EaseInOutSine
             ),
-            repeatMode=RepeatMode.Reverse
+            RepeatMode.Reverse
         ),
         label="clockX"
     )
@@ -1009,11 +988,11 @@ private fun FullClock(
         1f,
         -1f,
         infiniteRepeatable(
-            animation=tween(
+            tween(
                 4300,
                 easing=EaseInOutSine
             ),
-            repeatMode=RepeatMode.Reverse
+            RepeatMode.Reverse
         ),
         label="clockY"
     )
@@ -1022,11 +1001,11 @@ private fun FullClock(
         .86f,
         1.17f,
         infiniteRepeatable(
-            animation=tween(
+            tween(
                 3100,
                 easing=EaseInOutSine
             ),
-            repeatMode=RepeatMode.Reverse
+            RepeatMode.Reverse
         ),
         label="clockPulse"
     )
