@@ -4,10 +4,10 @@
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:statusBarColor">#19493A</item>
-        <item name="android:navigationBarColor">#19493A</item>
+        <item name="android:statusBarColor">#0D1110</item>
+        <item name="android:navigationBarColor">#0D1110</item>
         <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:windowBackground">#19493A</item>
+        <item name="android:windowBackground">#0D1110</item>
         <item name="android:windowDisablePreview">false</item>
     </style>
 </resources>
