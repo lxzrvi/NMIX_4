@@ -4,7 +4,6 @@ package com.lxzrvi.nmix
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,9 +35,7 @@ fun NmixCalculator(onKey:(String)->Unit){
     )
 
     Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(10.dp)
+        Modifier.fillMaxWidth().padding(10.dp)
     ){
         keys.chunked(5).forEach{row->
             Row(
@@ -77,25 +73,23 @@ fun NmixClockTools(
     onStopwatchReset:()->Unit
 ){
     Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(12.dp),
+        Modifier.fillMaxWidth().padding(12.dp),
         verticalArrangement=Arrangement.spacedBy(8.dp)
     ){
         ModeRow(
-            icon=NmixIcon.TIMER,
-            title="Timer",
-            selected=mode=="timer",
-            onClick=onTimer,
-            onLong=onTimerReset
+            NmixIcon.TIMER,
+            "Timer",
+            mode=="timer",
+            onTimer,
+            onTimerReset
         )
 
         Box(Modifier.fillMaxWidth()){
             ModeRow(
-                icon=NmixIcon.CLOCK,
-                title="Clock",
-                selected=mode=="clock",
-                onClick=onClock
+                NmixIcon.CLOCK,
+                "Clock",
+                mode=="clock",
+                onClock
             )
 
             NmixSmallIconButton(
@@ -110,11 +104,11 @@ fun NmixClockTools(
         }
 
         ModeRow(
-            icon=NmixIcon.STOPWATCH,
-            title="Stopwatch",
-            selected=mode=="stopwatch",
-            onClick=onStopwatch,
-            onLong=onStopwatchReset
+            NmixIcon.STOPWATCH,
+            "Stopwatch",
+            mode=="stopwatch",
+            onStopwatch,
+            onStopwatchReset
         )
     }
 }
@@ -132,6 +126,7 @@ private fun ModeRow(
     val accent=a.palette.accent
     val interaction=remember{MutableInteractionSource()}
     val pressed by interaction.collectIsPressedAsState()
+
     val scale by animateFloatAsState(
         if(pressed).965f else 1f,
         label="modePress"
@@ -144,8 +139,11 @@ private fun ModeRow(
             .scale(scale)
             .clip(RoundedCornerShape(13.dp))
             .background(
-                if(selected)accent.copy(alpha=.88f)
-                else ui.accentGlassStrong
+                when{
+                    selected->accent.copy(alpha=.86f)
+                    a.darkMode->Color.Black.copy(alpha=.38f)
+                    else->accent.copy(alpha=.10f)
+                }
             )
             .combinedClickable(
                 interactionSource=interaction,
@@ -164,22 +162,24 @@ private fun ModeRow(
                     else RoundedCornerShape(9.dp)
                 )
                 .background(
-                    if(selected)Color.White.copy(alpha=.92f)
-                    else accent.copy(alpha=.17f)
+                    if(selected)
+                        Color.White.copy(alpha=.92f)
+                    else
+                        accent.copy(alpha=.16f)
                 ),
             contentAlignment=Alignment.Center
         ){
             NmixIcon(
-                icon=icon,
-                modifier=Modifier.size(18.dp),
-                color=accent
+                icon,
+                Modifier.size(18.dp),
+                accent
             )
         }
 
         Spacer(Modifier.width(12.dp))
 
         Text(
-            text=title,
+            title,
             color=if(selected)Color.White else ui.text,
             fontSize=13.sp,
             fontWeight=FontWeight.SemiBold,
@@ -196,9 +196,7 @@ fun NmixCounters(
     minus:()->Unit
 ){
     Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(12.dp),
+        Modifier.fillMaxWidth().padding(12.dp),
         verticalArrangement=Arrangement.spacedBy(8.dp)
     ){
         Row(
@@ -252,16 +250,23 @@ private fun CounterButton(
     NmixPressBox(
         modifier=modifier.height(64.dp),
         shape=RoundedCornerShape(12.dp),
-        color=ui.accentGlassStrong,
+        color=if(a.darkMode)
+            Color.Black.copy(alpha=.38f)
+        else
+            a.palette.accent.copy(alpha=.10f),
         onClick=onClick
     ){
-        Row(verticalAlignment=Alignment.CenterVertically){
+        Row(
+            verticalAlignment=Alignment.CenterVertically
+        ){
             NmixIcon(
                 icon,
                 Modifier.size(18.dp),
                 a.palette.accent
             )
+
             Spacer(Modifier.width(8.dp))
+
             Text(
                 title,
                 color=ui.text,
@@ -286,7 +291,7 @@ fun NmixInstructions(){
         "Clock" to "Tap Clock for local time. Use the fullscreen icon for the full-screen clock.",
         "Stopwatch" to "Tap to start or pause. Hold Stopwatch to reset.",
         "Counters" to "Add and Minus change the value. Reset returns to zero. Random generates 1–1000.",
-        "Top Screen" to "Use the top-left vector arrow to hide or restore the NMIX display.",
+        "Top Screen" to "Use the top-left arrow to hide or restore the NMIX display.",
         "Settings" to "Use the top-right menu for appearance, colors and fonts."
     )
 
@@ -296,8 +301,8 @@ fun NmixInstructions(){
     ){
         data.forEach{item->
             NmixGlassBox(
-                modifier=Modifier.fillMaxWidth(),
-                accentTint=true
+                Modifier.fillMaxWidth(),
+                true
             ){
                 Column(Modifier.padding(11.dp)){
                     Text(
@@ -307,7 +312,9 @@ fun NmixInstructions(){
                         fontWeight=FontWeight.Bold,
                         fontFamily=a.fontFamily
                     )
+
                     Spacer(Modifier.height(3.dp))
+
                     Text(
                         item.second,
                         color=ui.muted,
@@ -325,27 +332,30 @@ fun NmixInstructions(){
 fun NmixSettings(){
     val a=LocalNmixAppearance.current
     val ui=a.uiColors()
-    val accent=a.palette.accent
+    val p=a.palette
     val scroll=rememberScrollState()
+
+    val panelColor=if(a.darkMode)
+        Color(0xF2181B1A)
+    else
+        Color(0xF2EFF2F0)
 
     Column(
         Modifier
-            .width(330.dp)
-            .fillMaxHeight()
-            .clip(
-                RoundedCornerShape(
-                    topStart=22.dp,
-                    bottomStart=22.dp
-                )
-            )
-            .background(ui.page)
+            .fillMaxSize()
+            .background(panelColor)
             .verticalScroll(scroll)
-            .padding(17.dp)
+            .padding(
+                start=18.dp,
+                end=18.dp,
+                top=18.dp,
+                bottom=22.dp
+            )
     ){
         Text(
             "NMIX Settings",
             color=ui.text,
-            fontSize=15.sp,
+            fontSize=17.sp,
             fontWeight=FontWeight.Bold,
             fontFamily=a.fontFamily
         )
@@ -353,7 +363,7 @@ fun NmixSettings(){
         Text(
             "Personalize your interface",
             color=ui.muted,
-            fontSize=9.sp,
+            fontSize=10.sp,
             fontFamily=a.fontFamily
         )
 
@@ -369,10 +379,11 @@ fun NmixSettings(){
                 Text(
                     "Appearance",
                     color=ui.text,
-                    fontSize=12.sp,
+                    fontSize=13.sp,
                     fontWeight=FontWeight.SemiBold,
                     fontFamily=a.fontFamily
                 )
+
                 Text(
                     if(a.darkMode)"Dark mode" else "Light mode",
                     color=ui.muted,
@@ -382,18 +393,19 @@ fun NmixSettings(){
             }
 
             NmixSwitch(
-                on=a.darkMode,
-                accent=accent,
-                onClick={a.toggleDarkMode()}
-            )
+                a.darkMode,
+                p.accent
+            ){
+                a.toggleDarkMode()
+            }
         }
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(22.dp))
 
         Text(
             "Color Theme",
             color=ui.text,
-            fontSize=12.sp,
+            fontSize=13.sp,
             fontWeight=FontWeight.SemiBold,
             fontFamily=a.fontFamily
         )
@@ -405,28 +417,16 @@ fun NmixSettings(){
             fontFamily=a.fontFamily
         )
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
 
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement=Arrangement.spacedBy(7.dp)
-        ){
-            NmixThemeName.values().forEach{theme->
-                ThemeChoice(
-                    theme=theme,
-                    selected=a.theme==theme,
-                    modifier=Modifier.weight(1f),
-                    onClick={a.setTheme(theme)}
-                )
-            }
-        }
+        ColorThemeBox()
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(23.dp))
 
         Text(
             "Fonts",
             color=ui.text,
-            fontSize=12.sp,
+            fontSize=13.sp,
             fontWeight=FontWeight.SemiBold,
             fontFamily=a.fontFamily
         )
@@ -446,14 +446,15 @@ fun NmixSettings(){
         ){
             NmixFontName.values().forEach{font->
                 FontChoice(
-                    font=font,
-                    selected=a.font==font,
-                    onClick={a.setFont(font)}
-                )
+                    font,
+                    a.font==font
+                ){
+                    a.setFont(font)
+                }
             }
         }
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(18.dp))
 
         Text(
             "NMIX logo uses Cinzel Decorative.",
@@ -470,8 +471,43 @@ fun NmixSettings(){
             fontSize=8.sp,
             fontFamily=a.fontFamily
         )
+    }
+}
 
-        Spacer(Modifier.height(18.dp))
+@Composable
+private fun ColorThemeBox(){
+    val a=LocalNmixAppearance.current
+    val ui=a.uiColors()
+
+    val container=if(a.darkMode)
+        Color.Black.copy(alpha=.34f)
+    else
+        Color.White.copy(alpha=.62f)
+
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(container)
+            .padding(
+                horizontal=9.dp,
+                vertical=12.dp
+            )
+    ){
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement=Arrangement.spacedBy(6.dp)
+        ){
+            NmixThemeName.values().forEach{theme->
+                ThemeChoice(
+                    theme=theme,
+                    selected=a.theme==theme,
+                    modifier=Modifier.weight(1f)
+                ){
+                    a.setTheme(theme)
+                }
+            }
+        }
     }
 }
 
@@ -485,13 +521,22 @@ private fun ThemeChoice(
     val a=LocalNmixAppearance.current
     val ui=a.uiColors()
     val palette=theme.palette()
-    val interaction=remember{MutableInteractionSource()}
+    val interaction=remember{
+        MutableInteractionSource()
+    }
+
     val pressed by interaction.collectIsPressedAsState()
+
     val scale by animateFloatAsState(
         if(pressed).94f else 1f,
-        spring(),
         label="themePress"
     )
+
+    val name=theme.name
+        .lowercase()
+        .replaceFirstChar{
+            it.uppercase()
+        }
 
     Column(
         modifier.scale(scale),
@@ -501,13 +546,8 @@ private fun ThemeChoice(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp))
-                .background(
-                    if(selected)
-                        palette.accent
-                    else
-                        palette.accent.copy(alpha=.72f)
-                )
+                .clip(RoundedCornerShape(11.dp))
+                .background(palette.accent)
                 .combinedClickable(
                     interactionSource=interaction,
                     indication=null,
@@ -519,20 +559,25 @@ private fun ThemeChoice(
             if(selected){
                 NmixIcon(
                     NmixIcon.CHECK,
-                    Modifier.size(18.dp),
+                    Modifier.size(19.dp),
                     Color.White
                 )
             }
         }
 
-        Spacer(Modifier.height(5.dp))
+        Spacer(Modifier.height(7.dp))
 
         Text(
-            theme.name.lowercase()
-                .replaceFirstChar{it.uppercase()},
-            color=if(selected)palette.accent else ui.muted,
-            fontSize=7.sp,
-            fontWeight=if(selected)FontWeight.Bold else FontWeight.Normal,
+            name,
+            color=if(selected)
+                palette.accent
+            else
+                ui.text,
+            fontSize=9.sp,
+            fontWeight=if(selected)
+                FontWeight.Bold
+            else
+                FontWeight.SemiBold,
             fontFamily=a.fontFamily,
             maxLines=1,
             textAlign=TextAlign.Center
@@ -549,7 +594,10 @@ private fun FontChoice(
     val a=LocalNmixAppearance.current
     val ui=a.uiColors()
     val accent=a.palette.accent
-    val interaction=remember{MutableInteractionSource()}
+    val interaction=remember{
+        MutableInteractionSource()
+    }
+
     val pressed by interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
@@ -559,9 +607,11 @@ private fun FontChoice(
 
     val bg by animateColorAsState(
         if(selected)
-            accent.copy(alpha=.88f)
+            accent.copy(alpha=.84f)
+        else if(a.darkMode)
+            Color.Black.copy(alpha=.38f)
         else
-            ui.accentGlassStrong,
+            Color.White.copy(alpha=.62f),
         label="fontColor"
     )
 
@@ -584,7 +634,10 @@ private fun FontChoice(
         Text(
             text=font.label(),
             modifier=Modifier.weight(1f),
-            color=if(selected)Color.White else ui.text,
+            color=if(selected)
+                Color.White
+            else
+                ui.text,
             fontSize=15.sp,
             fontWeight=FontWeight.Bold,
             fontFamily=font.family()
@@ -606,8 +659,12 @@ private fun NmixSwitch(
     accent:Color,
     onClick:()->Unit
 ){
-    val interaction=remember{MutableInteractionSource()}
+    val interaction=remember{
+        MutableInteractionSource()
+    }
+
     val pressed by interaction.collectIsPressedAsState()
+
     val scale by animateFloatAsState(
         if(pressed).96f else 1f,
         label="switchPress"
@@ -620,8 +677,11 @@ private fun NmixSwitch(
             .scale(scale)
             .clip(RoundedCornerShape(50))
             .background(
-                if(on)accent
-                else Color(0xFFD0D5D2)
+                if(on)
+                    accent
+                else
+                    Color(0xFF6F7773)
+                        .copy(alpha=.42f)
             )
             .combinedClickable(
                 interactionSource=interaction,
@@ -630,9 +690,10 @@ private fun NmixSwitch(
                 onLongClick={}
             )
             .padding(4.dp),
-        contentAlignment=
-            if(on)Alignment.CenterEnd
-            else Alignment.CenterStart
+        contentAlignment=if(on)
+            Alignment.CenterEnd
+        else
+            Alignment.CenterStart
     ){
         Box(
             Modifier
