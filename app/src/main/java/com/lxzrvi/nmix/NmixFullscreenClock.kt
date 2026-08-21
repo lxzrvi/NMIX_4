@@ -1,5 +1,6 @@
 package com.lxzrvi.nmix
 
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
@@ -20,7 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -46,6 +46,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 
+private const val FULL_CLOCK_PREFS =
+    "nmix_fullscreen_clock"
+
 private data class FullClockTone(
     val name: String,
     val main: Color,
@@ -61,8 +64,18 @@ private data class ClockParts(
 
 private val fullClockTones = listOf(
     FullClockTone(
+        "White",
+        Color(0xFFF5F7F6),
+        Color(0xFFFFFFFF)
+    ),
+    FullClockTone(
+        "Black",
+        Color(0xFF111412),
+        Color(0xFF202522)
+    ),
+    FullClockTone(
         "Ice",
-        Color(0xFFF3FAFF),
+        Color(0xFFF1FAFF),
         Color(0xFF70D8FF)
     ),
     FullClockTone(
@@ -117,72 +130,164 @@ fun NmixFullscreenClock(
     date: String,
     onExit: () -> Unit
 ) {
+    val context = LocalContext.current
     val a = LocalNmixAppearance.current
     val activity = LocalActivity.current
-    val config = LocalConfiguration.current
+    val configuration = LocalConfiguration.current
 
-    val landscape =
-        config.orientation ==
-            Configuration.ORIENTATION_LANDSCAPE
-
-    var clean by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    var fontIndex by rememberSaveable {
-        mutableIntStateOf(
-            when (a.font) {
-                NmixFontName.INTER -> 0
-                NmixFontName.NUNITO -> 1
-                NmixFontName.OUTFIT -> 2
-                NmixFontName.POPPINS -> 3
-                NmixFontName.QUICKSAND -> 4
-            }
+    val prefs = remember(context) {
+        context.getSharedPreferences(
+            FULL_CLOCK_PREFS,
+            Context.MODE_PRIVATE
         )
     }
 
-    var styleIndex by rememberSaveable {
-        mutableIntStateOf(0)
+    val landscape =
+        configuration.orientation ==
+            Configuration.ORIENTATION_LANDSCAPE
+
+    val defaultFont =
+        when (a.font) {
+            NmixFontName.INTER -> 0
+            NmixFontName.NUNITO -> 1
+            NmixFontName.OUTFIT -> 2
+            NmixFontName.POPPINS -> 3
+            NmixFontName.QUICKSAND -> 4
+        }
+
+    val defaultColor =
+        if (a.darkMode) 0 else 1
+
+    var fontIndex by remember {
+        mutableIntStateOf(
+            prefs.getInt(
+                "font",
+                defaultFont
+            ).coerceIn(
+                0,
+                fullClockFonts.lastIndex
+            )
+        )
     }
 
-    var colorIndex by rememberSaveable {
-        mutableIntStateOf(0)
+    var styleIndex by remember {
+        mutableIntStateOf(
+            prefs.getInt(
+                "style",
+                0
+            ).coerceIn(
+                0,
+                fullClockStyles.lastIndex
+            )
+        )
     }
 
-    var wallpaperIndex by rememberSaveable {
-        mutableIntStateOf(a.theme.ordinal)
+    var colorIndex by remember {
+        mutableIntStateOf(
+            prefs.getInt(
+                "color",
+                defaultColor
+            ).coerceIn(
+                0,
+                fullClockTones.lastIndex
+            )
+        )
     }
 
-    var wallpaperOpen by rememberSaveable {
+    var wallpaperIndex by remember {
+        mutableIntStateOf(
+            prefs.getInt(
+                "wallpaper",
+                a.theme.ordinal
+            ).coerceIn(
+                0,
+                NmixThemeName.entries.lastIndex
+            )
+        )
+    }
+
+    var showHours by remember {
+        mutableStateOf(
+            prefs.getBoolean(
+                "hours",
+                true
+            )
+        )
+    }
+
+    var showMinutes by remember {
+        mutableStateOf(
+            prefs.getBoolean(
+                "minutes",
+                true
+            )
+        )
+    }
+
+    var showSeconds by remember {
+        mutableStateOf(
+            prefs.getBoolean(
+                "seconds",
+                true
+            )
+        )
+    }
+
+    var showPeriod by remember {
+        mutableStateOf(
+            prefs.getBoolean(
+                "period",
+                true
+            )
+        )
+    }
+
+    var showDate by remember {
+        mutableStateOf(
+            prefs.getBoolean(
+                "date",
+                true
+            )
+        )
+    }
+
+    var customUriString by remember {
+        mutableStateOf(
+            prefs.getString(
+                "custom_wallpaper",
+                null
+            )
+        )
+    }
+
+    var clean by remember {
         mutableStateOf(false)
     }
 
-    var displayOpen by rememberSaveable {
+    var wallpaperOpen by remember {
         mutableStateOf(false)
     }
 
-    var showHours by rememberSaveable {
-        mutableStateOf(true)
+    var displayOpen by remember {
+        mutableStateOf(false)
     }
 
-    var showMinutes by rememberSaveable {
-        mutableStateOf(true)
+    fun saveInt(
+        key: String,
+        value: Int
+    ) {
+        prefs.edit()
+            .putInt(key, value)
+            .apply()
     }
 
-    var showSeconds by rememberSaveable {
-        mutableStateOf(true)
-    }
-
-    var showPeriod by rememberSaveable {
-        mutableStateOf(true)
-    }
-
-    var showLabel by rememberSaveable {
-        mutableStateOf(true)
-    }
-
-    var customUriString by rememberSaveable {
-        mutableStateOf<String?>(null)
+    fun saveBool(
+        key: String,
+        value: Boolean
+    ) {
+        prefs.edit()
+            .putBoolean(key, value)
+            .apply()
     }
 
     val customUri =
@@ -193,13 +298,33 @@ fun NmixFullscreenClock(
             ActivityResultContracts.GetContent()
         ) { uri ->
             if (uri != null) {
-                customUriString = uri.toString()
+                try {
+                    context.contentResolver
+                        .takePersistableUriPermission(
+                            uri,
+                            android.content.Intent
+                                .FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                } catch (_: Exception) {
+                }
+
+                customUriString =
+                    uri.toString()
+
+                prefs.edit()
+                    .putString(
+                        "custom_wallpaper",
+                        uri.toString()
+                    )
+                    .apply()
+
                 wallpaperOpen = false
             }
         }
 
     DisposableEffect(activity) {
-        val window = activity?.window
+        val window =
+            activity?.window
 
         if (window != null) {
             WindowCompat.setDecorFitsSystemWindows(
@@ -223,6 +348,10 @@ fun NmixFullscreenClock(
         }
 
         onDispose {
+            activity?.requestedOrientation =
+                ActivityInfo
+                    .SCREEN_ORIENTATION_UNSPECIFIED
+
             if (window != null) {
                 WindowCompat.setDecorFitsSystemWindows(
                     window,
@@ -254,17 +383,14 @@ fun NmixFullscreenClock(
 
     val wall =
         NmixThemeName.entries[
-            wallpaperIndex.coerceIn(
-                0,
-                NmixThemeName.entries.lastIndex
-            )
+            wallpaperIndex
         ].palette()
 
     val parts =
-        parseTime(time)
+        parseFullClockTime(time)
 
     val visibleTime =
-        buildVisibleTime(
+        buildFullClockTime(
             parts = parts,
             hours = showHours,
             minutes = showMinutes,
@@ -272,110 +398,137 @@ fun NmixFullscreenClock(
             period = showPeriod
         )
 
-    val motion =
-        rememberInfiniteTransition(
-            label = "fullscreenWallpaper"
-        )
+    val darkSurface =
+        Color(0xFF101412)
 
-    val mx by motion.animateFloat(
-        initialValue = -1f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                3000,
-                easing = EaseInOutSine
-            ),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "mx"
-    )
-
-    val my by motion.animateFloat(
-        initialValue = 1f,
-        targetValue = -1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                3900,
-                easing = EaseInOutSine
-            ),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "my"
-    )
-
-    val mz by motion.animateFloat(
-        initialValue = -.8f,
-        targetValue = .8f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                4800,
-                easing = EaseInOutSine
-            ),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "mz"
-    )
-
-    val pulse by motion.animateFloat(
-        initialValue = .91f,
-        targetValue = 1.10f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                2700,
-                easing = EaseInOutSine
-            ),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse"
-    )
-
-    val base =
-        if (a.darkMode) {
-            Color(0xFF090C0B)
-        } else {
-            Color(0xFFF1F3F2)
-        }
+    val lightSurface =
+        Color(0xFFFFFFFF)
 
     val controlSurface =
         if (a.darkMode) {
-            Color.Black.copy(alpha = .24f)
+            darkSurface.copy(alpha = .82f)
         } else {
-            Color.White.copy(alpha = .56f)
+            lightSurface.copy(alpha = .88f)
+        }
+
+    val popupSurface =
+        if (a.darkMode) {
+            Color(0xFF121715)
+        } else {
+            Color(0xFFFDFEFD)
         }
 
     val controlBorder =
         if (a.darkMode) {
-            Color.White.copy(alpha = .16f)
+            Color.White.copy(alpha = .15f)
         } else {
-            Color.White.copy(alpha = .72f)
+            Color(0xFF59645F)
+                .copy(alpha = .20f)
         }
 
-    val neutralText =
+    val textColor =
         if (a.darkMode) {
             Color(0xFFF3F6F5)
         } else {
-            Color(0xFF252C29)
+            Color(0xFF1C211F)
         }
+
+    val sideText =
+        if (a.darkMode) {
+            Color(0xFFD9DFDC)
+        } else {
+            Color(0xFF414A46)
+        }
+
+    val base =
+        if (a.darkMode) {
+            Color(0xFF080B0A)
+        } else {
+            Color(0xFFE8ECEA)
+        }
+
+    val motion =
+        rememberInfiniteTransition(
+            label = "wallMotion"
+        )
+
+    val x by motion.animateFloat(
+        -1f,
+        1f,
+        infiniteRepeatable(
+            tween(
+                3000,
+                easing = EaseInOutSine
+            ),
+            RepeatMode.Reverse
+        ),
+        label = "wallX"
+    )
+
+    val y by motion.animateFloat(
+        1f,
+        -1f,
+        infiniteRepeatable(
+            tween(
+                3900,
+                easing = EaseInOutSine
+            ),
+            RepeatMode.Reverse
+        ),
+        label = "wallY"
+    )
+
+    val z by motion.animateFloat(
+        -.85f,
+        .85f,
+        infiniteRepeatable(
+            tween(
+                4700,
+                easing = EaseInOutSine
+            ),
+            RepeatMode.Reverse
+        ),
+        label = "wallZ"
+    )
+
+    val pulse by motion.animateFloat(
+        .91f,
+        1.09f,
+        infiniteRepeatable(
+            tween(
+                2800,
+                easing = EaseInOutSine
+            ),
+            RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
 
     Box(
         Modifier
             .fillMaxSize()
             .background(base)
             .clickable(
-                interactionSource = remember {
-                    MutableInteractionSource()
-                },
+                interactionSource =
+                    remember {
+                        MutableInteractionSource()
+                    },
                 indication = null
             ) {
                 when {
-                    clean -> clean = false
-                    wallpaperOpen -> wallpaperOpen = false
-                    displayOpen -> displayOpen = false
+                    clean ->
+                        clean = false
+
+                    wallpaperOpen ->
+                        wallpaperOpen = false
+
+                    displayOpen ->
+                        displayOpen = false
                 }
             }
     ) {
         if (customUri != null) {
-            FullClockCustomWallpaper(
+            CustomClockWallpaper(
                 uri = customUri
             )
 
@@ -384,62 +537,91 @@ fun NmixFullscreenClock(
                     .fillMaxSize()
                     .background(
                         if (a.darkMode) {
-                            Color.Black.copy(alpha = .16f)
+                            Color.Black.copy(
+                                alpha = .14f
+                            )
                         } else {
-                            Color.White.copy(alpha = .08f)
+                            Color.White.copy(
+                                alpha = .08f
+                            )
                         }
                     )
             )
         } else {
-            WallpaperGlow(
+            ClockGlow(
                 color = wall.accent,
                 alpha =
-                    if (a.darkMode) .37f
-                    else .31f,
-                size = 430,
+                    if (a.darkMode) {
+                        .37f
+                    } else {
+                        .26f
+                    },
+                size = 440,
                 modifier = Modifier
-                    .align(Alignment.TopStart)
+                    .align(
+                        Alignment.TopStart
+                    )
                     .offset(
-                        x = (-115).dp,
+                        x = (-120).dp,
                         y = (-125).dp
                     )
                     .graphicsLayer {
-                        translationX = mx * 235f
-                        translationY = my * 100f
+                        translationX =
+                            x * 235f
+
+                        translationY =
+                            y * 105f
+
                         scaleX = pulse
                         scaleY = pulse
                     }
             )
 
-            WallpaperGlow(
+            ClockGlow(
                 color = wall.accentLight,
                 alpha =
-                    if (a.darkMode) .27f
-                    else .35f,
-                size = 390,
+                    if (a.darkMode) {
+                        .28f
+                    } else {
+                        .34f
+                    },
+                size = 400,
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
+                    .align(
+                        Alignment.BottomEnd
+                    )
                     .offset(
-                        x = 110.dp,
+                        x = 115.dp,
                         y = 105.dp
                     )
                     .graphicsLayer {
-                        translationX = -mx * 205f
-                        translationY = mz * 125f
+                        translationX =
+                            -x * 210f
+
+                        translationY =
+                            z * 125f
                     }
             )
 
-            WallpaperGlow(
+            ClockGlow(
                 color = wall.accent,
                 alpha =
-                    if (a.darkMode) .16f
-                    else .20f,
-                size = 300,
+                    if (a.darkMode) {
+                        .17f
+                    } else {
+                        .20f
+                    },
+                size = 315,
                 modifier = Modifier
-                    .align(Alignment.Center)
+                    .align(
+                        Alignment.Center
+                    )
                     .graphicsLayer {
-                        translationX = mz * 170f
-                        translationY = -my * 105f
+                        translationX =
+                            z * 175f
+
+                        translationY =
+                            -y * 105f
                     }
             )
         }
@@ -447,13 +629,15 @@ fun NmixFullscreenClock(
         AnimatedVisibility(
             visible = !clean,
             modifier = Modifier
-                .align(Alignment.TopStart)
+                .align(
+                    Alignment.TopStart
+                )
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing
                 ),
             enter =
                 fadeIn(
-                    animationSpec = tween(320)
+                    tween(320)
                 ) +
                     slideInVertically(
                         initialOffsetY = {
@@ -461,38 +645,45 @@ fun NmixFullscreenClock(
                         },
                         animationSpec = tween(
                             390,
-                            easing = EaseOutCubic
+                            easing =
+                                EaseOutCubic
                         )
                     ),
             exit =
                 fadeOut(
-                    animationSpec = tween(210)
+                    tween(210)
                 ) +
                     slideOutVertically(
                         targetOffsetY = {
                             -it / 3
                         },
-                        animationSpec = tween(280)
+                        animationSpec =
+                            tween(280)
                     )
         ) {
-            FullClockBrand(
-                modifier = Modifier.padding(
-                    start = 22.dp,
-                    top = 16.dp
-                )
+            FullscreenBrand(
+                modifier =
+                    Modifier.padding(
+                        start = 22.dp,
+                        top = 15.dp
+                    ),
+                textColor =
+                    textColor
             )
         }
 
         AnimatedVisibility(
             visible = !clean,
             modifier = Modifier
-                .align(Alignment.TopEnd)
+                .align(
+                    Alignment.TopEnd
+                )
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing
                 ),
             enter =
                 fadeIn(
-                    animationSpec = tween(340)
+                    tween(340)
                 ) +
                     slideInVertically(
                         initialOffsetY = {
@@ -500,237 +691,272 @@ fun NmixFullscreenClock(
                         },
                         animationSpec = tween(
                             400,
-                            easing = EaseOutCubic
+                            easing =
+                                EaseOutCubic
                         )
                     ),
             exit =
                 fadeOut(
-                    animationSpec = tween(210)
+                    tween(210)
                 )
         ) {
             if (landscape) {
                 Row(
                     Modifier.padding(
                         top = 13.dp,
-                        end = 16.dp
+                        end = 15.dp
                     ),
                     horizontalArrangement =
-                        Arrangement.spacedBy(8.dp)
+                        Arrangement.spacedBy(
+                            7.dp
+                        )
                 ) {
-                    FullClockCarousel(
-                        title = "FONT",
-                        options = fullClockFonts,
-                        index = fontIndex,
-                        accent = tone.accent,
-                        width = 176,
-                        surface = controlSurface,
-                        border = controlBorder,
-                        sideColor = neutralText,
-                        headingFont = a.fontFamily,
-                        optionFont = selectedFont,
-                        onIndex = {
-                            fontIndex = it
-                        }
-                    )
+                    ClockCarousel(
+                        "FONT",
+                        fullClockFonts,
+                        fontIndex,
+                        tone.accent,
+                        158,
+                        controlSurface,
+                        controlBorder,
+                        textColor,
+                        sideText,
+                        a.fontFamily,
+                        selectedFont
+                    ) {
+                        fontIndex = it
+                        saveInt(
+                            "font",
+                            it
+                        )
+                    }
 
-                    FullClockCarousel(
-                        title = "STYLE",
-                        options = fullClockStyles,
-                        index = styleIndex,
-                        accent = tone.accent,
-                        width = 176,
-                        surface = controlSurface,
-                        border = controlBorder,
-                        sideColor = neutralText,
-                        headingFont = a.fontFamily,
-                        optionFont = selectedFont,
-                        onIndex = {
-                            styleIndex = it
-                        }
-                    )
+                    ClockCarousel(
+                        "STYLE",
+                        fullClockStyles,
+                        styleIndex,
+                        tone.accent,
+                        158,
+                        controlSurface,
+                        controlBorder,
+                        textColor,
+                        sideText,
+                        a.fontFamily,
+                        selectedFont
+                    ) {
+                        styleIndex = it
+                        saveInt(
+                            "style",
+                            it
+                        )
+                    }
 
-                    FullClockCarousel(
-                        title = "COLOR",
-                        options =
-                            fullClockTones.map {
-                                it.name
-                            },
-                        index = colorIndex,
-                        accent = tone.accent,
-                        width = 176,
-                        surface = controlSurface,
-                        border = controlBorder,
-                        sideColor = neutralText,
-                        headingFont = a.fontFamily,
-                        optionFont = selectedFont,
-                        onIndex = {
-                            colorIndex = it
-                        }
-                    )
+                    ClockCarousel(
+                        "COLOR",
+                        fullClockTones.map {
+                            it.name
+                        },
+                        colorIndex,
+                        tone.accent,
+                        158,
+                        controlSurface,
+                        controlBorder,
+                        textColor,
+                        sideText,
+                        a.fontFamily,
+                        selectedFont
+                    ) {
+                        colorIndex = it
+                        saveInt(
+                            "color",
+                            it
+                        )
+                    }
                 }
             } else {
                 Column(
                     Modifier.padding(
-                        top = 16.dp,
-                        end = 12.dp
+                        top = 14.dp,
+                        end = 10.dp
                     ),
                     verticalArrangement =
-                        Arrangement.spacedBy(6.dp)
+                        Arrangement.spacedBy(
+                            5.dp
+                        )
                 ) {
-                    FullClockCarousel(
-                        title = "FONT",
-                        options = fullClockFonts,
-                        index = fontIndex,
-                        accent = tone.accent,
-                        width = 188,
-                        surface = controlSurface,
-                        border = controlBorder,
-                        sideColor = neutralText,
-                        headingFont = a.fontFamily,
-                        optionFont = selectedFont,
-                        onIndex = {
-                            fontIndex = it
-                        }
-                    )
+                    ClockCarousel(
+                        "FONT",
+                        fullClockFonts,
+                        fontIndex,
+                        tone.accent,
+                        174,
+                        controlSurface,
+                        controlBorder,
+                        textColor,
+                        sideText,
+                        a.fontFamily,
+                        selectedFont
+                    ) {
+                        fontIndex = it
+                        saveInt(
+                            "font",
+                            it
+                        )
+                    }
 
-                    FullClockCarousel(
-                        title = "STYLE",
-                        options = fullClockStyles,
-                        index = styleIndex,
-                        accent = tone.accent,
-                        width = 188,
-                        surface = controlSurface,
-                        border = controlBorder,
-                        sideColor = neutralText,
-                        headingFont = a.fontFamily,
-                        optionFont = selectedFont,
-                        onIndex = {
-                            styleIndex = it
-                        }
-                    )
+                    ClockCarousel(
+                        "STYLE",
+                        fullClockStyles,
+                        styleIndex,
+                        tone.accent,
+                        174,
+                        controlSurface,
+                        controlBorder,
+                        textColor,
+                        sideText,
+                        a.fontFamily,
+                        selectedFont
+                    ) {
+                        styleIndex = it
+                        saveInt(
+                            "style",
+                            it
+                        )
+                    }
 
-                    FullClockCarousel(
-                        title = "COLOR",
-                        options =
-                            fullClockTones.map {
-                                it.name
-                            },
-                        index = colorIndex,
-                        accent = tone.accent,
-                        width = 188,
-                        surface = controlSurface,
-                        border = controlBorder,
-                        sideColor = neutralText,
-                        headingFont = a.fontFamily,
-                        optionFont = selectedFont,
-                        onIndex = {
-                            colorIndex = it
-                        }
-                    )
+                    ClockCarousel(
+                        "COLOR",
+                        fullClockTones.map {
+                            it.name
+                        },
+                        colorIndex,
+                        tone.accent,
+                        174,
+                        controlSurface,
+                        controlBorder,
+                        textColor,
+                        sideText,
+                        a.fontFamily,
+                        selectedFont
+                    ) {
+                        colorIndex = it
+                        saveInt(
+                            "color",
+                            it
+                        )
+                    }
                 }
             }
         }
 
         Column(
             Modifier
-                .align(Alignment.Center)
+                .align(
+                    Alignment.Center
+                )
                 .padding(
-                    horizontal = 18.dp
+                    horizontal = 16.dp
                 ),
             horizontalAlignment =
                 Alignment.CenterHorizontally
         ) {
             AnimatedContent(
-                targetState = styleIndex,
+                targetState =
+                    styleIndex,
                 transitionSpec = {
                     (
                         fadeIn(
-                            animationSpec = tween(
-                                380,
-                                easing = EaseOutCubic
+                            tween(
+                                400,
+                                easing =
+                                    EaseOutCubic
                             )
                         ) +
                             scaleIn(
-                                initialScale = .96f,
-                                animationSpec = tween(
-                                    400,
-                                    easing = EaseOutCubic
-                                )
-                            ) +
-                            slideInVertically(
-                                initialOffsetY = {
-                                    it / 10
-                                },
-                                animationSpec = tween(
-                                    400,
-                                    easing = EaseOutCubic
-                                )
+                                initialScale =
+                                    .965f,
+                                animationSpec =
+                                    tween(
+                                        400,
+                                        easing =
+                                            EaseOutCubic
+                                    )
                             )
                         ) togetherWith (
                         fadeOut(
-                            animationSpec = tween(230)
+                            tween(240)
                         ) +
                             scaleOut(
-                                targetScale = 1.025f,
-                                animationSpec = tween(280)
-                            ) +
-                            slideOutVertically(
-                                targetOffsetY = {
-                                    -it / 10
-                                },
-                                animationSpec = tween(280)
+                                targetScale =
+                                    1.02f,
+                                animationSpec =
+                                    tween(280)
                             )
                         )
                 },
                 label = "clockStyle"
             ) { style ->
-                FullClockFace(
+                ClockFace(
                     style = style,
-                    visibleTime = visibleTime,
+                    time = visibleTime,
                     parts = parts,
                     date = date,
                     tone = tone,
                     font = selectedFont,
-                    landscape = landscape,
-                    showHours = showHours,
-                    showMinutes = showMinutes,
-                    showSeconds = showSeconds,
-                    showPeriod = showPeriod
+                    landscape =
+                        landscape,
+                    showHours =
+                        showHours,
+                    showMinutes =
+                        showMinutes,
+                    showSeconds =
+                        showSeconds,
+                    showPeriod =
+                        showPeriod,
+                    showDate =
+                        showDate,
+                    dark =
+                        a.darkMode
                 )
             }
 
             AnimatedVisibility(
-                visible = clean && showLabel,
+                visible = clean,
                 enter =
                     fadeIn(
-                        animationSpec = tween(400)
+                        tween(390)
                     ) +
                         slideInVertically(
                             initialOffsetY = {
                                 it
                             },
-                            animationSpec = tween(
-                                470,
-                                easing = EaseOutCubic
-                            )
+                            animationSpec =
+                                tween(
+                                    470,
+                                    easing =
+                                        EaseOutCubic
+                                )
                         ),
                 exit =
                     fadeOut(
-                        animationSpec = tween(220)
+                        tween(220)
                     ) +
                         slideOutVertically(
                             targetOffsetY = {
                                 it / 2
                             },
-                            animationSpec = tween(270)
+                            animationSpec =
+                                tween(270)
                         )
             ) {
-                FullClockBrand(
+                FullscreenBrand(
                     modifier =
                         Modifier.padding(
-                            top = 18.dp
+                            top = 19.dp
                         ),
-                    centered = true
+                    centered = true,
+                    textColor =
+                        textColor
                 )
             }
         }
@@ -738,13 +964,15 @@ fun NmixFullscreenClock(
         AnimatedVisibility(
             visible = !clean,
             modifier = Modifier
-                .align(Alignment.BottomCenter)
+                .align(
+                    Alignment.BottomCenter
+                )
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing
                 ),
             enter =
                 fadeIn(
-                    animationSpec = tween(320)
+                    tween(320)
                 ) +
                     slideInVertically(
                         initialOffsetY = {
@@ -752,111 +980,119 @@ fun NmixFullscreenClock(
                         },
                         animationSpec = tween(
                             390,
-                            easing = EaseOutCubic
+                            easing =
+                                EaseOutCubic
                         )
                     ),
             exit =
                 fadeOut(
-                    animationSpec = tween(210)
+                    tween(210)
                 ) +
                     slideOutVertically(
                         targetOffsetY = {
                             it / 2
                         },
-                        animationSpec = tween(280)
+                        animationSpec =
+                            tween(280)
                     )
         ) {
             Column(
                 Modifier.padding(
-                    horizontal = 12.dp,
-                    vertical = 16.dp
+                    start = 11.dp,
+                    end = 11.dp,
+                    bottom = 15.dp
                 ),
                 horizontalAlignment =
                     Alignment.CenterHorizontally
             ) {
                 AnimatedVisibility(
-                    visible = wallpaperOpen,
+                    visible =
+                        wallpaperOpen,
                     enter =
                         fadeIn(
-                            animationSpec = tween(260)
+                            tween(240)
                         ) +
                             slideInVertically(
                                 initialOffsetY = {
-                                    it / 3
+                                    it / 4
                                 },
-                                animationSpec = tween(
-                                    320,
-                                    easing = EaseOutCubic
-                                )
+                                animationSpec =
+                                    tween(
+                                        300,
+                                        easing =
+                                            EaseOutCubic
+                                    )
                             ),
                     exit =
                         fadeOut(
-                            animationSpec = tween(180)
-                        ) +
-                            slideOutVertically(
-                                targetOffsetY = {
-                                    it / 4
-                                },
-                                animationSpec = tween(240)
-                            )
+                            tween(170)
+                        )
                 ) {
-                    WallpaperPanel(
-                        selected = wallpaperIndex,
+                    WallpaperBar(
+                        selected =
+                            wallpaperIndex,
                         customSelected =
                             customUri != null,
-                        selectedColor =
-                            wall.accent,
                         surface =
-                            controlSurface,
-                        border =
-                            controlBorder,
-                        textColor =
-                            neutralText,
+                            popupSurface,
+                        accent =
+                            wall.accent,
                         font =
                             selectedFont,
                         onSelect = {
-                            wallpaperIndex = it
-                            customUriString = null
+                            wallpaperIndex =
+                                it
+
+                            customUriString =
+                                null
+
+                            saveInt(
+                                "wallpaper",
+                                it
+                            )
+
+                            prefs.edit()
+                                .remove(
+                                    "custom_wallpaper"
+                                )
+                                .apply()
                         },
                         onCustom = {
-                            picker.launch("image/*")
+                            picker.launch(
+                                "image/*"
+                            )
                         }
                     )
                 }
 
                 AnimatedVisibility(
-                    visible = displayOpen,
+                    visible =
+                        displayOpen,
                     enter =
                         fadeIn(
-                            animationSpec = tween(260)
+                            tween(240)
                         ) +
                             slideInVertically(
                                 initialOffsetY = {
-                                    it / 3
+                                    it / 4
                                 },
-                                animationSpec = tween(
-                                    320,
-                                    easing = EaseOutCubic
-                                )
+                                animationSpec =
+                                    tween(
+                                        300,
+                                        easing =
+                                            EaseOutCubic
+                                    )
                             ),
                     exit =
                         fadeOut(
-                            animationSpec = tween(180)
-                        ) +
-                            slideOutVertically(
-                                targetOffsetY = {
-                                    it / 4
-                                },
-                                animationSpec = tween(240)
-                            )
+                            tween(170)
+                        )
                 ) {
-                    DisplayPanel(
+                    DisplayBar(
                         surface =
-                            controlSurface,
-                        border =
-                            controlBorder,
+                            popupSurface,
                         textColor =
-                            neutralText,
+                            textColor,
                         accent =
                             tone.accent,
                         font =
@@ -869,22 +1105,52 @@ fun NmixFullscreenClock(
                             showSeconds,
                         period =
                             showPeriod,
-                        label =
-                            showLabel,
+                        date =
+                            showDate,
                         onHours = {
-                            showHours = !showHours
+                            showHours =
+                                !showHours
+
+                            saveBool(
+                                "hours",
+                                showHours
+                            )
                         },
                         onMinutes = {
-                            showMinutes = !showMinutes
+                            showMinutes =
+                                !showMinutes
+
+                            saveBool(
+                                "minutes",
+                                showMinutes
+                            )
                         },
                         onSeconds = {
-                            showSeconds = !showSeconds
+                            showSeconds =
+                                !showSeconds
+
+                            saveBool(
+                                "seconds",
+                                showSeconds
+                            )
                         },
                         onPeriod = {
-                            showPeriod = !showPeriod
+                            showPeriod =
+                                !showPeriod
+
+                            saveBool(
+                                "period",
+                                showPeriod
+                            )
                         },
-                        onLabel = {
-                            showLabel = !showLabel
+                        onDate = {
+                            showDate =
+                                !showDate
+
+                            saveBool(
+                                "date",
+                                showDate
+                            )
                         }
                     )
                 }
@@ -894,50 +1160,46 @@ fun NmixFullscreenClock(
                     displayOpen
                 ) {
                     Spacer(
-                        Modifier.height(10.dp)
+                        Modifier.height(
+                            10.dp
+                        )
                     )
                 }
 
                 Row(
                     horizontalArrangement =
-                        Arrangement.spacedBy(8.dp),
+                        Arrangement.spacedBy(
+                            8.dp
+                        ),
                     verticalAlignment =
                         Alignment.CenterVertically
                 ) {
-                    FullClockAction(
-                        text = "Wallpaper",
-                        icon =
-                            NmixIcon.WALLPAPER,
-                        font =
-                            selectedFont,
-                        surface =
-                            controlSurface,
-                        border =
-                            controlBorder,
-                        textColor =
-                            neutralText
+                    ClockAction(
+                        "Wallpaper",
+                        NmixIcon.WALLPAPER,
+                        selectedFont,
+                        controlSurface,
+                        controlBorder,
+                        textColor
                     ) {
                         displayOpen = false
                         wallpaperOpen =
                             !wallpaperOpen
                     }
 
-                    FullClockAction(
-                        text = "Rotate",
-                        icon =
-                            NmixIcon.ROTATE,
-                        font =
-                            selectedFont,
-                        surface =
-                            controlSurface,
-                        border =
-                            controlBorder,
-                        textColor =
-                            neutralText
+                    ClockAction(
+                        "Rotate",
+                        NmixIcon.ROTATE,
+                        selectedFont,
+                        controlSurface,
+                        controlBorder,
+                        textColor
                     ) {
                         activity
                             ?.requestedOrientation =
-                            if (landscape) {
+                            if (
+                                landscape
+                            ) {
                                 ActivityInfo
                                     .SCREEN_ORIENTATION_PORTRAIT
                             } else {
@@ -946,56 +1208,1174 @@ fun NmixFullscreenClock(
                             }
                     }
 
-                    FullClockAction(
-                        text = "Display",
-                        icon =
-                            NmixIcon.CLOCK,
-                        font =
-                            selectedFont,
-                        surface =
-                            controlSurface,
-                        border =
-                            controlBorder,
-                        textColor =
-                            neutralText
+                    ClockAction(
+                        "Display",
+                        NmixIcon.CLOCK,
+                        selectedFont,
+                        controlSurface,
+                        controlBorder,
+                        textColor
                     ) {
                         wallpaperOpen = false
                         displayOpen =
                             !displayOpen
                     }
 
-                    FullClockAction(
-                        text = "Clean",
-                        icon =
-                            NmixIcon.FULLSCREEN,
-                        font =
-                            selectedFont,
-                        surface =
-                            controlSurface,
-                        border =
-                            controlBorder,
-                        textColor =
-                            neutralText
+                    ClockAction(
+                        "Clean",
+                        NmixIcon.FULLSCREEN,
+                        selectedFont,
+                        controlSurface,
+                        controlBorder,
+                        textColor
                     ) {
                         wallpaperOpen = false
                         displayOpen = false
                         clean = true
                     }
 
-                    FullClockAction(
-                        text = "Exit",
-                        icon =
-                            NmixIcon.CLOSE,
-                        font =
-                            selectedFont,
-                        surface =
-                            controlSurface,
-                        border =
-                            controlBorder,
-                        textColor =
-                            neutralText,
-                        red = true,
-                        onClick = onExit
+                    ClockAction(
+                        "Exit",
+                        NmixIcon.CLOSE,
+                        selectedFont,
+                        controlSurface,
+                        controlBorder,
+                        textColor,
+                        red = true
+                    ) {
+                        activity
+                            ?.requestedOrientation =
+                            ActivityInfo
+                                .SCREEN_ORIENTATION_UNSPECIFIED
+
+                        onExit()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClockCarousel(
+    title: String,
+    options: List<String>,
+    index: Int,
+    accent: Color,
+    width: Int,
+    surface: Color,
+    border: Color,
+    centerColor: Color,
+    sideColor: Color,
+    headingFont: FontFamily,
+    optionFont: FontFamily,
+    onIndex: (Int) -> Unit
+) {
+    val density =
+        LocalDensity.current
+
+    var drag by remember {
+        mutableFloatStateOf(0f)
+    }
+
+    var dragging by remember {
+        mutableStateOf(false)
+    }
+
+    val slot =
+        with(density) {
+            (width.dp * .27f)
+                .toPx()
+        }
+
+    val shownDrag by
+        animateFloatAsState(
+            targetValue = drag,
+            animationSpec =
+                if (dragging) {
+                    snap()
+                } else {
+                    tween(
+                        210,
+                        easing =
+                            EaseOutCubic
+                    )
+                },
+            label =
+                "carouselSettle"
+        )
+
+    fun wrap(
+        value: Int
+    ): Int {
+        return (
+            (value % options.size) +
+                options.size
+            ) % options.size
+    }
+
+    val shape =
+        RoundedCornerShape(50)
+
+    Column(
+        Modifier
+            .width(width.dp)
+            .height(48.dp)
+            .clip(shape)
+            .background(surface)
+            .border(
+                .5.dp,
+                border,
+                shape
+            )
+            .pointerInput(
+                index,
+                options.size
+            ) {
+                detectHorizontalDragGestures(
+                    onDragStart = {
+                        dragging = true
+                        drag = 0f
+                    },
+                    onHorizontalDrag = {
+                        change,
+                        amount ->
+
+                        change.consume()
+
+                        drag =
+                            (drag + amount)
+                                .coerceIn(
+                                    -slot * .90f,
+                                    slot * .90f
+                                )
+                    },
+                    onDragEnd = {
+                        val move =
+                            when {
+                                drag <
+                                    -slot *
+                                    .27f -> 1
+
+                                drag >
+                                    slot *
+                                    .27f -> -1
+
+                                else -> 0
+                            }
+
+                        dragging = false
+
+                        if (move != 0) {
+                            onIndex(
+                                wrap(
+                                    index +
+                                        move
+                                )
+                            )
+                        }
+
+                        drag = 0f
+                    },
+                    onDragCancel = {
+                        dragging = false
+                        drag = 0f
+                    }
+                )
+            }
+            .padding(top = 3.dp),
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
+        Text(
+            title,
+            color = accent,
+            fontSize = 7.5.sp,
+            fontWeight =
+                FontWeight.Bold,
+            letterSpacing = .8.sp,
+            fontFamily =
+                headingFont
+        )
+
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .clip(shape)
+        ) {
+            val progress =
+                if (slot == 0f) {
+                    0f
+                } else {
+                    shownDrag / slot
+                }
+
+            for (
+                offset in
+                -2..2
+            ) {
+                val position =
+                    offset + progress
+
+                if (
+                    abs(position) <
+                    1.65f
+                ) {
+                    val center =
+                        1f -
+                            abs(position)
+                                .coerceIn(
+                                    0f,
+                                    1f
+                                )
+
+                    val scale =
+                        .85f +
+                            center *
+                            .34f
+
+                    val alpha =
+                        .45f +
+                            center *
+                            .55f
+
+                    Box(
+                        Modifier
+                            .align(
+                                Alignment.Center
+                            )
+                            .graphicsLayer {
+                                translationX =
+                                    position *
+                                    slot
+
+                                scaleX =
+                                    scale
+
+                                scaleY =
+                                    scale
+
+                                this.alpha =
+                                    alpha
+                            },
+                        contentAlignment =
+                            Alignment.Center
+                    ) {
+                        Text(
+                            options[
+                                wrap(
+                                    index +
+                                        offset
+                                )
+                            ],
+                            color =
+                                if (
+                                    center >
+                                    .62f
+                                ) {
+                                    centerColor
+                                } else {
+                                    sideColor
+                                        .copy(
+                                            alpha =
+                                                .62f
+                                        )
+                                },
+                            fontSize =
+                                10.5.sp,
+                            fontWeight =
+                                if (
+                                    center >
+                                    .62f
+                                ) {
+                                    FontWeight
+                                        .Bold
+                                } else {
+                                    FontWeight
+                                        .Normal
+                                },
+                            fontFamily =
+                                optionFont,
+                            textAlign =
+                                TextAlign.Center,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WallpaperBar(
+    selected: Int,
+    customSelected: Boolean,
+    surface: Color,
+    accent: Color,
+    font: FontFamily,
+    onSelect: (Int) -> Unit,
+    onCustom: () -> Unit
+) {
+    val colors =
+        NmixThemeName.entries.map {
+            it.palette().accent
+        }
+
+    val shape =
+        RoundedCornerShape(50)
+
+    Row(
+        Modifier
+            .height(58.dp)
+            .clip(shape)
+            .background(surface)
+            .padding(
+                horizontal = 13.dp
+            ),
+        verticalAlignment =
+            Alignment.CenterVertically,
+        horizontalArrangement =
+            Arrangement.spacedBy(
+                11.dp
+            )
+    ) {
+        colors.forEachIndexed {
+            index,
+            color ->
+
+            ColorCircle(
+                color = color,
+                selected =
+                    !customSelected &&
+                        selected ==
+                        index,
+                selectedAccent =
+                    accent
+            ) {
+                onSelect(index)
+            }
+        }
+
+        GalleryCircle(
+            selected =
+                customSelected,
+            accent =
+                accent,
+            onClick =
+                onCustom
+        )
+    }
+}
+
+@Composable
+private fun ColorCircle(
+    color: Color,
+    selected: Boolean,
+    selectedAccent: Color,
+    onClick: () -> Unit
+) {
+    Box(
+        Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .background(color)
+            .then(
+                if (selected) {
+                    Modifier.border(
+                        2.dp,
+                        selectedAccent,
+                        CircleShape
+                    )
+                } else {
+                    Modifier
+                }
+            )
+            .clickable(
+                interactionSource =
+                    remember {
+                        MutableInteractionSource()
+                    },
+                indication = null,
+                onClick = onClick
+            )
+    )
+}
+
+@Composable
+private fun GalleryCircle(
+    selected: Boolean,
+    accent: Color,
+    onClick: () -> Unit
+) {
+    Box(
+        Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .background(
+                Color(0xFF727A76)
+            )
+            .then(
+                if (selected) {
+                    Modifier.border(
+                        2.dp,
+                        accent,
+                        CircleShape
+                    )
+                } else {
+                    Modifier
+                }
+            )
+            .clickable(
+                interactionSource =
+                    remember {
+                        MutableInteractionSource()
+                    },
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment =
+            Alignment.Center
+    ) {
+        NmixIcon(
+            NmixIcon.WALLPAPER,
+            Modifier.size(15.dp),
+            Color.White
+        )
+    }
+}
+
+@Composable
+private fun DisplayBar(
+    surface: Color,
+    textColor: Color,
+    accent: Color,
+    font: FontFamily,
+    hours: Boolean,
+    minutes: Boolean,
+    seconds: Boolean,
+    period: Boolean,
+    date: Boolean,
+    onHours: () -> Unit,
+    onMinutes: () -> Unit,
+    onSeconds: () -> Unit,
+    onPeriod: () -> Unit,
+    onDate: () -> Unit
+) {
+    val shape =
+        RoundedCornerShape(50)
+
+    Row(
+        Modifier
+            .height(58.dp)
+            .clip(shape)
+            .background(surface)
+            .padding(
+                horizontal = 13.dp
+            ),
+        verticalAlignment =
+            Alignment.CenterVertically,
+        horizontalArrangement =
+            Arrangement.spacedBy(
+                11.dp
+            )
+    ) {
+        DisplayCircle(
+            "H",
+            hours,
+            accent,
+            textColor,
+            font,
+            onHours
+        )
+
+        DisplayCircle(
+            "M",
+            minutes,
+            accent,
+            textColor,
+            font,
+            onMinutes
+        )
+
+        DisplayCircle(
+            "S",
+            seconds,
+            accent,
+            textColor,
+            font,
+            onSeconds
+        )
+
+        DisplayCircle(
+            "A/P",
+            period,
+            accent,
+            textColor,
+            font,
+            onPeriod
+        )
+
+        DisplayCircle(
+            "D",
+            date,
+            accent,
+            textColor,
+            font,
+            onDate
+        )
+    }
+}
+
+@Composable
+private fun DisplayCircle(
+    text: String,
+    enabled: Boolean,
+    accent: Color,
+    textColor: Color,
+    font: FontFamily,
+    onClick: () -> Unit
+) {
+    val bg =
+        if (enabled) {
+            accent.copy(
+                alpha = .18f
+            )
+        } else {
+            textColor.copy(
+                alpha = .07f
+            )
+        }
+
+    Box(
+        Modifier
+            .size(34.dp)
+            .clip(CircleShape)
+            .background(bg)
+            .border(
+                if (enabled)
+                    1.3.dp
+                else
+                    .5.dp,
+                if (enabled)
+                    accent
+                else
+                    textColor.copy(
+                        alpha = .14f
+                    ),
+                CircleShape
+            )
+            .clickable(
+                interactionSource =
+                    remember {
+                        MutableInteractionSource()
+                    },
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment =
+            Alignment.Center
+    ) {
+        Text(
+            text,
+            color =
+                if (enabled) {
+                    accent
+                } else {
+                    textColor.copy(
+                        alpha = .42f
+                    )
+                },
+            fontSize =
+                if (text == "A/P")
+                    6.5.sp
+                else
+                    9.sp,
+            fontWeight =
+                FontWeight.Bold,
+            fontFamily =
+                font
+        )
+    }
+}
+
+@Composable
+private fun ClockFace(
+    style: Int,
+    time: String,
+    parts: ClockParts,
+    date: String,
+    tone: FullClockTone,
+    font: FontFamily,
+    landscape: Boolean,
+    showHours: Boolean,
+    showMinutes: Boolean,
+    showSeconds: Boolean,
+    showPeriod: Boolean,
+    showDate: Boolean,
+    dark: Boolean
+) {
+    val size =
+        if (landscape) {
+            72.sp
+        } else {
+            52.sp
+        }
+
+    val mainColor =
+        tone.main
+
+    when (style) {
+        1 -> {
+            Column(
+                horizontalAlignment =
+                    Alignment.CenterHorizontally
+            ) {
+                Text(
+                    time,
+                    color = mainColor,
+                    fontSize = size,
+                    fontFamily = font,
+                    fontWeight =
+                        FontWeight.Normal
+                )
+
+                if (showDate) {
+                    Spacer(
+                        Modifier.height(8.dp)
+                    )
+
+                    Text(
+                        date,
+                        color =
+                            tone.accent,
+                        fontSize = 11.sp,
+                        fontFamily = font
+                    )
+                }
+            }
+        }
+
+        2 -> {
+            Row(
+                verticalAlignment =
+                    Alignment.CenterVertically,
+                horizontalArrangement =
+                    Arrangement.spacedBy(
+                        17.dp
+                    )
+            ) {
+                Column(
+                    horizontalAlignment =
+                        Alignment.End
+                ) {
+                    if (showHours) {
+                        Text(
+                            parts.hour,
+                            color =
+                                mainColor,
+                            fontSize =
+                                if (
+                                    landscape
+                                )
+                                    64.sp
+                                else
+                                    50.sp,
+                            fontWeight =
+                                FontWeight.Bold,
+                            fontFamily =
+                                font
+                        )
+                    }
+
+                    if (showMinutes) {
+                        Text(
+                            parts.minute,
+                            color =
+                                tone.accent,
+                            fontSize =
+                                if (
+                                    landscape
+                                )
+                                    64.sp
+                                else
+                                    50.sp,
+                            fontWeight =
+                                FontWeight.Bold,
+                            fontFamily =
+                                font
+                        )
+                    }
+                }
+
+                Column {
+                    if (showSeconds) {
+                        Text(
+                            parts.second,
+                            color =
+                                mainColor,
+                            fontSize =
+                                30.sp,
+                            fontWeight =
+                                FontWeight.Bold,
+                            fontFamily =
+                                font
+                        )
+                    }
+
+                    if (showPeriod) {
+                        Text(
+                            parts.period,
+                            color =
+                                tone.accent,
+                            fontSize =
+                                11.sp,
+                            fontWeight =
+                                FontWeight.Bold,
+                            fontFamily =
+                                font
+                        )
+                    }
+
+                    if (showDate) {
+                        Spacer(
+                            Modifier.height(
+                                7.dp
+                            )
+                        )
+
+                        Text(
+                            date,
+                            color =
+                                mainColor.copy(
+                                    alpha =
+                                        .62f
+                                ),
+                            fontSize =
+                                9.sp,
+                            fontFamily =
+                                font
+                        )
+                    }
+                }
+            }
+        }
+
+        3 -> {
+            Box(
+                contentAlignment =
+                    Alignment.Center
+            ) {
+                Text(
+                    time,
+                    color =
+                        tone.accent.copy(
+                            alpha = .32f
+                        ),
+                    fontSize = size,
+                    fontWeight =
+                        FontWeight.Bold,
+                    fontFamily = font,
+                    modifier =
+                        Modifier.blur(
+                            14.dp
+                        )
+                )
+
+                Column(
+                    horizontalAlignment =
+                        Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        time,
+                        color =
+                            mainColor,
+                        fontSize =
+                            size,
+                        fontWeight =
+                            FontWeight.Bold,
+                        fontFamily =
+                            font
+                    )
+
+                    if (showDate) {
+                        Spacer(
+                            Modifier.height(
+                                9.dp
+                            )
+                        )
+
+                        Text(
+                            date,
+                            color =
+                                tone.accent,
+                            fontSize =
+                                10.sp,
+                            fontFamily =
+                                font
+                        )
+                    }
+                }
+            }
+        }
+
+        4 -> {
+            Box(
+                Modifier.size(
+                    if (landscape)
+                        260.dp
+                    else
+                        225.dp
+                ),
+                contentAlignment =
+                    Alignment.Center
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .border(
+                            1.2.dp,
+                            tone.accent
+                                .copy(
+                                    alpha =
+                                        .34f
+                                ),
+                            CircleShape
+                        )
+                )
+
+                Box(
+                    Modifier
+                        .size(
+                            if (
+                                landscape
+                            )
+                                205.dp
+                            else
+                                178.dp
+                        )
+                        .border(
+                            .7.dp,
+                            tone.accent
+                                .copy(
+                                    alpha =
+                                        .17f
+                                ),
+                            CircleShape
+                        )
+                )
+
+                Column(
+                    horizontalAlignment =
+                        Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        time,
+                        color =
+                            mainColor,
+                        fontSize =
+                            if (
+                                landscape
+                            )
+                                45.sp
+                            else
+                                36.sp,
+                        fontWeight =
+                            FontWeight.Bold,
+                        fontFamily =
+                            font
+                    )
+
+                    if (showDate) {
+                        Spacer(
+                            Modifier.height(
+                                6.dp
+                            )
+                        )
+
+                        Text(
+                            date,
+                            color =
+                                tone.accent,
+                            fontSize =
+                                8.sp,
+                            fontFamily =
+                                font
+                        )
+                    }
+                }
+            }
+        }
+
+        5 -> {
+            Column {
+                Text(
+                    "NMIX://LOCAL_CLOCK",
+                    color =
+                        tone.accent,
+                    fontSize =
+                        10.sp,
+                    fontWeight =
+                        FontWeight.Bold,
+                    fontFamily =
+                        font
+                )
+
+                Spacer(
+                    Modifier.height(5.dp)
+                )
+
+                Text(
+                    "> $time",
+                    color =
+                        mainColor,
+                    fontSize =
+                        if (landscape)
+                            62.sp
+                        else
+                            44.sp,
+                    fontWeight =
+                        FontWeight.Bold,
+                    fontFamily =
+                        font
+                )
+
+                if (showDate) {
+                    Text(
+                        "> DATE  $date",
+                        color =
+                            tone.accent
+                                .copy(
+                                    alpha =
+                                        .82f
+                                ),
+                        fontSize =
+                            10.sp,
+                        fontFamily =
+                            font
+                    )
+                }
+            }
+        }
+
+        6 -> {
+            val shape =
+                RoundedCornerShape(
+                    50
+                )
+
+            Column(
+                horizontalAlignment =
+                    Alignment.CenterHorizontally
+            ) {
+                Box(
+                    Modifier
+                        .clip(shape)
+                        .background(
+                            if (dark) {
+                                Color.White
+                                    .copy(
+                                        alpha =
+                                            .08f
+                                    )
+                            } else {
+                                Color.Black
+                                    .copy(
+                                        alpha =
+                                            .045f
+                                    )
+                            }
+                        )
+                        .border(
+                            .7.dp,
+                            tone.accent
+                                .copy(
+                                    alpha =
+                                        .35f
+                                ),
+                            shape
+                        )
+                        .padding(
+                            horizontal =
+                                28.dp,
+                            vertical =
+                                14.dp
+                        )
+                ) {
+                    Text(
+                        time,
+                        color =
+                            mainColor,
+                        fontSize =
+                            if (
+                                landscape
+                            )
+                                60.sp
+                            else
+                                43.sp,
+                        fontWeight =
+                            FontWeight.Bold,
+                        fontFamily =
+                            font
+                    )
+                }
+
+                if (showDate) {
+                    Spacer(
+                        Modifier.height(
+                            9.dp
+                        )
+                    )
+
+                    Text(
+                        date,
+                        color =
+                            tone.accent,
+                        fontSize =
+                            10.sp,
+                        fontFamily =
+                            font
+                    )
+                }
+            }
+        }
+
+        7 -> {
+            Column(
+                horizontalAlignment =
+                    Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "LOCAL",
+                    color =
+                        tone.accent,
+                    fontSize =
+                        9.sp,
+                    letterSpacing =
+                        4.sp,
+                    fontFamily =
+                        font
+                )
+
+                Text(
+                    time,
+                    color =
+                        mainColor,
+                    fontSize =
+                        if (landscape)
+                            76.sp
+                        else
+                            55.sp,
+                    fontWeight =
+                        FontWeight.Bold,
+                    fontFamily =
+                        font
+                )
+
+                Box(
+                    Modifier
+                        .width(
+                            if (
+                                landscape
+                            )
+                                300.dp
+                            else
+                                230.dp
+                        )
+                        .height(1.dp)
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(
+                                    Color.Transparent,
+                                    tone.accent,
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+
+                if (showDate) {
+                    Spacer(
+                        Modifier.height(
+                            8.dp
+                        )
+                    )
+
+                    Text(
+                        date,
+                        color =
+                            mainColor.copy(
+                                alpha =
+                                    .65f
+                            ),
+                        fontSize =
+                            10.sp,
+                        fontFamily =
+                            font
+                    )
+                }
+            }
+        }
+
+        else -> {
+            Column(
+                horizontalAlignment =
+                    Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "NMIX • LOCAL TIME",
+                    color =
+                        tone.accent,
+                    fontSize =
+                        10.sp,
+                    letterSpacing =
+                        1.9.sp,
+                    fontWeight =
+                        FontWeight.Bold,
+                    fontFamily =
+                        font
+                )
+
+                Spacer(
+                    Modifier.height(
+                        12.dp
+                    )
+                )
+
+                Text(
+                    time,
+                    color =
+                        mainColor,
+                    fontSize =
+                        if (landscape)
+                            73.sp
+                        else
+                            53.sp,
+                    fontWeight =
+                        FontWeight.Bold,
+                    fontFamily =
+                        font
+                )
+
+                if (showDate) {
+                    Spacer(
+                        Modifier.height(
+                            9.dp
+                        )
+                    )
+
+                    Text(
+                        date,
+                        color =
+                            mainColor.copy(
+                                alpha =
+                                    .67f
+                            ),
+                        fontSize =
+                            11.sp,
+                        fontFamily =
+                            font
                     )
                 }
             }
@@ -1003,14 +2383,19 @@ fun NmixFullscreenClock(
     }
 }
 
-private fun parseTime(
+private fun parseFullClockTime(
     time: String
 ): ClockParts {
     val period =
         when {
-            time.contains("AM") -> "AM"
-            time.contains("PM") -> "PM"
-            else -> ""
+            time.contains("AM") ->
+                "AM"
+
+            time.contains("PM") ->
+                "PM"
+
+            else ->
+                ""
         }
 
     val raw =
@@ -1039,7 +2424,7 @@ private fun parseTime(
     )
 }
 
-private fun buildVisibleTime(
+private fun buildFullClockTime(
     parts: ClockParts,
     hours: Boolean,
     minutes: Boolean,
@@ -1047,24 +2432,41 @@ private fun buildVisibleTime(
     period: Boolean
 ): String {
     val numeric =
-        buildList {
-            if (hours) {
-                add(parts.hour)
-            }
+        mutableListOf<String>()
 
-            if (minutes) {
-                add(parts.minute)
-            }
+    if (hours) {
+        numeric.add(
+            parts.hour
+        )
+    }
 
-            if (seconds) {
-                add(parts.second)
-            }
-        }.joinToString(":")
+    if (minutes) {
+        numeric.add(
+            parts.minute
+        )
+    }
+
+    if (seconds) {
+        numeric.add(
+            parts.second
+        )
+    }
+
+    val main =
+        numeric.joinToString(
+            ":"
+        )
 
     return when {
-        period &&
-            numeric.isNotEmpty() -> {
-            "$numeric ${parts.period}"
+        main.isNotEmpty() &&
+            period &&
+            parts.period
+                .isNotEmpty() -> {
+            "$main ${parts.period}"
+        }
+
+        main.isNotEmpty() -> {
+            main
         }
 
         period -> {
@@ -1072,1052 +2474,17 @@ private fun buildVisibleTime(
         }
 
         else -> {
-            numeric
+            ""
         }
     }
 }
 
 @Composable
-private fun FullClockCarousel(
-    title: String,
-    options: List<String>,
-    index: Int,
-    accent: Color,
-    width: Int,
-    surface: Color,
-    border: Color,
-    sideColor: Color,
-    headingFont: FontFamily,
-    optionFont: FontFamily,
-    onIndex: (Int) -> Unit
-) {
-    val density =
-        LocalDensity.current
-
-    var drag by remember {
-        mutableFloatStateOf(0f)
-    }
-
-    var dragging by remember {
-        mutableStateOf(false)
-    }
-
-    val slot =
-        with(density) {
-            (width.dp * .31f).toPx()
-        }
-
-    val displayedDrag by
-        animateFloatAsState(
-            targetValue = drag,
-            animationSpec =
-                if (dragging) {
-                    snap()
-                } else {
-                    spring(
-                        dampingRatio = .88f,
-                        stiffness = 520f
-                    )
-                },
-            label = "carouselReturn"
-        )
-
-    fun wrap(
-        value: Int
-    ): Int {
-        return (
-            (value % options.size) +
-                options.size
-            ) % options.size
-    }
-
-    val shape =
-        RoundedCornerShape(50)
-
-    Column(
-        Modifier
-            .width(width.dp)
-            .height(52.dp)
-            .clip(shape)
-            .background(surface)
-            .border(
-                .5.dp,
-                border,
-                shape
-            )
-            .pointerInput(
-                index,
-                options.size
-            ) {
-                detectHorizontalDragGestures(
-                    onDragStart = {
-                        dragging = true
-                        drag = 0f
-                    },
-                    onHorizontalDrag = {
-                        change,
-                        amount ->
-
-                        change.consume()
-
-                        drag =
-                            (drag + amount)
-                                .coerceIn(
-                                    -slot * .92f,
-                                    slot * .92f
-                                )
-                    },
-                    onDragEnd = {
-                        val move =
-                            when {
-                                drag <
-                                    -slot * .28f -> {
-                                    1
-                                }
-
-                                drag >
-                                    slot * .28f -> {
-                                    -1
-                                }
-
-                                else -> {
-                                    0
-                                }
-                            }
-
-                        if (move != 0) {
-                            onIndex(
-                                wrap(
-                                    index + move
-                                )
-                            )
-                        }
-
-                        drag = 0f
-                        dragging = false
-                    },
-                    onDragCancel = {
-                        drag = 0f
-                        dragging = false
-                    }
-                )
-            }
-            .padding(top = 4.dp),
-        horizontalAlignment =
-            Alignment.CenterHorizontally
-    ) {
-        Text(
-            title,
-            color = accent,
-            fontSize = 8.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = .9.sp,
-            fontFamily = headingFont
-        )
-
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .clip(shape)
-        ) {
-            val progress =
-                if (slot == 0f) {
-                    0f
-                } else {
-                    displayedDrag / slot
-                }
-
-            for (offset in -2..2) {
-                val position =
-                    offset + progress
-
-                if (
-                    abs(position) <
-                    1.7f
-                ) {
-                    val center =
-                        1f -
-                            abs(position)
-                                .coerceIn(
-                                    0f,
-                                    1f
-                                )
-
-                    val scale =
-                        .74f +
-                            center * .40f
-
-                    val alpha =
-                        .36f +
-                            center * .64f
-
-                    Box(
-                        Modifier
-                            .align(
-                                Alignment.Center
-                            )
-                            .graphicsLayer {
-                                translationX =
-                                    position * slot
-
-                                scaleX = scale
-                                scaleY = scale
-                                this.alpha = alpha
-                            },
-                        contentAlignment =
-                            Alignment.Center
-                    ) {
-                        Text(
-                            options[
-                                wrap(
-                                    index + offset
-                                )
-                            ],
-                            color =
-                                if (
-                                    center > .60f
-                                ) {
-                                    sideColor.copy(
-                                        alpha = 1f
-                                    )
-                                } else {
-                                    sideColor.copy(
-                                        alpha = .52f
-                                    )
-                                },
-                            fontSize = 10.sp,
-                            fontWeight =
-                                if (
-                                    center > .60f
-                                ) {
-                                    FontWeight.Bold
-                                } else {
-                                    FontWeight.Normal
-                                },
-                            fontFamily =
-                                optionFont,
-                            textAlign =
-                                TextAlign.Center,
-                            maxLines = 1
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DisplayPanel(
-    surface: Color,
-    border: Color,
-    textColor: Color,
-    accent: Color,
-    font: FontFamily,
-    hours: Boolean,
-    minutes: Boolean,
-    seconds: Boolean,
-    period: Boolean,
-    label: Boolean,
-    onHours: () -> Unit,
-    onMinutes: () -> Unit,
-    onSeconds: () -> Unit,
-    onPeriod: () -> Unit,
-    onLabel: () -> Unit
-) {
-    val shape =
-        RoundedCornerShape(20.dp)
-
-    Column(
-        Modifier
-            .width(190.dp)
-            .clip(shape)
-            .background(surface)
-            .border(
-                .5.dp,
-                border,
-                shape
-            )
-            .padding(9.dp),
-        verticalArrangement =
-            Arrangement.spacedBy(6.dp)
-    ) {
-        VisibilityOption(
-            text = "Hours",
-            enabled = hours,
-            accent = accent,
-            textColor = textColor,
-            font = font,
-            onClick = onHours
-        )
-
-        VisibilityOption(
-            text = "Minutes",
-            enabled = minutes,
-            accent = accent,
-            textColor = textColor,
-            font = font,
-            onClick = onMinutes
-        )
-
-        VisibilityOption(
-            text = "Seconds",
-            enabled = seconds,
-            accent = accent,
-            textColor = textColor,
-            font = font,
-            onClick = onSeconds
-        )
-
-        VisibilityOption(
-            text = "AM / PM",
-            enabled = period,
-            accent = accent,
-            textColor = textColor,
-            font = font,
-            onClick = onPeriod
-        )
-
-        VisibilityOption(
-            text = "Label",
-            enabled = label,
-            accent = accent,
-            textColor = textColor,
-            font = font,
-            onClick = onLabel
-        )
-    }
-}
-
-@Composable
-private fun VisibilityOption(
-    text: String,
-    enabled: Boolean,
-    accent: Color,
-    textColor: Color,
-    font: FontFamily,
-    onClick: () -> Unit
-) {
-    val shape =
-        RoundedCornerShape(50)
-
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(34.dp)
-            .clip(shape)
-            .background(
-                if (enabled) {
-                    accent.copy(alpha = .13f)
-                } else {
-                    Color.White.copy(
-                        alpha = .055f
-                    )
-                }
-            )
-            .border(
-                .45.dp,
-                if (enabled) {
-                    accent.copy(alpha = .35f)
-                } else {
-                    textColor.copy(alpha = .11f)
-                },
-                shape
-            )
-            .clickable(
-                interactionSource = remember {
-                    MutableInteractionSource()
-                },
-                indication = null,
-                onClick = onClick
-            )
-            .padding(
-                horizontal = 11.dp
-            ),
-        verticalAlignment =
-            Alignment.CenterVertically
-    ) {
-        Text(
-            text,
-            modifier =
-                Modifier.weight(1f),
-            color = textColor,
-            fontSize = 9.sp,
-            fontFamily = font
-        )
-
-        Text(
-            if (enabled) {
-                "ON"
-            } else {
-                "OFF"
-            },
-            color =
-                if (enabled) {
-                    accent
-                } else {
-                    textColor.copy(
-                        alpha = .45f
-                    )
-                },
-            fontSize = 7.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = font
-        )
-    }
-}
-
-@Composable
-private fun WallpaperPanel(
-    selected: Int,
-    customSelected: Boolean,
-    selectedColor: Color,
-    surface: Color,
-    border: Color,
-    textColor: Color,
-    font: FontFamily,
-    onSelect: (Int) -> Unit,
-    onCustom: () -> Unit
-) {
-    val names =
-        listOf(
-            "Green",
-            "Blue",
-            "Purple",
-            "Orange",
-            "Rose",
-            "Cyan"
-        )
-
-    val colors =
-        NmixThemeName.entries.map {
-            it.palette().accent
-        }
-
-    val shape =
-        RoundedCornerShape(22.dp)
-
-    Column(
-        Modifier
-            .clip(shape)
-            .background(surface)
-            .border(
-                .6.dp,
-                if (customSelected) {
-                    border
-                } else {
-                    selectedColor.copy(
-                        alpha = .48f
-                    )
-                },
-                shape
-            )
-            .padding(11.dp),
-        verticalArrangement =
-            Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            "WALLPAPER",
-            color = textColor,
-            fontSize = 8.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp,
-            fontFamily = font
-        )
-
-        Row(
-            horizontalArrangement =
-                Arrangement.spacedBy(6.dp)
-        ) {
-            names.forEachIndexed {
-                index,
-                name ->
-
-                WallpaperChoice(
-                    name = name,
-                    color = colors[index],
-                    selected =
-                        selected == index &&
-                            !customSelected,
-                    textColor =
-                        textColor,
-                    font =
-                        font
-                ) {
-                    onSelect(index)
-                }
-            }
-
-            GalleryChoice(
-                selected =
-                    customSelected,
-                textColor =
-                    textColor,
-                font =
-                    font,
-                onClick =
-                    onCustom
-            )
-        }
-    }
-}
-
-@Composable
-private fun WallpaperChoice(
-    name: String,
-    color: Color,
-    selected: Boolean,
-    textColor: Color,
-    font: FontFamily,
-    onClick: () -> Unit
-) {
-    val shape =
-        RoundedCornerShape(50)
-
-    Row(
-        Modifier
-            .height(34.dp)
-            .clip(shape)
-            .background(
-                color.copy(
-                    alpha =
-                        if (selected) {
-                            .19f
-                        } else {
-                            .09f
-                        }
-                )
-            )
-            .border(
-                .5.dp,
-                color.copy(
-                    alpha =
-                        if (selected) {
-                            .68f
-                        } else {
-                            .23f
-                        }
-                ),
-                shape
-            )
-            .clickable(
-                interactionSource = remember {
-                    MutableInteractionSource()
-                },
-                indication = null,
-                onClick = onClick
-            )
-            .padding(
-                horizontal = 9.dp
-            ),
-        verticalAlignment =
-            Alignment.CenterVertically,
-        horizontalArrangement =
-            Arrangement.spacedBy(5.dp)
-    ) {
-        Box(
-            Modifier
-                .size(9.dp)
-                .clip(CircleShape)
-                .background(color)
-        )
-
-        Text(
-            name,
-            color = textColor,
-            fontSize = 7.sp,
-            fontFamily = font,
-            maxLines = 1
-        )
-    }
-}
-
-@Composable
-private fun GalleryChoice(
-    selected: Boolean,
-    textColor: Color,
-    font: FontFamily,
-    onClick: () -> Unit
-) {
-    val shape =
-        RoundedCornerShape(50)
-
-    Row(
-        Modifier
-            .height(34.dp)
-            .clip(shape)
-            .background(
-                textColor.copy(
-                    alpha =
-                        if (selected) {
-                            .14f
-                        } else {
-                            .06f
-                        }
-                )
-            )
-            .border(
-                .5.dp,
-                textColor.copy(
-                    alpha =
-                        if (selected) {
-                            .35f
-                        } else {
-                            .13f
-                        }
-                ),
-                shape
-            )
-            .clickable(
-                interactionSource = remember {
-                    MutableInteractionSource()
-                },
-                indication = null,
-                onClick = onClick
-            )
-            .padding(
-                horizontal = 9.dp
-            ),
-        verticalAlignment =
-            Alignment.CenterVertically,
-        horizontalArrangement =
-            Arrangement.spacedBy(5.dp)
-    ) {
-        NmixIcon(
-            NmixIcon.WALLPAPER,
-            Modifier.size(13.dp),
-            textColor
-        )
-
-        Text(
-            "Custom",
-            color = textColor,
-            fontSize = 7.sp,
-            fontFamily = font
-        )
-    }
-}
-
-@Composable
-private fun FullClockFace(
-    style: Int,
-    visibleTime: String,
-    parts: ClockParts,
-    date: String,
-    tone: FullClockTone,
-    font: FontFamily,
-    landscape: Boolean,
-    showHours: Boolean,
-    showMinutes: Boolean,
-    showSeconds: Boolean,
-    showPeriod: Boolean
-) {
-    when (style) {
-        1 -> {
-            Column(
-                horizontalAlignment =
-                    Alignment.CenterHorizontally
-            ) {
-                Text(
-                    visibleTime,
-                    color = tone.main,
-                    fontSize =
-                        if (landscape) {
-                            74.sp
-                        } else {
-                            56.sp
-                        },
-                    fontFamily = font
-                )
-
-                Text(
-                    date,
-                    color = tone.accent,
-                    fontSize = 10.sp,
-                    fontFamily = font
-                )
-            }
-        }
-
-        2 -> {
-            Row(
-                verticalAlignment =
-                    Alignment.CenterVertically,
-                horizontalArrangement =
-                    Arrangement.spacedBy(15.dp)
-            ) {
-                Column(
-                    horizontalAlignment =
-                        Alignment.End
-                ) {
-                    if (showHours) {
-                        Text(
-                            parts.hour,
-                            color = tone.main,
-                            fontSize =
-                                if (landscape) {
-                                    56.sp
-                                } else {
-                                    45.sp
-                                },
-                            fontWeight =
-                                FontWeight.Bold,
-                            fontFamily = font
-                        )
-                    }
-
-                    if (showMinutes) {
-                        Text(
-                            parts.minute,
-                            color = tone.accent,
-                            fontSize =
-                                if (landscape) {
-                                    56.sp
-                                } else {
-                                    45.sp
-                                },
-                            fontWeight =
-                                FontWeight.Bold,
-                            fontFamily = font
-                        )
-                    }
-                }
-
-                Column {
-                    if (showSeconds) {
-                        Text(
-                            parts.second,
-                            color = tone.main,
-                            fontSize = 27.sp,
-                            fontWeight =
-                                FontWeight.Bold,
-                            fontFamily = font
-                        )
-                    }
-
-                    if (showPeriod) {
-                        Text(
-                            parts.period,
-                            color = tone.accent,
-                            fontSize = 10.sp,
-                            fontWeight =
-                                FontWeight.Bold,
-                            fontFamily = font
-                        )
-                    }
-
-                    Text(
-                        date,
-                        color =
-                            tone.main.copy(
-                                alpha = .60f
-                            ),
-                        fontSize = 9.sp,
-                        fontFamily = font
-                    )
-                }
-            }
-        }
-
-        3 -> {
-            Box(
-                contentAlignment =
-                    Alignment.Center
-            ) {
-                Text(
-                    visibleTime,
-                    color =
-                        tone.accent.copy(
-                            alpha = .32f
-                        ),
-                    fontSize =
-                        if (landscape) {
-                            66.sp
-                        } else {
-                            46.sp
-                        },
-                    fontWeight =
-                        FontWeight.Bold,
-                    fontFamily = font,
-                    modifier =
-                        Modifier.blur(13.dp)
-                )
-
-                Text(
-                    visibleTime,
-                    color = tone.main,
-                    fontSize =
-                        if (landscape) {
-                            66.sp
-                        } else {
-                            46.sp
-                        },
-                    fontWeight =
-                        FontWeight.Bold,
-                    fontFamily = font
-                )
-            }
-        }
-
-        4 -> {
-            Box(
-                Modifier.size(
-                    if (landscape) {
-                        230.dp
-                    } else {
-                        205.dp
-                    }
-                ),
-                contentAlignment =
-                    Alignment.Center
-            ) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .border(
-                            1.dp,
-                            tone.accent.copy(
-                                alpha = .27f
-                            ),
-                            CircleShape
-                        )
-                )
-
-                Column(
-                    horizontalAlignment =
-                        Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        visibleTime,
-                        color = tone.main,
-                        fontSize =
-                            if (landscape) {
-                                41.sp
-                            } else {
-                                34.sp
-                            },
-                        fontWeight =
-                            FontWeight.Bold,
-                        fontFamily = font
-                    )
-
-                    Text(
-                        date,
-                        color = tone.accent,
-                        fontSize = 8.sp,
-                        fontFamily = font
-                    )
-                }
-            }
-        }
-
-        5 -> {
-            Column {
-                Text(
-                    "NMIX://LOCAL_CLOCK",
-                    color = tone.accent,
-                    fontSize = 9.sp,
-                    fontWeight =
-                        FontWeight.Bold,
-                    fontFamily = font
-                )
-
-                Text(
-                    "> $visibleTime",
-                    color = tone.main,
-                    fontSize =
-                        if (landscape) {
-                            55.sp
-                        } else {
-                            39.sp
-                        },
-                    fontWeight =
-                        FontWeight.Bold,
-                    fontFamily = font
-                )
-
-                Text(
-                    "> $date",
-                    color =
-                        tone.accent.copy(
-                            alpha = .78f
-                        ),
-                    fontSize = 10.sp,
-                    fontFamily = font
-                )
-            }
-        }
-
-        6 -> {
-            val shape =
-                RoundedCornerShape(50)
-
-            Column(
-                horizontalAlignment =
-                    Alignment.CenterHorizontally
-            ) {
-                Box(
-                    Modifier
-                        .clip(shape)
-                        .background(
-                            Color.White.copy(
-                                alpha = .09f
-                            )
-                        )
-                        .border(
-                            .6.dp,
-                            tone.accent.copy(
-                                alpha = .28f
-                            ),
-                            shape
-                        )
-                        .padding(
-                            horizontal = 25.dp,
-                            vertical = 13.dp
-                        )
-                ) {
-                    Text(
-                        visibleTime,
-                        color = tone.main,
-                        fontSize =
-                            if (landscape) {
-                                53.sp
-                            } else {
-                                38.sp
-                            },
-                        fontWeight =
-                            FontWeight.Bold,
-                        fontFamily = font
-                    )
-                }
-
-                Spacer(
-                    Modifier.height(9.dp)
-                )
-
-                Text(
-                    date,
-                    color = tone.accent,
-                    fontSize = 10.sp,
-                    fontFamily = font
-                )
-            }
-        }
-
-        7 -> {
-            Column(
-                horizontalAlignment =
-                    Alignment.CenterHorizontally
-            ) {
-                Text(
-                    "LOCAL",
-                    color = tone.accent,
-                    fontSize = 8.sp,
-                    letterSpacing = 4.sp,
-                    fontFamily = font
-                )
-
-                Text(
-                    visibleTime,
-                    color = tone.main,
-                    fontSize =
-                        if (landscape) {
-                            68.sp
-                        } else {
-                            49.sp
-                        },
-                    fontWeight =
-                        FontWeight.Bold,
-                    fontFamily = font
-                )
-
-                Box(
-                    Modifier
-                        .width(220.dp)
-                        .height(1.dp)
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(
-                                    Color.Transparent,
-                                    tone.accent,
-                                    Color.Transparent
-                                )
-                            )
-                        )
-                )
-
-                Spacer(
-                    Modifier.height(8.dp)
-                )
-
-                Text(
-                    date,
-                    color =
-                        tone.main.copy(
-                            alpha = .64f
-                        ),
-                    fontSize = 10.sp,
-                    fontFamily = font
-                )
-            }
-        }
-
-        else -> {
-            Column(
-                horizontalAlignment =
-                    Alignment.CenterHorizontally
-            ) {
-                Text(
-                    "NMIX • LOCAL TIME",
-                    color = tone.accent,
-                    fontSize = 9.sp,
-                    letterSpacing = 1.8.sp,
-                    fontWeight =
-                        FontWeight.Bold,
-                    fontFamily = font
-                )
-
-                Spacer(
-                    Modifier.height(11.dp)
-                )
-
-                Text(
-                    visibleTime,
-                    color = tone.main,
-                    fontSize =
-                        if (landscape) {
-                            65.sp
-                        } else {
-                            46.sp
-                        },
-                    fontWeight =
-                        FontWeight.Bold,
-                    fontFamily = font
-                )
-
-                Spacer(
-                    Modifier.height(8.dp)
-                )
-
-                Text(
-                    date,
-                    color =
-                        tone.main.copy(
-                            alpha = .66f
-                        ),
-                    fontSize = 11.sp,
-                    fontFamily = font
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun FullClockBrand(
-    modifier: Modifier = Modifier,
-    centered: Boolean = false
+private fun FullscreenBrand(
+    modifier: Modifier =
+        Modifier,
+    centered: Boolean = false,
+    textColor: Color
 ) {
     val a =
         LocalNmixAppearance.current
@@ -2126,7 +2493,8 @@ private fun FullClockBrand(
         modifier,
         horizontalAlignment =
             if (centered) {
-                Alignment.CenterHorizontally
+                Alignment
+                    .CenterHorizontally
             } else {
                 Alignment.Start
             }
@@ -2134,28 +2502,32 @@ private fun FullClockBrand(
         Text(
             "EVERYTHING WITH NUMBERS",
             color =
-                Color.White.copy(
-                    alpha = .64f
+                textColor.copy(
+                    alpha = .58f
                 ),
             fontSize = 7.sp,
-            letterSpacing = 1.5.sp,
-            fontFamily = a.fontFamily
+            letterSpacing =
+                1.5.sp,
+            fontFamily =
+                a.fontFamily
         )
 
         Text(
             "NMIX",
-            color = Color.White,
+            color = textColor,
             fontSize = 24.sp,
             fontWeight =
                 FontWeight.Bold,
-            letterSpacing = 2.sp,
-            fontFamily = NmixLogoFont
+            letterSpacing =
+                2.sp,
+            fontFamily =
+                NmixLogoFont
         )
     }
 }
 
 @Composable
-private fun FullClockAction(
+private fun ClockAction(
     text: String,
     icon: NmixIcon,
     font: FontFamily,
@@ -2182,7 +2554,10 @@ private fun FullClockAction(
             .background(
                 if (red) {
                     Color(0xFFB8444B)
-                        .copy(alpha = .20f)
+                        .copy(
+                            alpha =
+                                .20f
+                        )
                 } else {
                     surface
                 }
@@ -2191,7 +2566,8 @@ private fun FullClockAction(
                 .6.dp,
                 if (red) {
                     foreground.copy(
-                        alpha = .50f
+                        alpha =
+                            .50f
                     )
                 } else {
                     border
@@ -2212,7 +2588,9 @@ private fun FullClockAction(
         verticalAlignment =
             Alignment.CenterVertically,
         horizontalArrangement =
-            Arrangement.spacedBy(7.dp)
+            Arrangement.spacedBy(
+                7.dp
+            )
     ) {
         NmixIcon(
             icon,
@@ -2222,17 +2600,19 @@ private fun FullClockAction(
 
         Text(
             text,
-            color = foreground,
+            color =
+                foreground,
             fontSize = 9.sp,
             fontWeight =
                 FontWeight.SemiBold,
-            fontFamily = font
+            fontFamily =
+                font
         )
     }
 }
 
 @Composable
-private fun WallpaperGlow(
+private fun ClockGlow(
     color: Color,
     alpha: Float,
     size: Int,
@@ -2243,33 +2623,38 @@ private fun WallpaperGlow(
             .size(size.dp)
             .background(
                 Brush.radialGradient(
-                    colorStops = arrayOf(
-                        0f to
-                            color.copy(
-                                alpha = alpha
-                            ),
+                    colorStops =
+                        arrayOf(
+                            0f to
+                                color.copy(
+                                    alpha =
+                                        alpha
+                                ),
 
-                        .26f to
-                            color.copy(
-                                alpha =
-                                    alpha * .76f
-                            ),
+                            .27f to
+                                color.copy(
+                                    alpha =
+                                        alpha *
+                                        .74f
+                                ),
 
-                        .53f to
-                            color.copy(
-                                alpha =
-                                    alpha * .35f
-                            ),
+                            .54f to
+                                color.copy(
+                                    alpha =
+                                        alpha *
+                                        .34f
+                                ),
 
-                        .78f to
-                            color.copy(
-                                alpha =
-                                    alpha * .09f
-                            ),
+                            .79f to
+                                color.copy(
+                                    alpha =
+                                        alpha *
+                                        .08f
+                                ),
 
-                        1f to
-                            Color.Transparent
-                    )
+                            1f to
+                                Color.Transparent
+                        )
                 ),
                 CircleShape
             )
@@ -2277,31 +2662,40 @@ private fun WallpaperGlow(
 }
 
 @Composable
-private fun FullClockCustomWallpaper(
+private fun CustomClockWallpaper(
     uri: Uri
 ) {
     val context =
         LocalContext.current
 
-    var bitmap by remember(uri) {
-        mutableStateOf<
-            androidx.compose.ui.graphics.ImageBitmap?
-        >(null)
-    }
+    var bitmap by
+        remember(uri) {
+            mutableStateOf<
+                androidx.compose.ui.graphics.ImageBitmap?
+            >(null)
+        }
 
     LaunchedEffect(uri) {
         bitmap =
-            withContext(Dispatchers.IO) {
+            withContext(
+                Dispatchers.IO
+            ) {
                 try {
                     context
                         .contentResolver
-                        .openInputStream(uri)
+                        .openInputStream(
+                            uri
+                        )
                         ?.use {
                             BitmapFactory
-                                .decodeStream(it)
+                                .decodeStream(
+                                    it
+                                )
                                 ?.asImageBitmap()
                         }
-                } catch (_: Exception) {
+                } catch (
+                    _: Exception
+                ) {
                     null
                 }
             }
@@ -2310,9 +2704,11 @@ private fun FullClockCustomWallpaper(
     bitmap?.let {
         Image(
             bitmap = it,
-            contentDescription = null,
+            contentDescription =
+                null,
             modifier =
-                Modifier.fillMaxSize(),
+                Modifier
+                    .fillMaxSize(),
             contentScale =
                 ContentScale.Crop
         )
