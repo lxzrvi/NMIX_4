@@ -61,32 +61,6 @@ fun NativeMainPageV2(onBack:()->Unit){
     var count by remember{mutableIntStateOf(0)}
     var now by remember{mutableLongStateOf(System.currentTimeMillis())}
 
-    /*
-     * Footer states are intentionally separate from section.
-     * This prevents the footer entering the expanding accordion flow.
-     */
-    var bottomFooter by remember{mutableStateOf(true)}
-    var listFooter by remember{mutableStateOf(false)}
-
-    LaunchedEffect(section){
-        if(section!=null){
-            listFooter=false
-            bottomFooter=true
-
-            delay(370)
-
-            bottomFooter=false
-            listFooter=true
-        }else{
-            listFooter=false
-            bottomFooter=false
-
-            delay(330)
-
-            bottomFooter=true
-        }
-    }
-
     fun timerText()="%02d:%02d".format(
         timer/60,
         timer%60
@@ -120,6 +94,7 @@ fun NativeMainPageV2(onBack:()->Unit){
     fun open(name:String){
         top=true
         settings=false
+
         section=
             if(section==name)
                 null
@@ -307,7 +282,6 @@ fun NativeMainPageV2(onBack:()->Unit){
                             "0."
                         else
                             "."
-
                     display=n2
                 }
             }else if(!n1.contains(".")){
@@ -316,7 +290,6 @@ fun NativeMainPageV2(onBack:()->Unit){
                         "0."
                     else
                         "."
-
                 display=n1
             }
 
@@ -384,9 +357,6 @@ fun NativeMainPageV2(onBack:()->Unit){
     val calcOpen=
         section=="calculator"
 
-    val sectionOpen=
-        section!=null
-
     val headerTarget=when{
         !top->0.dp
         calcOpen->430.dp
@@ -424,11 +394,7 @@ fun NativeMainPageV2(onBack:()->Unit){
             Modifier.fillMaxSize(),
             contentPadding=PaddingValues(
                 top=listTop,
-                bottom=
-                    if(sectionOpen)
-                        14.dp
-                    else
-                        135.dp
+                bottom=22.dp
             ),
             verticalArrangement=
                 Arrangement.spacedBy(12.dp)
@@ -437,7 +403,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                 NmixToolSection(
                     icon=NmixIcon.CALCULATOR,
                     title="Calculator",
-                    subtitle="Numbers and operations",
+                    subtitle=
+                        "Numbers and operations",
                     open=calcOpen,
                     onClick={
                         open("calculator")
@@ -463,7 +430,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                         mode="clock"
                         label="LIVE CLOCK"
                         display=timeText()
-                        status="Live clock is active."
+                        status=
+                            "Live clock is active."
                     }
                 ){
                     NmixClockTools(
@@ -491,7 +459,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                             timerRun=false
                             timer=0
                             mode="timer"
-                            status="Timer reset to zero."
+                            status=
+                                "Timer reset to zero."
                         },
 
                         onClock={
@@ -499,7 +468,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                             mode="clock"
                             label="LIVE CLOCK"
                             display=timeText()
-                            status="Live clock is active."
+                            status=
+                                "Live clock is active."
                         },
 
                         onFullscreen={
@@ -525,7 +495,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                             swRun=false
                             sw=0
                             mode="stopwatch"
-                            status="Stopwatch reset."
+                            status=
+                                "Stopwatch reset."
                         }
                     )
                 }
@@ -550,13 +521,15 @@ fun NativeMainPageV2(onBack:()->Unit){
                         add={
                             count++
                             mode="counter"
-                            status="Counter increased."
+                            status=
+                                "Counter increased."
                         },
 
                         reset={
                             count=0
                             mode="counter"
-                            status="Counter reset to zero."
+                            status=
+                                "Counter reset to zero."
                         },
 
                         random={
@@ -565,7 +538,6 @@ fun NativeMainPageV2(onBack:()->Unit){
                                     1,
                                     1001
                                 )
-
                             mode="counter"
                             status=
                                 "Random number generated."
@@ -577,7 +549,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                                     .coerceAtLeast(0)
 
                             mode="counter"
-                            status="Counter decreased."
+                            status=
+                                "Counter decreased."
                         }
                     )
                 }
@@ -596,56 +569,50 @@ fun NativeMainPageV2(onBack:()->Unit){
                         mode="idle"
                         label="NMIX LIVE"
                         display="Ready"
-                        status="NMIX instructions."
+                        status=
+                            "NMIX instructions."
                     }
                 ){
                     NmixInstructions()
                 }
             }
 
-            if(listFooter){
-                item{
-                    Spacer(
-                        Modifier.height(38.dp)
-                    )
-                }
-
-                item{
-                    PageBackButton(onBack)
-                }
-
-                item{
-                    Spacer(
-                        Modifier.height(17.dp)
-                    )
-                }
-
-                item{
-                    PageFooter()
-                }
-            }
-        }
-
-        if(bottomFooter){
-            Column(
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(ui.page)
-                    .windowInsetsPadding(
-                        WindowInsets.navigationBars
-                    )
-                    .padding(bottom=8.dp),
-                horizontalAlignment=
-                    Alignment.CenterHorizontally
-            ){
-                PageBackButton(onBack)
-
+            item{
                 Spacer(
-                    Modifier.height(17.dp)
+                    Modifier.height(24.dp)
                 )
+            }
 
+            item{
+                NmixContribution(
+                    Modifier.fillMaxWidth()
+                )
+            }
+
+            item{
+                Spacer(
+                    Modifier.height(5.dp)
+                )
+            }
+
+            item{
                 PageFooter()
+            }
+
+            item{
+                Spacer(
+                    Modifier.height(5.dp)
+                )
+            }
+
+            item{
+                PageBackButton(onBack)
+            }
+
+            item{
+                Spacer(
+                    Modifier.height(10.dp)
+                )
             }
         }
 
@@ -729,7 +696,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                                 fontWeight=
                                     FontWeight.Bold,
                                 letterSpacing=2.2.sp,
-                                fontFamily=NmixLogoFont
+                                fontFamily=
+                                    NmixLogoFont
                             )
                         }
                     }
@@ -740,18 +708,22 @@ fun NativeMainPageV2(onBack:()->Unit){
                             expandVertically(
                                 animationSpec=tween(
                                     420,
-                                    easing=EaseInOutCubic
+                                    easing=
+                                        EaseInOutCubic
                                 ),
-                                expandFrom=Alignment.Top
+                                expandFrom=
+                                    Alignment.Top
                             )+
                             fadeIn(tween(250)),
                         exit=
                             shrinkVertically(
                                 animationSpec=tween(
                                     420,
-                                    easing=EaseInOutCubic
+                                    easing=
+                                        EaseInOutCubic
                                 ),
-                                shrinkTowards=Alignment.Top
+                                shrinkTowards=
+                                    Alignment.Top
                             )+
                             fadeOut(tween(200))
                     ){
@@ -763,7 +735,9 @@ fun NativeMainPageV2(onBack:()->Unit){
                                     bottom=8.dp
                                 ),
                             horizontalArrangement=
-                                Arrangement.spacedBy(7.dp)
+                                Arrangement.spacedBy(
+                                    7.dp
+                                )
                         ){
                             NmixCalcField(
                                 n1.ifEmpty{"_"},
@@ -797,12 +771,14 @@ fun NativeMainPageV2(onBack:()->Unit){
                                 timerRun=false
                             }
 
-                            status="Five seconds removed."
+                            status=
+                                "Five seconds removed."
                         },
 
                         onPlus={
                             timer+=5
-                            status="Five seconds added."
+                            status=
+                                "Five seconds added."
                         },
 
                         onClick={
@@ -930,7 +906,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                         NmixIcon.ARROW_UP
                     else
                         NmixIcon.ARROW_DOWN,
-                modifier=Modifier.size(48.dp),
+                modifier=
+                    Modifier.size(48.dp),
                 onClick={
                     top=!top
 
@@ -959,7 +936,8 @@ fun NativeMainPageV2(onBack:()->Unit){
                     ){
                         settings=!settings
                     },
-                contentAlignment=Alignment.Center
+                contentAlignment=
+                    Alignment.Center
             ){
                 AnimatedContent(
                     targetState=settings,
@@ -968,13 +946,15 @@ fun NativeMainPageV2(onBack:()->Unit){
                             fadeIn(tween(180))+
                             scaleIn(
                                 initialScale=.82f,
-                                animationSpec=tween(220)
+                                animationSpec=
+                                    tween(220)
                             )
                         ) togetherWith (
                             fadeOut(tween(140))+
                             scaleOut(
                                 targetScale=.82f,
-                                animationSpec=tween(180)
+                                animationSpec=
+                                    tween(180)
                             )
                         )
                     },
@@ -994,32 +974,22 @@ fun NativeMainPageV2(onBack:()->Unit){
 
         AnimatedVisibility(
             visible=fullscreen,
-            modifier=Modifier.fillMaxSize(),
-            enter=fadeIn(tween(420)),
-            exit=fadeOut(tween(340))
+            modifier=
+                Modifier.fillMaxSize(),
+            enter=
+                fadeIn(tween(420)),
+            exit=
+                fadeOut(tween(340))
         ){
             FullClock(
                 time=timeText(),
                 date=dateText(),
-                onExit={fullscreen=false}
+                onExit={
+                    fullscreen=false
+                }
             )
         }
     }
-}
-
-@Composable
-private fun PageBackButton(
-    onBack:()->Unit
-){
-    NmixTextButton(
-        text="Back to the Start",
-        modifier=Modifier
-            .fillMaxWidth()
-            .padding(horizontal=22.dp)
-            .height(44.dp),
-        accent=true,
-        onClick=onBack
-    )
 }
 
 @Composable
@@ -1030,7 +1000,7 @@ private fun PageFooter(){
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(bottom=8.dp),
+            .padding(vertical=4.dp),
         horizontalArrangement=
             Arrangement.Center,
         verticalAlignment=
@@ -1054,6 +1024,21 @@ private fun PageFooter(){
 }
 
 @Composable
+private fun PageBackButton(
+    onBack:()->Unit
+){
+    NmixTextButton(
+        text="Back to the Start",
+        modifier=Modifier
+            .fillMaxWidth()
+            .padding(horizontal=22.dp)
+            .height(44.dp),
+        accent=true,
+        onClick=onBack
+    )
+}
+
+@Composable
 private fun FullClock(
     time:String,
     date:String,
@@ -1064,21 +1049,25 @@ private fun FullClock(
     val activity=LocalActivity.current
 
     DisposableEffect(activity){
-        val window=activity?.window
+        val window=
+            activity?.window
 
         if(window!=null){
-            WindowCompat.setDecorFitsSystemWindows(
-                window,
-                false
-            )
+            WindowCompat
+                .setDecorFitsSystemWindows(
+                    window,
+                    false
+                )
 
             WindowInsetsControllerCompat(
                 window,
                 window.decorView
             ).apply{
                 hide(
-                    WindowInsetsCompat.Type.statusBars() or
-                    WindowInsetsCompat.Type.navigationBars()
+                    WindowInsetsCompat
+                        .Type.statusBars() or
+                    WindowInsetsCompat
+                        .Type.navigationBars()
                 )
 
                 systemBarsBehavior=
@@ -1093,26 +1082,29 @@ private fun FullClock(
                     window,
                     window.decorView
                 ).show(
-                    WindowInsetsCompat.Type.statusBars() or
-                    WindowInsetsCompat.Type.navigationBars()
+                    WindowInsetsCompat
+                        .Type.statusBars() or
+                    WindowInsetsCompat
+                        .Type.navigationBars()
                 )
             }
         }
     }
 
-    val motion=rememberInfiniteTransition(
-        label="fullClockMotion"
-    )
+    val motion=
+        rememberInfiniteTransition(
+            label="fullClock"
+        )
 
     val x by motion.animateFloat(
         -1f,
         1f,
         infiniteRepeatable(
-            animation=tween(
+            tween(
                 3400,
                 easing=EaseInOutSine
             ),
-            repeatMode=RepeatMode.Reverse
+            RepeatMode.Reverse
         ),
         label="clockX"
     )
@@ -1121,11 +1113,11 @@ private fun FullClock(
         1f,
         -1f,
         infiniteRepeatable(
-            animation=tween(
+            tween(
                 4300,
                 easing=EaseInOutSine
             ),
-            repeatMode=RepeatMode.Reverse
+            RepeatMode.Reverse
         ),
         label="clockY"
     )
@@ -1198,7 +1190,10 @@ private fun FullClock(
         ){
             Text(
                 "EVERYTHING WITH NUMBERS",
-                color=Color.White.copy(alpha=.54f),
+                color=
+                    Color.White.copy(
+                        alpha=.54f
+                    ),
                 fontSize=7.sp,
                 letterSpacing=1.5.sp,
                 fontFamily=a.fontFamily
@@ -1215,20 +1210,27 @@ private fun FullClock(
         }
 
         Column(
-            Modifier.align(Alignment.Center),
+            Modifier.align(
+                Alignment.Center
+            ),
             horizontalAlignment=
                 Alignment.CenterHorizontally
         ){
             Text(
                 "NMIX • LOCAL TIME",
-                color=p.accentLight.copy(alpha=.92f),
+                color=
+                    p.accentLight.copy(
+                        alpha=.92f
+                    ),
                 fontSize=10.sp,
                 letterSpacing=2.sp,
                 fontWeight=FontWeight.Bold,
                 fontFamily=a.fontFamily
             )
 
-            Spacer(Modifier.height(13.dp))
+            Spacer(
+                Modifier.height(13.dp)
+            )
 
             Text(
                 time,
@@ -1238,11 +1240,16 @@ private fun FullClock(
                 fontFamily=a.fontFamily
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(
+                Modifier.height(8.dp)
+            )
 
             Text(
                 date,
-                color=Color.White.copy(alpha=.68f),
+                color=
+                    Color.White.copy(
+                        alpha=.68f
+                    ),
                 fontSize=12.sp,
                 fontFamily=a.fontFamily
             )
@@ -1251,7 +1258,9 @@ private fun FullClock(
         NmixTextButton(
             text="Exit",
             modifier=Modifier
-                .align(Alignment.BottomEnd)
+                .align(
+                    Alignment.BottomEnd
+                )
                 .padding(20.dp)
                 .width(94.dp)
                 .height(42.dp),
