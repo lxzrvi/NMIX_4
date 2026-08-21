@@ -32,45 +32,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-private fun displaySurface():Brush{
-    val a=LocalNmixAppearance.current
-    val p=a.palette
-
-    return if(a.darkMode){
-        Brush.linearGradient(
-            listOf(
-                Color(0xFF111614),
-                Color(0xFF1A211E),
-                p.accent.copy(alpha=.13f),
-                Color(0xFF121815)
-            )
-        )
-    }else{
-        Brush.linearGradient(
-            listOf(
-                Color(0xFFF9FBFA),
-                p.accentLight.copy(alpha=.14f),
-                Color(0xFFE8EDEB)
-            )
-        )
-    }
-}
-
-@Composable
-private fun displayBorder():Color{
-    val a=LocalNmixAppearance.current
-    return a.palette.accent.copy(
-        alpha=if(a.darkMode).15f else .31f
-    )
-}
-
-@Composable
-private fun displayValueColor():Color{
+private fun nmixScreenColor():Color{
     val a=LocalNmixAppearance.current
     return if(a.darkMode)
-        Color.White.copy(alpha=.90f)
+        Color(0xFF151A18)
     else
-        Color(0xFF343A37)
+        Color(0xFFE9ECEA)
+}
+
+@Composable
+private fun nmixScreenBorder():Color{
+    val a=LocalNmixAppearance.current
+    return a.palette.accent.copy(
+        alpha=if(a.darkMode).15f else .30f
+    )
 }
 
 @Composable
@@ -87,8 +62,8 @@ fun NmixToolSection(
     val ui=a.uiColors()
 
     val progress by animateFloatAsState(
-        targetValue=if(open)1f else 0f,
-        animationSpec=tween(
+        if(open)1f else 0f,
+        tween(
             520,
             easing=EaseInOutCubic
         ),
@@ -102,26 +77,32 @@ fun NmixToolSection(
     val outerSize=(42f-3f*progress).dp
     val innerSize=(36f-2f*progress).dp
 
-    val outerRadius=(8.5f+10f*progress).dp
-    val innerRadius=(6.5f+9f*progress).dp
+    val outerRadius=
+        (8.5f+10f*progress).dp
+
+    val innerRadius=
+        (6.5f+9f*progress).dp
 
     val shape=RoundedCornerShape(16.dp)
-
-    val card=if(a.darkMode)
-        p.accent.copy(alpha=.065f)
-    else
-        Color.White.copy(alpha=.74f)
 
     Column(
         Modifier
             .padding(horizontal=12.dp)
             .clip(shape)
-            .background(card)
+            .background(
+                if(a.darkMode)
+                    p.accent.copy(alpha=.065f)
+                else
+                    Color.White.copy(alpha=.74f)
+            )
             .border(
                 .5.dp,
                 p.accent.copy(
-                    alpha=if(a.darkMode).14f
-                    else .23f
+                    alpha=
+                        if(a.darkMode)
+                            .13f
+                        else
+                            .23f
                 ),
                 shape
             )
@@ -200,9 +181,7 @@ fun NmixToolSection(
 
             Spacer(Modifier.width(12.dp))
 
-            Column(
-                Modifier.weight(1f)
-            ){
+            Column(Modifier.weight(1f)){
                 Text(
                     title,
                     color=ui.text,
@@ -246,8 +225,7 @@ fun NmixToolSection(
                         320,
                         easing=EaseInOutCubic
                     ),
-                    shrinkTowards=
-                        Alignment.Top
+                    shrinkTowards=Alignment.Top
                 )+
                 fadeOut(tween(180))
         ){
@@ -284,8 +262,7 @@ fun NmixOption(
         label="optionPress"
     )
 
-    val shape=
-        RoundedCornerShape(13.dp)
+    val shape=RoundedCornerShape(13.dp)
 
     Row(
         modifier
@@ -335,13 +312,9 @@ fun NmixOption(
                 )
                 .background(
                     if(selected)
-                        Color.White.copy(
-                            alpha=.92f
-                        )
+                        Color.White.copy(alpha=.92f)
                     else
-                        p.accent.copy(
-                            alpha=.15f
-                        )
+                        p.accent.copy(alpha=.15f)
                 ),
             contentAlignment=Alignment.Center
         ){
@@ -495,7 +468,8 @@ fun NmixKey(
     val p=a.palette
 
     val bg=when(type){
-        1->p.accent.copy(alpha=.86f)
+        1->
+            p.accent.copy(alpha=.86f)
 
         2->
             Color(0xFFD83939)
@@ -558,7 +532,7 @@ fun NmixDisplay(
         1f,
         infiniteRepeatable(
             animation=tween(
-                2700,
+                2600,
                 easing=EaseInOutSine
             ),
             repeatMode=RepeatMode.Reverse
@@ -571,7 +545,7 @@ fun NmixDisplay(
         -1f,
         infiniteRepeatable(
             animation=tween(
-                3400,
+                3300,
                 easing=EaseInOutSine
             ),
             repeatMode=RepeatMode.Reverse
@@ -580,11 +554,11 @@ fun NmixDisplay(
     )
 
     val pulse by motion.animateFloat(
-        .84f,
-        1.17f,
+        .88f,
+        1.16f,
         infiniteRepeatable(
             animation=tween(
-                3000,
+                2900,
                 easing=EaseInOutSine
             ),
             repeatMode=RepeatMode.Reverse
@@ -592,16 +566,15 @@ fun NmixDisplay(
         label="displayPulse"
     )
 
-    val shape=
-        RoundedCornerShape(19.dp)
+    val shape=RoundedCornerShape(19.dp)
 
     Box(
         modifier
             .clip(shape)
-            .background(displaySurface())
+            .background(nmixScreenColor())
             .border(
                 .55.dp,
-                displayBorder(),
+                nmixScreenBorder(),
                 shape
             )
             .clickable(
@@ -612,33 +585,25 @@ fun NmixDisplay(
     ){
         Box(
             Modifier
-                .size(330.dp)
+                .size(250.dp)
                 .align(Alignment.TopStart)
                 .offset(
-                    x=(-120).dp,
-                    y=(-135).dp
+                    x=(-90).dp,
+                    y=(-100).dp
                 )
                 .graphicsLayer{
-                    translationX=x*185f
-                    translationY=y*85f
+                    translationX=x*160f
+                    translationY=y*70f
                     scaleX=pulse
                     scaleY=pulse
                 }
                 .background(
-                    Brush.radialGradient(
-                        listOf(
-                            p.accent.copy(
-                                alpha=
-                                    if(a.darkMode)
-                                        .30f
-                                    else
-                                        .23f
-                            ),
-                            p.accent.copy(
-                                alpha=.08f
-                            ),
-                            Color.Transparent
-                        )
+                    p.accent.copy(
+                        alpha=
+                            if(a.darkMode)
+                                .13f
+                            else
+                                .11f
                     ),
                     CircleShape
                 )
@@ -646,30 +611,23 @@ fun NmixDisplay(
 
         Box(
             Modifier
-                .size(290.dp)
-                .align(
-                    Alignment.BottomEnd
-                )
+                .size(220.dp)
+                .align(Alignment.BottomEnd)
                 .offset(
-                    x=115.dp,
-                    y=120.dp
+                    x=90.dp,
+                    y=90.dp
                 )
                 .graphicsLayer{
-                    translationX=-x*150f
-                    translationY=-y*75f
+                    translationX=-x*135f
+                    translationY=-y*60f
                 }
                 .background(
-                    Brush.radialGradient(
-                        listOf(
-                            p.accentLight.copy(
-                                alpha=
-                                    if(a.darkMode)
-                                        .21f
-                                    else
-                                        .20f
-                            ),
-                            Color.Transparent
-                        )
+                    p.accentLight.copy(
+                        alpha=
+                            if(a.darkMode)
+                                .08f
+                            else
+                                .10f
                     ),
                     CircleShape
                 )
@@ -684,9 +642,7 @@ fun NmixDisplay(
                 if(a.darkMode)
                     p.accentLight
                 else
-                    p.accentDark.copy(
-                        alpha=.88f
-                    ),
+                    p.accentDark,
             fontSize=9.sp,
             fontWeight=FontWeight.Bold,
             letterSpacing=2.sp,
@@ -704,7 +660,7 @@ fun NmixDisplay(
                         else
                             16.dp
                 ),
-            color=displayValueColor(),
+            color=Color.White,
             fontSize=40.sp,
             fontWeight=FontWeight.SemiBold,
             fontFamily=a.fontFamily,
@@ -721,13 +677,11 @@ fun NmixDisplay(
                 ),
             color=
                 if(a.darkMode)
-                    p.accentLight.copy(
-                        alpha=.72f
-                    )
+                    p.accentLight
+                        .copy(alpha=.78f)
                 else
-                    p.accentDark.copy(
-                        alpha=.76f
-                    ),
+                    p.accentDark
+                        .copy(alpha=.80f),
             fontSize=11.sp,
             lineHeight=15.sp,
             fontWeight=FontWeight.Medium,
@@ -739,9 +693,7 @@ fun NmixDisplay(
         AnimatedVisibility(
             visible=timer,
             modifier=Modifier
-                .align(
-                    Alignment.CenterStart
-                )
+                .align(Alignment.CenterStart)
                 .padding(start=13.dp),
             enter=
                 fadeIn(tween(230))+
@@ -760,9 +712,7 @@ fun NmixDisplay(
         AnimatedVisibility(
             visible=timer,
             modifier=Modifier
-                .align(
-                    Alignment.CenterEnd
-                )
+                .align(Alignment.CenterEnd)
                 .padding(end=13.dp),
             enter=
                 fadeIn(tween(230))+
@@ -785,30 +735,28 @@ fun NmixCalcField(
     text:String,
     modifier:Modifier=Modifier
 ){
-    val a=LocalNmixAppearance.current
-    val shape=
-        RoundedCornerShape(11.dp)
+    val shape=RoundedCornerShape(11.dp)
 
     Box(
         modifier
             .height(49.dp)
             .clip(shape)
-            .background(
-                displaySurface()
-            )
+            .background(nmixScreenColor())
             .border(
                 .5.dp,
-                displayBorder(),
+                nmixScreenBorder(),
                 shape
             ),
         contentAlignment=Alignment.Center
     ){
         Text(
             text,
-            color=displayValueColor(),
+            color=Color.White,
             fontSize=16.sp,
             fontWeight=FontWeight.SemiBold,
-            fontFamily=a.fontFamily,
+            fontFamily=
+                LocalNmixAppearance.current
+                    .fontFamily,
             maxLines=1
         )
     }
@@ -822,25 +770,18 @@ fun NmixGlassBox(
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
-    val shape=
-        RoundedCornerShape(13.dp)
+    val shape=RoundedCornerShape(13.dp)
 
     Box(
         modifier
             .clip(shape)
             .background(
                 if(a.darkMode)
-                    p.accent.copy(
-                        alpha=.065f
-                    )
+                    p.accent.copy(alpha=.065f)
                 else if(accentTint)
-                    Color.White.copy(
-                        alpha=.73f
-                    )
+                    Color.White.copy(alpha=.73f)
                 else
-                    Color.White.copy(
-                        alpha=.70f
-                    )
+                    Color.White.copy(alpha=.70f)
             )
             .border(
                 .45.dp,
