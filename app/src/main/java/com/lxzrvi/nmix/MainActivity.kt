@@ -43,6 +43,7 @@ class MainActivity:ComponentActivity(){
 fun NmixApp(){
     val context=LocalContext.current
     val appearance=rememberNmixAppearance(context)
+
     val prefs=remember{
         context.getSharedPreferences(
             "nmix_preferences",
@@ -172,9 +173,6 @@ fun NmixApp(){
 private fun NmixLaunchScreen(){
     val a=LocalNmixAppearance.current
     val p=a.palette
-    val motion=rememberInfiniteTransition(
-        label="launchMotion"
-    )
 
     var entered by remember{
         mutableStateOf(false)
@@ -184,48 +182,65 @@ private fun NmixLaunchScreen(){
         entered=true
     }
 
-    val logoScale by animateFloatAsState(
-        targetValue=if(entered)1f else .84f,
-        animationSpec=spring(
-            dampingRatio=.72f,
-            stiffness=190f
+    val scale by animateFloatAsState(
+        if(entered)1f else .88f,
+        spring(
+            dampingRatio=.78f,
+            stiffness=170f
         ),
-        label="logoScale"
+        label="launchScale"
     )
 
-    val logoAlpha by animateFloatAsState(
-        targetValue=if(entered)1f else 0f,
-        animationSpec=tween(
-            560,
+    val alpha by animateFloatAsState(
+        if(entered)1f else 0f,
+        tween(
+            520,
             easing=EaseOutCubic
         ),
-        label="logoAlpha"
+        label="launchAlpha"
+    )
+
+    val motion=rememberInfiniteTransition(
+        label="launchMotion"
+    )
+
+    val x by motion.animateFloat(
+        -1f,
+        1f,
+        infiniteRepeatable(
+            tween(
+                2500,
+                easing=EaseInOutSine
+            ),
+            RepeatMode.Reverse
+        ),
+        label="launchX"
+    )
+
+    val y by motion.animateFloat(
+        1f,
+        -1f,
+        infiniteRepeatable(
+            tween(
+                3200,
+                easing=EaseInOutSine
+            ),
+            RepeatMode.Reverse
+        ),
+        label="launchY"
     )
 
     val pulse by motion.animateFloat(
-        initialValue=.88f,
-        targetValue=1.14f,
-        animationSpec=infiniteRepeatable(
-            animation=tween(
-                1800,
+        .90f,
+        1.14f,
+        infiniteRepeatable(
+            tween(
+                2100,
                 easing=EaseInOutSine
             ),
-            repeatMode=RepeatMode.Reverse
+            RepeatMode.Reverse
         ),
         label="launchPulse"
-    )
-
-    val shift by motion.animateFloat(
-        initialValue=-1f,
-        targetValue=1f,
-        animationSpec=infiniteRepeatable(
-            animation=tween(
-                2600,
-                easing=EaseInOutSine
-            ),
-            repeatMode=RepeatMode.Reverse
-        ),
-        label="launchShift"
     )
 
     Box(
@@ -245,10 +260,10 @@ private fun NmixLaunchScreen(){
     ){
         Box(
             Modifier
-                .size(420.dp)
+                .size(480.dp)
                 .graphicsLayer{
-                    translationX=shift*110f
-                    translationY=-shift*55f
+                    translationX=x*170f
+                    translationY=y*90f
                     scaleX=pulse
                     scaleY=pulse
                 }
@@ -256,7 +271,7 @@ private fun NmixLaunchScreen(){
                     Brush.radialGradient(
                         listOf(
                             p.accentLight.copy(alpha=.38f),
-                            p.accent.copy(alpha=.14f),
+                            p.accent.copy(alpha=.13f),
                             Color.Transparent
                         )
                     ),
@@ -265,43 +280,22 @@ private fun NmixLaunchScreen(){
         )
 
         Column(
+            Modifier.graphicsLayer{
+                scaleX=scale
+                scaleY=scale
+                this.alpha=alpha
+            },
             horizontalAlignment=Alignment.CenterHorizontally
         ){
-            Box(
-                Modifier
-                    .size(126.dp)
-                    .graphicsLayer{
-                        scaleX=logoScale
-                        scaleY=logoScale
-                        alpha=logoAlpha
-                    }
-                    .clip(CircleShape)
-                    .background(
-                        Brush.radialGradient(
-                            listOf(
-                                p.accentLight.copy(alpha=.30f),
-                                p.accent.copy(alpha=.24f),
-                                Color.White.copy(alpha=.08f)
-                            )
-                        )
-                    )
-                    .border(
-                        .7.dp,
-                        p.accentLight.copy(alpha=.62f),
-                        CircleShape
-                    ),
-                contentAlignment=Alignment.Center
-            ){
-                Text(
-                    text="N",
-                    color=Color.White,
-                    fontSize=70.sp,
-                    fontWeight=FontWeight.Bold,
-                    fontFamily=NmixLogoFont
-                )
-            }
+            Text(
+                text="N",
+                color=Color.White,
+                fontSize=72.sp,
+                fontWeight=FontWeight.Bold,
+                fontFamily=NmixLogoFont
+            )
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(14.dp))
 
             Text(
                 text="EVERYTHING WITH NUMBERS",
@@ -328,58 +322,58 @@ private fun LandingScreen(
     )
 
     val x by motion.animateFloat(
-        initialValue=-1f,
-        targetValue=1f,
-        animationSpec=infiniteRepeatable(
-            animation=tween(
-                3300,
+        -1f,
+        1f,
+        infiniteRepeatable(
+            tween(
+                3200,
                 easing=EaseInOutSine
             ),
-            repeatMode=RepeatMode.Reverse
+            RepeatMode.Reverse
         ),
-        label="x"
+        label="landingX"
     )
 
     val y by motion.animateFloat(
-        initialValue=1f,
-        targetValue=-1f,
-        animationSpec=infiniteRepeatable(
-            animation=tween(
-                4100,
+        1f,
+        -1f,
+        infiniteRepeatable(
+            tween(
+                3900,
                 easing=EaseInOutSine
             ),
-            repeatMode=RepeatMode.Reverse
+            RepeatMode.Reverse
         ),
-        label="y"
+        label="landingY"
     )
 
     val z by motion.animateFloat(
-        initialValue=-1f,
-        targetValue=1f,
-        animationSpec=infiniteRepeatable(
-            animation=tween(
-                4900,
+        -1f,
+        1f,
+        infiniteRepeatable(
+            tween(
+                4700,
                 easing=EaseInOutSine
             ),
-            repeatMode=RepeatMode.Reverse
+            RepeatMode.Reverse
         ),
-        label="z"
+        label="landingZ"
     )
 
     val pulse by motion.animateFloat(
-        initialValue=.83f,
-        targetValue=1.18f,
-        animationSpec=infiniteRepeatable(
-            animation=tween(
-                3000,
+        .84f,
+        1.18f,
+        infiniteRepeatable(
+            tween(
+                2900,
                 easing=EaseInOutSine
             ),
-            repeatMode=RepeatMode.Reverse
+            RepeatMode.Reverse
         ),
-        label="pulse"
+        label="landingPulse"
     )
 
-    val background=if(a.darkMode){
+    val bg=if(a.darkMode){
         Brush.verticalGradient(
             listOf(
                 Color(0xFF020403),
@@ -403,7 +397,7 @@ private fun LandingScreen(
     Box(
         Modifier
             .fillMaxSize()
-            .background(background)
+            .background(bg)
     ){
         LandingGlow(
             Modifier
@@ -419,7 +413,7 @@ private fun LandingScreen(
                     scaleY=pulse
                 },
             p.accentLight,
-            if(a.darkMode).27f else .48f,
+            if(a.darkMode).27f else .46f,
             650
         )
 
@@ -433,11 +427,9 @@ private fun LandingScreen(
                 .graphicsLayer{
                     translationX=y*410f
                     translationY=z*210f
-                    scaleX=1.10f
-                    scaleY=1.10f
                 },
             p.accent,
-            if(a.darkMode).30f else .50f,
+            if(a.darkMode).30f else .48f,
             700
         )
 
@@ -455,7 +447,7 @@ private fun LandingScreen(
                     scaleY=pulse
                 },
             p.accentLight,
-            if(a.darkMode).18f else .31f,
+            if(a.darkMode).18f else .29f,
             560
         )
 
@@ -464,7 +456,8 @@ private fun LandingScreen(
                 .align(Alignment.Center)
                 .offset(y=(-58).dp)
                 .padding(horizontal=22.dp),
-            horizontalAlignment=Alignment.CenterHorizontally
+            horizontalAlignment=
+                Alignment.CenterHorizontally
         ){
             Text(
                 "EVERYTHING WITH NUMBERS",
@@ -495,9 +488,7 @@ private fun LandingScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            LandingButton(
-                "Share"
-            ){
+            LandingButton("Share"){
                 val intent=Intent(
                     Intent.ACTION_SEND
                 ).apply{
@@ -523,7 +514,8 @@ private fun LandingScreen(
                 .fillMaxWidth()
                 .padding(horizontal=15.dp)
                 .padding(bottom=53.dp),
-            horizontalAlignment=Alignment.CenterHorizontally
+            horizontalAlignment=
+                Alignment.CenterHorizontally
         ){
             LandingInfo()
         }
@@ -532,7 +524,8 @@ private fun LandingScreen(
             Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom=10.dp),
-            verticalAlignment=Alignment.CenterVertically
+            verticalAlignment=
+                Alignment.CenterVertically
         ){
             Text(
                 "NMIX",
@@ -565,11 +558,26 @@ private fun LandingGlow(
             .background(
                 Brush.radialGradient(
                     colorStops=arrayOf(
-                        0f to color.copy(alpha=alpha),
-                        .25f to color.copy(alpha=alpha*.85f),
-                        .52f to color.copy(alpha=alpha*.48f),
-                        .77f to color.copy(alpha=alpha*.15f),
-                        1f to Color.Transparent
+                        0f to
+                            color.copy(alpha=alpha),
+
+                        .25f to
+                            color.copy(
+                                alpha=alpha*.85f
+                            ),
+
+                        .52f to
+                            color.copy(
+                                alpha=alpha*.48f
+                            ),
+
+                        .77f to
+                            color.copy(
+                                alpha=alpha*.15f
+                            ),
+
+                        1f to
+                            Color.Transparent
                     )
                 ),
                 CircleShape
@@ -584,46 +592,71 @@ private fun LandingButton(
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
+
     val interaction=remember{
         MutableInteractionSource()
     }
 
-    val pressed by interaction.collectIsPressedAsState()
+    val pressed by
+        interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
         if(pressed).955f else 1f,
         spring(
-            dampingRatio=.68f,
+            dampingRatio=.70f,
             stiffness=620f
         ),
         label="landingPress"
     )
+
+    val shape=
+        RoundedCornerShape(50)
 
     Box(
         Modifier
             .width(278.dp)
             .height(44.dp)
             .scale(scale)
-            .clip(RoundedCornerShape(50))
+            .clip(shape)
             .background(
                 Brush.horizontalGradient(
                     listOf(
                         p.accent.copy(
-                            alpha=if(a.darkMode).24f else .20f
+                            alpha=
+                                if(a.darkMode)
+                                    .30f
+                                else
+                                    .24f
                         ),
+
                         p.accentLight.copy(
-                            alpha=if(a.darkMode).13f else .11f
+                            alpha=
+                                if(a.darkMode)
+                                    .17f
+                                else
+                                    .14f
                         ),
+
                         p.accent.copy(
-                            alpha=if(a.darkMode).24f else .20f
+                            alpha=
+                                if(a.darkMode)
+                                    .30f
+                                else
+                                    .24f
                         )
                     )
                 )
             )
             .border(
-                .55.dp,
-                p.accentLight.copy(alpha=.48f),
-                RoundedCornerShape(50)
+                .5.dp,
+                p.accentLight.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .27f
+                        else
+                            .46f
+                ),
+                shape
             )
             .clickable(
                 interactionSource=interaction,
@@ -671,46 +704,74 @@ private fun LandingInfo(){
     val outer=Brush.linearGradient(
         listOf(
             if(a.darkMode)
-                Color.Black.copy(alpha=.48f)
+                Color(0xFF111513)
+                    .copy(alpha=.82f)
             else
-                Color.White.copy(alpha=.20f),
+                Color.White
+                    .copy(alpha=.74f),
 
             p.accent.copy(
-                alpha=if(a.darkMode).18f else .13f
+                alpha=
+                    if(a.darkMode)
+                        .16f
+                    else
+                        .12f
             ),
 
             if(a.darkMode)
-                Color.Black.copy(alpha=.42f)
+                Color(0xFF0D110F)
+                    .copy(alpha=.82f)
             else
-                Color.White.copy(alpha=.17f)
+                Color.White
+                    .copy(alpha=.72f)
         )
     )
 
-    val inner=if(a.darkMode)
-        Color.Black.copy(alpha=.38f)
-    else
-        Color.White.copy(alpha=.18f)
+    val inner=
+        if(a.darkMode)
+            Color(0xFF080B0A)
+                .copy(alpha=.56f)
+        else
+            Color.White
+                .copy(alpha=.68f)
 
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(21.dp))
+            .clip(
+                RoundedCornerShape(21.dp)
+            )
             .background(outer)
             .border(
-                .55.dp,
-                p.accentLight.copy(alpha=.42f),
+                .5.dp,
+                p.accentLight.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .22f
+                        else
+                            .40f
+                ),
                 RoundedCornerShape(21.dp)
             )
             .padding(14.dp)
     ){
         Row(
             Modifier.fillMaxWidth(),
-            verticalAlignment=Alignment.CenterVertically
+            verticalAlignment=
+                Alignment.CenterVertically
         ){
-            Column(Modifier.weight(1f)){
+            Column(
+                Modifier.weight(1f)
+            ){
                 Text(
                     "APP INFO",
-                    color=Color.White.copy(alpha=.64f),
+                    color=
+                        if(a.darkMode)
+                            Color.White.copy(
+                                alpha=.62f
+                            )
+                        else
+                            Color(0xFF43504B),
                     fontSize=8.sp,
                     letterSpacing=1.2.sp,
                     fontFamily=a.fontFamily
@@ -718,7 +779,11 @@ private fun LandingInfo(){
 
                 Text(
                     "NMIX",
-                    color=Color.White,
+                    color=
+                        if(a.darkMode)
+                            Color.White
+                        else
+                            Color(0xFF222825),
                     fontSize=20.sp,
                     fontWeight=FontWeight.Bold,
                     fontFamily=NmixLogoFont
@@ -746,42 +811,68 @@ private fun LandingInfo(){
 
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement=Arrangement.spacedBy(9.dp)
+            horizontalArrangement=
+                Arrangement.spacedBy(9.dp)
         ){
             Box(
                 Modifier
                     .weight(1.2f)
                     .height(120.dp)
-                    .clip(RoundedCornerShape(15.dp))
+                    .clip(
+                        RoundedCornerShape(
+                            15.dp
+                        )
+                    )
                     .background(inner)
                     .border(
                         .45.dp,
-                        p.accent.copy(alpha=.27f),
-                        RoundedCornerShape(15.dp)
+                        p.accent.copy(
+                            alpha=
+                                if(a.darkMode)
+                                    .18f
+                                else
+                                    .27f
+                        ),
+                        RoundedCornerShape(
+                            15.dp
+                        )
                     )
                     .padding(11.dp),
-                contentAlignment=Alignment.CenterStart
+                contentAlignment=
+                    Alignment.CenterStart
             ){
                 AnimatedContent(
                     targetState=index,
                     transitionSpec={
                         (
-                            fadeIn(tween(380))+
+                            fadeIn(
+                                tween(380)
+                            )+
                             slideInVertically(
-                                initialOffsetY={it/6},
-                                animationSpec=tween(
-                                    380,
-                                    easing=EaseOutCubic
-                                )
+                                initialOffsetY={
+                                    it/6
+                                },
+                                animationSpec=
+                                    tween(
+                                        380,
+                                        easing=
+                                            EaseOutCubic
+                                    )
                             )
                         ) togetherWith (
-                            fadeOut(tween(280))+
+                            fadeOut(
+                                tween(280)
+                            )+
                             slideOutVertically(
-                                targetOffsetY={-it/6},
-                                animationSpec=tween(
-                                    320,
-                                    easing=EaseInCubic
-                                )
+                                targetOffsetY={
+                                    -it/6
+                                },
+                                animationSpec=
+                                    tween(
+                                        320,
+                                        easing=
+                                            EaseInCubic
+                                    )
                             )
                         )
                     },
@@ -789,7 +880,13 @@ private fun LandingInfo(){
                 ){
                     Text(
                         messages[it],
-                        color=Color.White.copy(alpha=.92f),
+                        color=
+                            if(a.darkMode)
+                                Color.White.copy(
+                                    alpha=.90f
+                                )
+                            else
+                                Color(0xFF303834),
                         fontSize=10.sp,
                         lineHeight=16.sp,
                         fontFamily=a.fontFamily
@@ -801,18 +898,36 @@ private fun LandingInfo(){
                 Modifier
                     .weight(.8f)
                     .height(120.dp)
-                    .clip(RoundedCornerShape(15.dp))
+                    .clip(
+                        RoundedCornerShape(
+                            15.dp
+                        )
+                    )
                     .background(inner)
                     .border(
                         .45.dp,
-                        p.accent.copy(alpha=.27f),
-                        RoundedCornerShape(15.dp)
+                        p.accent.copy(
+                            alpha=
+                                if(a.darkMode)
+                                    .18f
+                                else
+                                    .27f
+                        ),
+                        RoundedCornerShape(
+                            15.dp
+                        )
                     )
                     .padding(10.dp)
             ){
                 Text(
                     "BUILT WITH",
-                    color=Color.White.copy(alpha=.66f),
+                    color=
+                        if(a.darkMode)
+                            Color.White.copy(
+                                alpha=.64f
+                            )
+                        else
+                            Color(0xFF4D5853),
                     fontSize=8.sp,
                     fontWeight=FontWeight.Bold,
                     fontFamily=a.fontFamily
@@ -838,9 +953,11 @@ private fun Tech(text:String){
 
     Box(
         Modifier
-            .clip(RoundedCornerShape(50))
+            .clip(
+                RoundedCornerShape(50)
+            )
             .background(
-                p.accent.copy(alpha=.34f)
+                p.accent.copy(alpha=.24f)
             )
             .padding(
                 horizontal=8.dp,
@@ -849,7 +966,11 @@ private fun Tech(text:String){
     ){
         Text(
             text,
-            color=Color.White,
+            color=
+                if(a.darkMode)
+                    Color.White
+                else
+                    Color(0xFF26302C),
             fontSize=7.5.sp,
             fontWeight=FontWeight.SemiBold,
             fontFamily=a.fontFamily,
@@ -865,16 +986,18 @@ private fun MiniLink(
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
+
     val interaction=remember{
         MutableInteractionSource()
     }
 
-    val pressed by interaction.collectIsPressedAsState()
+    val pressed by
+        interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
         if(pressed).94f else 1f,
         spring(
-            dampingRatio=.68f,
+            dampingRatio=.70f,
             stiffness=620f
         ),
         label="miniPress"
@@ -883,13 +1006,21 @@ private fun MiniLink(
     Box(
         Modifier
             .scale(scale)
-            .clip(RoundedCornerShape(50))
+            .clip(
+                RoundedCornerShape(50)
+            )
             .background(
-                p.accent.copy(alpha=.32f)
+                p.accent.copy(alpha=.27f)
             )
             .border(
                 .45.dp,
-                p.accentLight.copy(alpha=.42f),
+                p.accentLight.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .20f
+                        else
+                            .38f
+                ),
                 RoundedCornerShape(50)
             )
             .clickable(
@@ -904,7 +1035,11 @@ private fun MiniLink(
     ){
         Text(
             text,
-            color=Color.White,
+            color=
+                if(a.darkMode)
+                    Color.White
+                else
+                    Color(0xFF25302C),
             fontSize=9.sp,
             fontWeight=FontWeight.SemiBold,
             fontFamily=a.fontFamily,
