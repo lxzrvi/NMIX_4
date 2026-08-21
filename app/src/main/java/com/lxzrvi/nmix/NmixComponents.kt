@@ -84,18 +84,17 @@ fun NmixToolSection(
     val shape=RoundedCornerShape(16.dp)
 
     val glass=Brush.horizontalGradient(
-        listOf(
-            p.accent.copy(
-                alpha=if(a.darkMode).13f else .11f
-            ),
-            if(a.darkMode)
-                Color.Black.copy(alpha=.25f)
-            else
-                Color.White.copy(alpha=.56f),
-            p.accentLight.copy(
-                alpha=if(a.darkMode).07f else .08f
-            )
+    listOf(
+        p.accent.copy(
+            alpha=if(a.darkMode).10f else .11f
+        ),
+        p.accent.copy(
+            alpha=if(a.darkMode).085f else .09f
+        ),
+        p.accent.copy(
+            alpha=if(a.darkMode).10f else .11f
         )
+      )
     )
 
     Column(
