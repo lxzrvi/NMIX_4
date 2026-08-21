@@ -52,11 +52,9 @@ fun NativeMainPageV2(onBack:()->Unit){
 
     var timer by remember{mutableIntStateOf(0)}
     var timerRun by remember{mutableStateOf(false)}
-
     var sw by remember{mutableLongStateOf(0L)}
     var swRun by remember{mutableStateOf(false)}
     var swBase by remember{mutableLongStateOf(0L)}
-
     var count by remember{mutableIntStateOf(0)}
     var now by remember{mutableLongStateOf(System.currentTimeMillis())}
 
@@ -65,9 +63,7 @@ fun NativeMainPageV2(onBack:()->Unit){
     fun swText():String{
         val s=sw/1000
         return "%02d:%02d.%02d".format(
-            s/60,
-            s%60,
-            (sw%1000)/10
+            s/60,s%60,(sw%1000)/10
         )
     }
 
@@ -310,25 +306,22 @@ fun NativeMainPageV2(onBack:()->Unit){
     }
 
     val headerHeight by animateDpAsState(
-        targetValue=headerTarget,
-        animationSpec=tween(
-            420,
-            easing=EaseInOutCubic
-        ),
+        headerTarget,
+        tween(420,easing=EaseInOutCubic),
         label="header"
     )
 
-    val listTop by animateDpAsState(
-        targetValue=
-            if(top)
-                headerTarget+16.dp
-            else
-                112.dp,
-        animationSpec=tween(
-            420,
-            easing=EaseInOutCubic
-        ),
-        label="list"
+    /*
+     * The LazyColumn itself moves instead of only receiving top
+     * content padding. This creates a real clipping/safe boundary.
+     */
+    val listBoundary by animateDpAsState(
+        if(top)
+            headerTarget+16.dp
+        else
+            108.dp,
+        tween(420,easing=EaseInOutCubic),
+        label="listBoundary"
     )
 
     BoxWithConstraints(
@@ -339,9 +332,12 @@ fun NativeMainPageV2(onBack:()->Unit){
         val pageHeight=maxHeight
 
         LazyColumn(
-            Modifier.fillMaxSize(),
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .padding(top=listBoundary),
             contentPadding=PaddingValues(
-                top=listTop,
+                top=0.dp,
                 bottom=14.dp
             ),
             verticalArrangement=Arrangement.spacedBy(12.dp)
@@ -422,7 +418,6 @@ fun NativeMainPageV2(onBack:()->Unit){
                             timerRun=false
                             mode="stopwatch"
                             swRun=!swRun
-
                             status=if(swRun)
                                 "Stopwatch running."
                             else
@@ -502,12 +497,15 @@ fun NativeMainPageV2(onBack:()->Unit){
             }
 
             item{
-                val footerGap=if(section==null){
-                    (pageHeight-545.dp)
-                        .coerceAtLeast(95.dp)
-                }else{
-                    42.dp
-                }
+                val available=
+                    pageHeight-listBoundary
+
+                val footerGap=
+                    if(section==null)
+                        (available-430.dp)
+                            .coerceAtLeast(90.dp)
+                    else
+                        42.dp
 
                 Spacer(
                     Modifier.height(footerGap)
@@ -527,9 +525,7 @@ fun NativeMainPageV2(onBack:()->Unit){
             }
 
             item{
-                Spacer(
-                    Modifier.height(17.dp)
-                )
+                Spacer(Modifier.height(17.dp))
             }
 
             item{
@@ -560,18 +556,8 @@ fun NativeMainPageV2(onBack:()->Unit){
 
         AnimatedVisibility(
             visible=top,
-            enter=fadeIn(
-                tween(
-                    280,
-                    easing=EaseOutCubic
-                )
-            ),
-            exit=fadeOut(
-                tween(
-                    220,
-                    easing=EaseInCubic
-                )
-            )
+            enter=fadeIn(tween(280)),
+            exit=fadeOut(tween(220))
         ){
             Box(
                 Modifier
@@ -638,7 +624,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                         visible=calcOpen,
                         enter=
                             expandVertically(
-                                animationSpec=tween(
+                                tween(
                                     420,
                                     easing=EaseInOutCubic
                                 ),
@@ -647,7 +633,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                             fadeIn(tween(250)),
                         exit=
                             shrinkVertically(
-                                animationSpec=tween(
+                                tween(
                                     420,
                                     easing=EaseInOutCubic
                                 ),
@@ -689,11 +675,7 @@ fun NativeMainPageV2(onBack:()->Unit){
 
                         onMinus={
                             timer=(timer-5).coerceAtLeast(0)
-
-                            if(timer==0){
-                                timerRun=false
-                            }
-
+                            if(timer==0)timerRun=false
                             status="Five seconds removed."
                         },
 
@@ -748,7 +730,6 @@ fun NativeMainPageV2(onBack:()->Unit){
         AnimatedVisibility(
             visible=settings,
             modifier=Modifier.align(Alignment.CenterEnd),
-
             enter=
                 slideInHorizontally(
                     initialOffsetX={it},
@@ -758,7 +739,6 @@ fun NativeMainPageV2(onBack:()->Unit){
                     )
                 )+
                 fadeIn(tween(250)),
-
             exit=
                 slideOutHorizontally(
                     targetOffsetX={it},
@@ -769,25 +749,22 @@ fun NativeMainPageV2(onBack:()->Unit){
                 )+
                 fadeOut(tween(220))
         ){
-            val drawerBg=
-                if(a.darkMode)
-                    Color(0xFF151917)
-                else
-                    Color(0xFFF0F3F1)
-
             Box(
                 Modifier
-                    .width(330.dp)
+                    .width(286.dp)
                     .fillMaxHeight()
                     .clip(
                         RoundedCornerShape(
                             topStart=25.dp,
-                            bottomStart=25.dp,
-                            topEnd=0.dp,
-                            bottomEnd=0.dp
+                            bottomStart=25.dp
                         )
                     )
-                    .background(drawerBg)
+                    .background(
+                        if(a.darkMode)
+                            Color(0xFF151917)
+                        else
+                            Color(0xFFF0F3F1)
+                    )
                     .clickable(
                         interactionSource=remember{
                             MutableInteractionSource()
@@ -795,16 +772,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                         indication=null
                     ){}
             ){
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .windowInsetsPadding(
-                            WindowInsets.statusBars
-                        )
-                        .padding(top=62.dp)
-                ){
-                    NmixSettings()
-                }
+                NmixSettings()
             }
         }
 
@@ -830,26 +798,20 @@ fun NativeMainPageV2(onBack:()->Unit){
                 modifier=Modifier.size(48.dp),
                 onClick={
                     top=!top
-
-                    if(!top){
-                        settings=false
-                    }
+                    if(!top)settings=false
                 }
             )
-
-            val menuShape=
-                RoundedCornerShape(
-                    topStart=25.dp,
-                    bottomStart=25.dp,
-                    topEnd=0.dp,
-                    bottomEnd=0.dp
-                )
 
             Box(
                 Modifier
                     .width(66.dp)
                     .height(48.dp)
-                    .clip(menuShape)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart=25.dp,
+                            bottomStart=25.dp
+                        )
+                    )
                     .background(p.accent)
                     .clickable(
                         interactionSource=remember{
@@ -867,13 +829,13 @@ fun NativeMainPageV2(onBack:()->Unit){
                         (
                             fadeIn(tween(180))+
                             scaleIn(
-                                initialScale=.78f,
+                                initialScale=.82f,
                                 animationSpec=tween(220)
                             )
                         ) togetherWith (
                             fadeOut(tween(140))+
                             scaleOut(
-                                targetScale=.78f,
+                                targetScale=.82f,
                                 animationSpec=tween(180)
                             )
                         )
@@ -881,13 +843,12 @@ fun NativeMainPageV2(onBack:()->Unit){
                     label="menuIcon"
                 ){open->
                     NmixIcon(
-                        icon=
-                            if(open)
-                                NmixIcon.CLOSE
-                            else
-                                NmixIcon.MENU,
-                        modifier=Modifier.size(21.dp),
-                        color=Color.White
+                        if(open)
+                            NmixIcon.CLOSE
+                        else
+                            NmixIcon.MENU,
+                        Modifier.size(21.dp),
+                        Color.White
                     )
                 }
             }
@@ -896,25 +857,13 @@ fun NativeMainPageV2(onBack:()->Unit){
         AnimatedVisibility(
             visible=fullscreen,
             modifier=Modifier.fillMaxSize(),
-            enter=fadeIn(
-                tween(
-                    420,
-                    easing=EaseOutCubic
-                )
-            ),
-            exit=fadeOut(
-                tween(
-                    340,
-                    easing=EaseInOutCubic
-                )
-            )
+            enter=fadeIn(tween(420)),
+            exit=fadeOut(tween(340))
         ){
             FullClock(
                 time=timeText(),
                 date=dateText(),
-                onExit={
-                    fullscreen=false
-                }
+                onExit={fullscreen=false}
             )
         }
     }
@@ -971,7 +920,7 @@ private fun FullClock(
         label="fullClockMotion"
     )
 
-    val moveX by motion.animateFloat(
+    val x by motion.animateFloat(
         -1f,
         1f,
         infiniteRepeatable(
@@ -984,7 +933,7 @@ private fun FullClock(
         label="clockX"
     )
 
-    val moveY by motion.animateFloat(
+    val y by motion.animateFloat(
         1f,
         -1f,
         infiniteRepeatable(
@@ -995,19 +944,6 @@ private fun FullClock(
             RepeatMode.Reverse
         ),
         label="clockY"
-    )
-
-    val pulse by motion.animateFloat(
-        .86f,
-        1.17f,
-        infiniteRepeatable(
-            tween(
-                3100,
-                easing=EaseInOutSine
-            ),
-            RepeatMode.Reverse
-        ),
-        label="clockPulse"
     )
 
     Box(
@@ -1033,10 +969,8 @@ private fun FullClock(
                     y=(-290).dp
                 )
                 .graphicsLayer{
-                    translationX=moveX*340f
-                    translationY=moveY*160f
-                    scaleX=pulse
-                    scaleY=pulse
+                    translationX=x*340f
+                    translationY=y*160f
                 }
                 .background(
                     Brush.radialGradient(
@@ -1059,8 +993,8 @@ private fun FullClock(
                     y=250.dp
                 )
                 .graphicsLayer{
-                    translationX=-moveX*280f
-                    translationY=-moveY*140f
+                    translationX=-x*280f
+                    translationY=-y*140f
                 }
                 .background(
                     Brush.radialGradient(
