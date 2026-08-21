@@ -1,12 +1,10 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:left="30dp"
-        android:top="30dp"
-        android:right="30dp"
-        android:bottom="30dp">
+    <item>
         <bitmap
             android:src="@drawable/nmix_n"
             android:gravity="center"
+            android:width="42dp"
+            android:height="42dp"
             android:filter="true"/>
     </item>
 </layer-list>
