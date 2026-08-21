@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.sp
 @Composable
 private fun nmixScreenColor():Color{
     val a=LocalNmixAppearance.current
-
     return if(a.darkMode)
         Color(0xFF151A18)
     else
@@ -44,10 +43,18 @@ private fun nmixScreenColor():Color{
 @Composable
 private fun nmixScreenBorder():Color{
     val a=LocalNmixAppearance.current
-
     return a.palette.accent.copy(
         alpha=if(a.darkMode).14f else .27f
     )
+}
+
+@Composable
+private fun nmixDisplayText():Color{
+    val a=LocalNmixAppearance.current
+    return if(a.darkMode)
+        Color.White.copy(alpha=.92f)
+    else
+        a.uiColors().text.copy(alpha=.88f)
 }
 
 @Composable
@@ -65,36 +72,31 @@ fun NmixToolSection(
 
     val progress by animateFloatAsState(
         if(open)1f else 0f,
-        tween(
-            520,
-            easing=EaseInOutCubic
-        ),
+        tween(520,easing=EaseInOutCubic),
         label="toolProgress"
     )
 
     val outerRotation=180f*progress
     val innerRotation=-180f*progress
     val arrowRotation=180f*progress
-
     val outerSize=(42f-3f*progress).dp
     val innerSize=(36f-2f*progress).dp
     val outerRadius=(8.5f+10f*progress).dp
     val innerRadius=(6.5f+9f*progress).dp
-
     val shape=RoundedCornerShape(16.dp)
 
     val glass=Brush.horizontalGradient(
-    listOf(
-        p.accent.copy(
-            alpha=if(a.darkMode).10f else .11f
-        ),
-        p.accent.copy(
-            alpha=if(a.darkMode).085f else .09f
-        ),
-        p.accent.copy(
-            alpha=if(a.darkMode).10f else .11f
+        listOf(
+            p.accent.copy(
+                alpha=if(a.darkMode).10f else .11f
+            ),
+            p.accent.copy(
+                alpha=if(a.darkMode).085f else .09f
+            ),
+            p.accent.copy(
+                alpha=if(a.darkMode).10f else .11f
+            )
         )
-      )
     )
 
     Column(
@@ -131,20 +133,12 @@ fun NmixToolSection(
                     Modifier
                         .size(outerSize)
                         .rotate(outerRotation)
-                        .clip(
-                            RoundedCornerShape(
-                                outerRadius
-                            )
-                        )
-                        .background(
-                            p.accent.copy(alpha=.66f)
-                        )
+                        .clip(RoundedCornerShape(outerRadius))
+                        .background(p.accent.copy(alpha=.66f))
                         .border(
                             .65.dp,
                             p.accentLight.copy(alpha=.60f),
-                            RoundedCornerShape(
-                                outerRadius
-                            )
+                            RoundedCornerShape(outerRadius)
                         )
                 )
 
@@ -178,9 +172,7 @@ fun NmixToolSection(
 
             Spacer(Modifier.width(12.dp))
 
-            Column(
-                Modifier.weight(1f)
-            ){
+            Column(Modifier.weight(1f)){
                 Text(
                     title,
                     color=ui.text,
@@ -243,11 +235,7 @@ fun NmixOption(
     val a=LocalNmixAppearance.current
     val p=a.palette
     val ui=a.uiColors()
-
-    val interaction=remember{
-        MutableInteractionSource()
-    }
-
+    val interaction=remember{MutableInteractionSource()}
     val pressed by interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
@@ -478,6 +466,10 @@ fun NmixDisplay(
     value:String,
     status:String,
     timer:Boolean,
+    calcVisible:Boolean,
+    calcFirst:String,
+    calcOperator:String,
+    calcSecond:String,
     onMinus:()->Unit,
     onPlus:()->Unit,
     onClick:()->Unit,
@@ -485,10 +477,16 @@ fun NmixDisplay(
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
+    val interaction=remember{MutableInteractionSource()}
 
-    val interaction=remember{
-        MutableInteractionSource()
-    }
+    val calcProgress by animateFloatAsState(
+        if(calcVisible)1f else 0f,
+        tween(
+            380,
+            easing=EaseInOutCubic
+        ),
+        label="calcDisplay"
+    )
 
     val motion=rememberInfiniteTransition(
         label="displayMotion"
@@ -573,9 +571,7 @@ fun NmixDisplay(
                             .28f to p.accent.copy(
                                 alpha=if(a.darkMode).15f else .12f
                             ),
-                            .60f to p.accent.copy(
-                                alpha=.055f
-                            ),
+                            .60f to p.accent.copy(alpha=.055f),
                             1f to Color.Transparent
                         )
                     ),
@@ -601,12 +597,8 @@ fun NmixDisplay(
                             0f to p.accentLight.copy(
                                 alpha=if(a.darkMode).16f else .15f
                             ),
-                            .35f to p.accentLight.copy(
-                                alpha=.09f
-                            ),
-                            .68f to p.accentLight.copy(
-                                alpha=.035f
-                            ),
+                            .35f to p.accentLight.copy(alpha=.09f),
+                            .68f to p.accentLight.copy(alpha=.035f),
                             1f to Color.Transparent
                         )
                     ),
@@ -614,11 +606,48 @@ fun NmixDisplay(
                 )
         )
 
+        if(calcProgress>0.01f){
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(
+                        start=12.dp,
+                        end=12.dp,
+                        top=12.dp
+                    )
+                    .graphicsLayer{
+                        alpha=calcProgress
+                        translationY=
+                            (1f-calcProgress)*-20f
+                    },
+                horizontalArrangement=
+                    Arrangement.spacedBy(7.dp)
+            ){
+                NmixCalcField(
+                    calcFirst.ifEmpty{"_"},
+                    Modifier.weight(1f)
+                )
+
+                NmixCalcField(
+                    calcOperator.ifEmpty{"sign"},
+                    Modifier.width(58.dp)
+                )
+
+                NmixCalcField(
+                    calcSecond.ifEmpty{"_"},
+                    Modifier.weight(1f)
+                )
+            }
+        }
+
         Text(
             label,
             Modifier
                 .align(Alignment.TopCenter)
-                .padding(top=17.dp),
+                .padding(
+                    top=(17f+55f*calcProgress).dp
+                ),
             color=if(a.darkMode)
                 p.accentLight
             else
@@ -633,13 +662,17 @@ fun NmixDisplay(
             value,
             Modifier
                 .align(Alignment.Center)
+                .graphicsLayer{
+                    translationY=
+                        calcProgress*18f
+                }
                 .padding(
                     horizontal=if(timer)
                         70.dp
                     else
                         16.dp
                 ),
-            color=Color.White,
+            color=nmixDisplayText(),
             fontSize=40.sp,
             fontWeight=FontWeight.SemiBold,
             fontFamily=a.fontFamily,
@@ -707,7 +740,7 @@ fun NmixCalcField(
 
     Box(
         modifier
-            .height(49.dp)
+            .height(46.dp)
             .clip(shape)
             .background(nmixScreenColor())
             .border(
@@ -719,8 +752,8 @@ fun NmixCalcField(
     ){
         Text(
             text,
-            color=Color.White,
-            fontSize=16.sp,
+            color=nmixDisplayText(),
+            fontSize=15.sp,
             fontWeight=FontWeight.SemiBold,
             fontFamily=
                 LocalNmixAppearance.current.fontFamily,
