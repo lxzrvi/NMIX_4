@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,10 +29,10 @@ fun NmixContribution(
     val stories=remember{
         listOf(
             "NMIX started as an idea to bring useful number tools together in one focused place.",
-            "Designed and developed by lxzrvi using a phone-first workflow with GitHub and Codespaces.",
-            "The project moved from a web reference into a fully native Android experience built with Kotlin and Jetpack Compose.",
-            "NMIX is designed around offline tools, fluid interaction and one simple idea — EVERYTHING WITH NUMBERS.",
-            "From interface design and themes to calculator, timer, clock, stopwatch and counters, the app was shaped as one consistent experience."
+            "Designed and developed by lxzrvi with a phone-first workflow using GitHub and Codespaces.",
+            "The project evolved from a web reference into a fully native Android app built with Kotlin and Jetpack Compose.",
+            "NMIX focuses on useful offline tools, fluid interaction and one idea — EVERYTHING WITH NUMBERS.",
+            "Calculator, time tools, counters, themes and the interface were shaped into one consistent native experience."
         )
     }
 
@@ -41,7 +42,7 @@ fun NmixContribution(
 
     LaunchedEffect(Unit){
         while(true){
-            delay(4300)
+            delay(4200)
             story=(story+1)%stories.size
         }
     }
@@ -52,31 +53,49 @@ fun NmixContribution(
     val innerShape=
         RoundedCornerShape(14.dp)
 
-    val outerBg=
-        if(a.darkMode)
-            p.accent.copy(alpha=.07f)
-        else
-            Color.White.copy(alpha=.74f)
+    val outerBrush=
+        Brush.horizontalGradient(
+            listOf(
+                p.accent.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .12f
+                        else
+                            .10f
+                ),
+                if(a.darkMode)
+                    Color.Black.copy(alpha=.25f)
+                else
+                    Color.White.copy(alpha=.56f),
+                p.accentLight.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .065f
+                        else
+                            .075f
+                )
+            )
+        )
 
     val innerBg=
         if(a.darkMode)
-            Color.Black.copy(alpha=.20f)
+            Color.Black.copy(alpha=.22f)
         else
-            p.accent.copy(alpha=.055f)
+            Color.White.copy(alpha=.32f)
 
     Column(
         modifier
             .padding(horizontal=12.dp)
             .clip(outerShape)
-            .background(outerBg)
+            .background(outerBrush)
             .border(
                 .5.dp,
                 p.accent.copy(
                     alpha=
                         if(a.darkMode)
-                            .13f
+                            .14f
                         else
-                            .23f
+                            .27f
                 ),
                 outerShape
             )
@@ -84,8 +103,7 @@ fun NmixContribution(
     ){
         Row(
             Modifier.fillMaxWidth(),
-            verticalAlignment=
-                Alignment.CenterVertically
+            verticalAlignment=Alignment.CenterVertically
         ){
             Column(
                 Modifier.weight(1f)
@@ -118,12 +136,10 @@ fun NmixContribution(
                         RoundedCornerShape(50)
                     )
                     .background(
-                        p.accent.copy(
-                            alpha=.12f
-                        )
+                        p.accent.copy(alpha=.12f)
                     )
                     .padding(
-                        horizontal=11.dp,
+                        horizontal=10.dp,
                         vertical=6.dp
                     )
             ){
@@ -132,14 +148,14 @@ fun NmixContribution(
                     color=p.accent,
                     fontSize=8.sp,
                     fontWeight=FontWeight.Bold,
-                    letterSpacing=.7.sp,
+                    letterSpacing=.6.sp,
                     fontFamily=a.fontFamily
                 )
             }
         }
 
         Spacer(
-            Modifier.height(12.dp)
+            Modifier.height(11.dp)
         )
 
         Row(
@@ -150,7 +166,7 @@ fun NmixContribution(
             Box(
                 Modifier
                     .weight(1.15f)
-                    .height(150.dp)
+                    .height(145.dp)
                     .clip(innerShape)
                     .background(innerBg)
                     .border(
@@ -175,35 +191,24 @@ fun NmixContribution(
                             fadeIn(
                                 tween(
                                     380,
-                                    easing=
-                                        EaseOutCubic
+                                    easing=EaseOutCubic
                                 )
                             )+
                             slideInVertically(
-                                initialOffsetY={
-                                    it/8
-                                },
-                                animationSpec=
-                                    tween(
-                                        380,
-                                        easing=
-                                            EaseOutCubic
-                                    )
+                                initialOffsetY={it/8},
+                                animationSpec=tween(
+                                    380,
+                                    easing=EaseOutCubic
+                                )
                             )
                         ) togetherWith (
-                            fadeOut(
-                                tween(250)
-                            )+
+                            fadeOut(tween(250))+
                             slideOutVertically(
-                                targetOffsetY={
-                                    -it/8
-                                },
-                                animationSpec=
-                                    tween(
-                                        300,
-                                        easing=
-                                            EaseInCubic
-                                    )
+                                targetOffsetY={-it/8},
+                                animationSpec=tween(
+                                    300,
+                                    easing=EaseInCubic
+                                )
                             )
                         )
                     },
@@ -214,9 +219,8 @@ fun NmixContribution(
                             "ABOUT THE PROJECT",
                             color=p.accent,
                             fontSize=8.sp,
-                            fontWeight=
-                                FontWeight.Bold,
-                            letterSpacing=.8.sp,
+                            fontWeight=FontWeight.Bold,
+                            letterSpacing=.7.sp,
                             fontFamily=a.fontFamily
                         )
 
@@ -226,9 +230,7 @@ fun NmixContribution(
 
                         Text(
                             stories[index],
-                            color=ui.text.copy(
-                                alpha=.82f
-                            ),
+                            color=ui.text.copy(alpha=.80f),
                             fontSize=9.sp,
                             lineHeight=14.sp,
                             fontFamily=a.fontFamily
@@ -240,7 +242,7 @@ fun NmixContribution(
             Column(
                 Modifier
                     .weight(.85f)
-                    .height(150.dp)
+                    .height(145.dp)
                     .clip(innerShape)
                     .background(innerBg)
                     .border(
@@ -257,7 +259,7 @@ fun NmixContribution(
                     .padding(10.dp)
             ){
                 Text(
-                    "BUILT / WORKED WITH",
+                    "BUILT WITH",
                     color=p.accent,
                     fontSize=7.5.sp,
                     fontWeight=FontWeight.Bold,
@@ -269,47 +271,49 @@ fun NmixContribution(
                     Modifier.height(8.dp)
                 )
 
-                SkillRow(
-                    "GitHub",
-                    "Kotlin"
-                )
+                SkillRow("GitHub","Kotlin")
+                Spacer(Modifier.height(5.dp))
 
-                Spacer(
-                    Modifier.height(5.dp)
-                )
+                SkillRow("HTML","CSS")
+                Spacer(Modifier.height(5.dp))
 
-                SkillRow(
-                    "HTML",
-                    "CSS"
-                )
-
-                Spacer(
-                    Modifier.height(5.dp)
-                )
-
-                SkillRow(
-                    "JavaScript",
-                    "Compose"
-                )
-
-                Spacer(
-                    Modifier.height(5.dp)
-                )
+                SkillRow("JavaScript","Compose")
+                Spacer(Modifier.height(5.dp))
 
                 SkillPill(
                     "Android SDK",
                     Modifier.fillMaxWidth()
                 )
 
-                Spacer(
-                    Modifier.height(5.dp)
-                )
+                Spacer(Modifier.height(5.dp))
 
-                SkillRow(
-                    "Gradle",
-                    "Actions"
-                )
+                SkillRow("Gradle","Actions")
             }
+        }
+
+        Spacer(
+            Modifier.height(13.dp)
+        )
+
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement=Arrangement.Center,
+            verticalAlignment=Alignment.CenterVertically
+        ){
+            Text(
+                "NMIX",
+                color=ui.text.copy(alpha=.80f),
+                fontSize=11.sp,
+                fontWeight=FontWeight.Bold,
+                fontFamily=NmixLogoFont
+            )
+
+            Text(
+                "  •  lxzrvi  •  © 2026",
+                color=ui.muted,
+                fontSize=10.sp,
+                fontFamily=a.fontFamily
+            )
         }
     }
 }
@@ -353,8 +357,7 @@ private fun SkillPill(
             .background(
                 p.accent.copy(alpha=.12f)
             ),
-        contentAlignment=
-            Alignment.Center
+        contentAlignment=Alignment.Center
     ){
         Text(
             text,
