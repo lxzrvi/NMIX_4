@@ -2,8 +2,6 @@ package com.lxzrvi.nmix
 
 import androidx.compose.animation.core.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 
 @Stable
 data class NmixMotionValues(
@@ -24,20 +22,42 @@ fun rememberNmixMotion(
             label=label
         )
 
+    val speed1=when(a.animation){
+        NmixAnimationName.DRIFT->3600
+        NmixAnimationName.ORBIT->3000
+        NmixAnimationName.FLOW->2700
+
+        NmixAnimationName.FLOAT->2200
+        NmixAnimationName.PULSE->1900
+        NmixAnimationName.CROSS->2100
+    }
+
+    val speed2=when(a.animation){
+        NmixAnimationName.DRIFT->4400
+        NmixAnimationName.ORBIT->3500
+        NmixAnimationName.FLOW->3200
+
+        NmixAnimationName.FLOAT->2600
+        NmixAnimationName.PULSE->2300
+        NmixAnimationName.CROSS->2500
+    }
+
+    val speed3=when(a.animation){
+        NmixAnimationName.DRIFT->5200
+        NmixAnimationName.ORBIT->4100
+        NmixAnimationName.FLOW->3800
+
+        NmixAnimationName.FLOAT->3100
+        NmixAnimationName.PULSE->2800
+        NmixAnimationName.CROSS->2900
+    }
+
     val t by motion.animateFloat(
         initialValue=-1f,
         targetValue=1f,
         animationSpec=infiniteRepeatable(
             animation=tween(
-                durationMillis=
-                    when(a.animation){
-                        NmixAnimationName.DRIFT->3200
-                        NmixAnimationName.ORBIT->2700
-                        NmixAnimationName.FLOW->2300
-                        NmixAnimationName.FLOAT->3600
-                        NmixAnimationName.PULSE->2800
-                        NmixAnimationName.CROSS->2500
-                    },
+                speed1,
                 easing=EaseInOutSine
             ),
             repeatMode=RepeatMode.Reverse
@@ -50,15 +70,7 @@ fun rememberNmixMotion(
         targetValue=-1f,
         animationSpec=infiniteRepeatable(
             animation=tween(
-                durationMillis=
-                    when(a.animation){
-                        NmixAnimationName.DRIFT->3900
-                        NmixAnimationName.ORBIT->3100
-                        NmixAnimationName.FLOW->2800
-                        NmixAnimationName.FLOAT->4300
-                        NmixAnimationName.PULSE->3400
-                        NmixAnimationName.CROSS->3000
-                    },
+                speed2,
                 easing=EaseInOutSine
             ),
             repeatMode=RepeatMode.Reverse
@@ -71,15 +83,7 @@ fun rememberNmixMotion(
         targetValue=1f,
         animationSpec=infiniteRepeatable(
             animation=tween(
-                durationMillis=
-                    when(a.animation){
-                        NmixAnimationName.DRIFT->4700
-                        NmixAnimationName.ORBIT->3600
-                        NmixAnimationName.FLOW->3200
-                        NmixAnimationName.FLOAT->5100
-                        NmixAnimationName.PULSE->4100
-                        NmixAnimationName.CROSS->3500
-                    },
+                speed3,
                 easing=EaseInOutSine
             ),
             repeatMode=RepeatMode.Reverse
@@ -87,62 +91,79 @@ fun rememberNmixMotion(
         label="${label}V"
     )
 
-    val basePulse=
-        .90f+
-            ((u+1f)/2f)*.20f
-
     return when(a.animation){
+        /*
+         * SOFT
+         *
+         * Slow, flowing motion intended for
+         * large feathered glow shapes.
+         */
         NmixAnimationName.DRIFT->
             NmixMotionValues(
                 x=t,
-                y=u,
-                z=v,
-                pulse=basePulse
+                y=u*.72f,
+                z=v*.82f,
+                pulse=
+                    .91f+
+                    ((u+1f)/2f)*.18f
             )
 
         NmixAnimationName.ORBIT->
             NmixMotionValues(
-                x=t,
-                y=v,
-                z=-u,
-                pulse=.97f+
-                    ((v+1f)/2f)*.08f
+                x=t*.88f,
+                y=v*.88f,
+                z=-u*.88f,
+                pulse=
+                    .95f+
+                    ((v+1f)/2f)*.10f
             )
 
         NmixAnimationName.FLOW->
             NmixMotionValues(
-                x=t*1.20f,
-                y=t*.58f,
-                z=u*1.12f,
-                pulse=.94f+
-                    ((u+1f)/2f)*.12f
+                x=t*1.12f,
+                y=t*.52f,
+                z=u*1.05f,
+                pulse=
+                    .93f+
+                    ((u+1f)/2f)*.14f
             )
 
+        /*
+         * HARD
+         *
+         * More deliberate geometry-oriented
+         * movement. Landing/Display still keep
+         * feathered rendering, while Settings
+         * previews show sharper shapes.
+         */
         NmixAnimationName.FLOAT->
             NmixMotionValues(
-                x=t*.58f,
-                y=u*1.18f,
-                z=v*.65f,
-                pulse=.96f+
-                    ((t+1f)/2f)*.09f
+                x=t*.70f,
+                y=u*1.16f,
+                z=v*.72f,
+                pulse=
+                    .97f+
+                    ((t+1f)/2f)*.06f
             )
 
         NmixAnimationName.PULSE->
             NmixMotionValues(
-                x=t*.30f,
-                y=u*.24f,
-                z=v*.22f,
-                pulse=.82f+
-                    ((t+1f)/2f)*.34f
+                x=t*.26f,
+                y=u*.22f,
+                z=v*.20f,
+                pulse=
+                    .78f+
+                    ((t+1f)/2f)*.42f
             )
 
         NmixAnimationName.CROSS->
             NmixMotionValues(
-                x=t*1.18f,
-                y=u*.42f,
-                z=-t*1.18f,
-                pulse=.95f+
-                    ((v+1f)/2f)*.10f
+                x=t*1.20f,
+                y=u*.38f,
+                z=-t*1.20f,
+                pulse=
+                    .96f+
+                    ((v+1f)/2f)*.08f
             )
     }
 }
