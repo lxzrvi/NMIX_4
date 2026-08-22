@@ -9,17 +9,19 @@
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowNoTitle">true</item>
 
-        <!-- Match NMIX default launch accent instead of black/white -->
-        <item name="android:windowBackground">#216E56</item>
-        <item name="android:colorBackground">#216E56</item>
+        <!-- Exact base color used by the NMIX launch surface -->
+        <item name="android:windowBackground">#19493A</item>
+        <item name="android:colorBackground">#19493A</item>
 
-        <item name="android:statusBarColor">#216E56</item>
-        <item name="android:navigationBarColor">#216E56</item>
+        <item name="android:statusBarColor">#19493A</item>
+        <item name="android:navigationBarColor">#19493A</item>
 
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
 
+        <!-- Keep Android startup preview opaque -->
         <item name="android:windowDisablePreview">false</item>
+
         <item name="android:windowIsTranslucent">false</item>
         <item name="android:windowIsFloating">false</item>
 
