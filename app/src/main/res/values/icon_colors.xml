@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Default launcher background -->
+    <color name="nmix_icon_background">#319B79</color>
+
+    <!-- Selectable launcher colors -->
     <color name="nmix_icon_green">#319B79</color>
     <color name="nmix_icon_blue">#348BB8</color>
     <color name="nmix_icon_purple">#8A62C8</color>
