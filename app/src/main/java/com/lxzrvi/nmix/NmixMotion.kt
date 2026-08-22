@@ -19,32 +19,35 @@ fun rememberNmixMotion(
     val a=LocalNmixAppearance.current
 
     /*
-     * User speed:
-     *
-     * 0.45 = deliberately slow
-     * 1.00 = normal
-     * 2.20 = clearly rapid
-     *
-     * Previously this setting was used only by
-     * Settings previews. The real Display ignored
-     * it completely.
+     * Animation OFF means every screen using this
+     * shared engine becomes completely stationary.
      */
-    val userSpeed=
-        a.animationSpeed.coerceIn(
-            .45f,
-            2.20f
+    if(!a.animationEnabled){
+        return NmixMotionValues(
+            x=0f,
+            y=0f,
+            z=0f,
+            pulse=1f
         )
+    }
 
-    fun scaledDuration(
+    val userSpeed=
+        a.animationSpeed
+            .coerceIn(
+                .45f,
+                2.20f
+            )
+
+    fun duration(
         base:Int
     ):Int{
         return (
             base.toFloat()/
                 userSpeed
-            )
+        )
             .roundToInt()
             .coerceIn(
-                520,
+                480,
                 11500
             )
     }
@@ -53,7 +56,6 @@ fun rememberNmixMotion(
         NmixAnimationName.DRIFT->3600
         NmixAnimationName.ORBIT->3000
         NmixAnimationName.FLOW->2700
-
         NmixAnimationName.FLOAT->2200
         NmixAnimationName.PULSE->1900
         NmixAnimationName.CROSS->2100
@@ -63,7 +65,6 @@ fun rememberNmixMotion(
         NmixAnimationName.DRIFT->4400
         NmixAnimationName.ORBIT->3500
         NmixAnimationName.FLOW->3200
-
         NmixAnimationName.FLOAT->2600
         NmixAnimationName.PULSE->2300
         NmixAnimationName.CROSS->2500
@@ -73,26 +74,15 @@ fun rememberNmixMotion(
         NmixAnimationName.DRIFT->5200
         NmixAnimationName.ORBIT->4100
         NmixAnimationName.FLOW->3800
-
         NmixAnimationName.FLOAT->3100
         NmixAnimationName.PULSE->2800
         NmixAnimationName.CROSS->2900
     }
 
-    val speed1=
-        scaledDuration(base1)
+    val speed1=duration(base1)
+    val speed2=duration(base2)
+    val speed3=duration(base3)
 
-    val speed2=
-        scaledDuration(base2)
-
-    val speed3=
-        scaledDuration(base3)
-
-    /*
-     * Including the effective durations in the
-     * transition label gives Compose a fresh
-     * transition when speed changes.
-     */
     val motion=
         rememberInfiniteTransition(
             label=
@@ -104,12 +94,11 @@ fun rememberNmixMotion(
         targetValue=1f,
         animationSpec=
             infiniteRepeatable(
-                animation=tween(
-                    durationMillis=speed1,
+                tween(
+                    speed1,
                     easing=EaseInOutSine
                 ),
-                repeatMode=
-                    RepeatMode.Reverse
+                RepeatMode.Reverse
             ),
         label="${label}T"
     )
@@ -119,12 +108,11 @@ fun rememberNmixMotion(
         targetValue=-1f,
         animationSpec=
             infiniteRepeatable(
-                animation=tween(
-                    durationMillis=speed2,
+                tween(
+                    speed2,
                     easing=EaseInOutSine
                 ),
-                repeatMode=
-                    RepeatMode.Reverse
+                RepeatMode.Reverse
             ),
         label="${label}U"
     )
@@ -134,20 +122,16 @@ fun rememberNmixMotion(
         targetValue=1f,
         animationSpec=
             infiniteRepeatable(
-                animation=tween(
-                    durationMillis=speed3,
+                tween(
+                    speed3,
                     easing=EaseInOutSine
                 ),
-                repeatMode=
-                    RepeatMode.Reverse
+                RepeatMode.Reverse
             ),
         label="${label}V"
     )
 
     return when(a.animation){
-        /*
-         * SOFT
-         */
         NmixAnimationName.DRIFT->
             NmixMotionValues(
                 x=t,
@@ -181,9 +165,6 @@ fun rememberNmixMotion(
                         .14f
             )
 
-        /*
-         * HARD
-         */
         NmixAnimationName.FLOAT->
             NmixMotionValues(
                 x=t*.70f,
