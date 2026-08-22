@@ -1,6 +1,5 @@
 package com.lxzrvi.nmix
 
-import android.graphics.Color as AndroidColor
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
@@ -29,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
@@ -40,12 +40,17 @@ fun NmixCustomColorPicker(
     visible:Boolean,
     onClose:()->Unit
 ){
-    val a=LocalNmixAppearance.current
-    val ui=a.uiColors()
+    val a=
+        LocalNmixAppearance.current
+
+    val ui=
+        a.uiColors()
 
     var hue by remember(visible){
         mutableFloatStateOf(
-            hueOf(a.palette.accent)
+            hueOf(
+                a.palette.accent
+            )
         )
     }
 
@@ -79,16 +84,11 @@ fun NmixCustomColorPicker(
 
     val selectedColor=
         hsvToComposeColor(
-            hue,
-            saturation,
-            brightness
+            hue=hue,
+            saturation=saturation,
+            brightness=brightness
         )
 
-    /*
-     * Keep the HEX field synchronized with
-     * wheel movement, but do not overwrite
-     * the user's text while they are typing.
-     */
     LaunchedEffect(
         hue,
         saturation,
@@ -147,7 +147,9 @@ fun NmixCustomColorPicker(
                 Alignment.Center
         ){
             val panelShape=
-                RoundedCornerShape(24.dp)
+                RoundedCornerShape(
+                    24.dp
+                )
 
             Column(
                 Modifier
@@ -221,11 +223,6 @@ fun NmixCustomColorPicker(
                     Modifier.height(14.dp)
                 )
 
-                /*
-                 * Brightness strip makes the
-                 * circular selector useful for
-                 * both vivid and dark/light colors.
-                 */
                 BrightnessControl(
                     brightness=brightness,
                     hue=hue,
@@ -278,12 +275,11 @@ fun NmixCustomColorPicker(
                                 input
                                     .uppercase()
                                     .filter{
-                                        char->
+                                        char:Char->
+
                                         char=='#' ||
-                                        char in
-                                            '0'..'9' ||
-                                        char in
-                                            'A'..'F'
+                                        char in '0'..'9' ||
+                                        char in 'A'..'F'
                                     }
 
                             if(
@@ -389,8 +385,12 @@ private fun NmixHueWheel(
                         updateWheelFromPoint(
                             x=point.x,
                             y=point.y,
-                            width=size.width,
-                            height=size.height,
+                            width=
+                                size.width
+                                    .toFloat(),
+                            height=
+                                size.height
+                                    .toFloat(),
                             onChange=onChange
                         )
                     },
@@ -401,10 +401,16 @@ private fun NmixHueWheel(
                         change.consume()
 
                         updateWheelFromPoint(
-                            x=change.position.x,
-                            y=change.position.y,
-                            width=size.width,
-                            height=size.height,
+                            x=
+                                change.position.x,
+                            y=
+                                change.position.y,
+                            width=
+                                size.width
+                                    .toFloat(),
+                            height=
+                                size.height
+                                    .toFloat(),
                             onChange=onChange
                         )
                     }
@@ -423,9 +429,6 @@ private fun NmixHueWheel(
                 size.height/2f
             )
 
-        /*
-         * Draw hue slices.
-         */
         var angle=0
 
         while(angle<360){
@@ -477,19 +480,17 @@ private fun NmixHueWheel(
                 path=path,
                 color=
                     hsvToComposeColor(
-                        angle.toFloat(),
-                        1f,
-                        brightness
+                        hue=
+                            angle.toFloat(),
+                        saturation=1f,
+                        brightness=
+                            brightness
                     )
             )
 
             angle+=3
         }
 
-        /*
-         * White centre smoothly reduces
-         * saturation toward the middle.
-         */
         drawCircle(
             brush=
                 Brush.radialGradient(
@@ -595,6 +596,10 @@ private fun updateWheelFromPoint(
             height
         )/2f
 
+    if(radius<=0f){
+        return
+    }
+
     var angle=
         Math.toDegrees(
             atan2(
@@ -642,12 +647,12 @@ private fun BrightnessControl(
 
     val color=
         hsvToComposeColor(
-            hue,
-            saturation,
-            1f
+            hue=hue,
+            saturation=saturation,
+            brightness=1f
         )
 
-    Box(
+    Canvas(
         Modifier
             .fillMaxWidth()
             .height(24.dp)
@@ -661,11 +666,13 @@ private fun BrightnessControl(
                         onChange(
                             (
                                 point.x/
-                                widthPx.toFloat()
-                            ).coerceIn(
-                                0.12f,
-                                1f
+                                widthPx
+                                    .toFloat()
                             )
+                                .coerceIn(
+                                    .12f,
+                                    1f
+                                )
                         )
                     },
                     onDrag={
@@ -677,76 +684,72 @@ private fun BrightnessControl(
                         onChange(
                             (
                                 change.position.x/
-                                widthPx.toFloat()
-                            ).coerceIn(
-                                .12f,
-                                1f
+                                widthPx
+                                    .toFloat()
                             )
+                                .coerceIn(
+                                    .12f,
+                                    1f
+                                )
                         )
                     }
                 )
             }
-            .then(
-                Modifier
-            )
     ){
-        Canvas(
-            Modifier
-                .fillMaxSize()
-        ){
-            widthPx=
-                size.width
-                    .toInt()
-                    .coerceAtLeast(1)
+        widthPx=
+            size.width
+                .toInt()
+                .coerceAtLeast(1)
 
-            drawRoundRect(
-                brush=
-                    Brush.horizontalGradient(
-                        listOf(
-                            Color.Black,
-                            color
-                        )
-                    ),
-                cornerRadius=
-                    androidx.compose.ui.geometry
-                        .CornerRadius(
-                            12.dp.toPx()
-                        )
-            )
-
-            val x=
-                size.width*
-                brightness.coerceIn(
-                    .12f,
-                    1f
-                )
-
-            drawCircle(
-                color=Color.White,
-                radius=7.dp.toPx(),
-                center=
-                    Offset(
-                        x,
-                        size.height/2f
+        drawRoundRect(
+            brush=
+                Brush.horizontalGradient(
+                    listOf(
+                        Color.Black,
+                        color
                     )
+                ),
+            cornerRadius=
+                androidx.compose.ui.geometry
+                    .CornerRadius(
+                        12.dp.toPx()
+                    )
+        )
+
+        val markerX=
+            size.width*
+                brightness
+                    .coerceIn(
+                        .12f,
+                        1f
+                    )
+
+        val marker=
+            Offset(
+                markerX,
+                size.height/2f
             )
 
-            drawCircle(
-                color=
-                    Color.Black.copy(
-                        alpha=.35f
-                    ),
-                radius=9.dp.toPx(),
-                center=
-                    Offset(
-                        x,
-                        size.height/2f
-                    ),
-                style=Stroke(
-                    width=1.dp.toPx()
-                )
+        drawCircle(
+            color=Color.White,
+            radius=
+                7.dp.toPx(),
+            center=marker
+        )
+
+        drawCircle(
+            color=
+                Color.Black.copy(
+                    alpha=.35f
+                ),
+            radius=
+                9.dp.toPx(),
+            center=marker,
+            style=Stroke(
+                width=
+                    1.dp.toPx()
             )
-        }
+        )
     }
 }
 
@@ -763,7 +766,9 @@ private fun HexField(
     val ui=a.uiColors()
 
     val shape=
-        RoundedCornerShape(12.dp)
+        RoundedCornerShape(
+            12.dp
+        )
 
     Box(
         modifier
@@ -789,7 +794,8 @@ private fun HexField(
     ){
         BasicTextField(
             value=value,
-            onValueChange=onValueChange,
+            onValueChange=
+                onValueChange,
             modifier=
                 Modifier.fillMaxWidth(),
             textStyle=
@@ -875,75 +881,90 @@ private fun CustomPickerButton(
     }
 }
 
-/*
- * ------------------------------------------------
- * COLOR HELPERS
- * ------------------------------------------------
- */
-
 private fun hsvToComposeColor(
     hue:Float,
     saturation:Float,
     brightness:Float
 ):Color{
     val h=
-        hue
-            .coerceIn(
-                0f,
-                360f
-            )
+        hue.coerceIn(
+            0f,
+            360f
+        )
 
     val s=
-        saturation
-            .coerceIn(
-                0f,
-                1f
-            )
+        saturation.coerceIn(
+            0f,
+            1f
+        )
 
     val v=
-        brightness
-            .coerceIn(
-                0f,
-                1f
-            )
+        brightness.coerceIn(
+            0f,
+            1f
+        )
 
     val c=
         v*s
 
-    val hh=
+    val sector=
         h/60f
 
     val x=
         c*
-        (
-            1f-
-            kotlin.math.abs(
-                (
-                    hh%2f
-                )-
-                1f
+            (
+                1f-
+                abs(
+                    (
+                        sector%2f
+                    )-
+                    1f
+                )
             )
-        )
 
-    val triple=
+    val values=
         when{
-            hh<1f->
-                Triple(c,x,0f)
+            sector<1f->
+                Triple(
+                    c,
+                    x,
+                    0f
+                )
 
-            hh<2f->
-                Triple(x,c,0f)
+            sector<2f->
+                Triple(
+                    x,
+                    c,
+                    0f
+                )
 
-            hh<3f->
-                Triple(0f,c,x)
+            sector<3f->
+                Triple(
+                    0f,
+                    c,
+                    x
+                )
 
-            hh<4f->
-                Triple(0f,x,c)
+            sector<4f->
+                Triple(
+                    0f,
+                    x,
+                    c
+                )
 
-            hh<5f->
-                Triple(x,0f,c)
+            sector<5f->
+                Triple(
+                    x,
+                    0f,
+                    c
+                )
 
             else->
-                Triple(c,0f,x)
+                Triple(
+                    c,
+                    0f,
+                    x
+                )
         }
 
     val m=
@@ -952,7 +973,7 @@ private fun hsvToComposeColor(
     return Color(
         red=
             (
-                triple.first+m
+                values.first+m
             ).coerceIn(
                 0f,
                 1f
@@ -960,7 +981,7 @@ private fun hsvToComposeColor(
 
         green=
             (
-                triple.second+m
+                values.second+m
             ).coerceIn(
                 0f,
                 1f
@@ -968,7 +989,7 @@ private fun hsvToComposeColor(
 
         blue=
             (
-                triple.third+m
+                values.third+m
             ).coerceIn(
                 0f,
                 1f
@@ -982,34 +1003,31 @@ private fun rgbToHsv(
     color:Color
 ):FloatArray{
     val r=
-        color.red
-            .coerceIn(
-                0f,
-                1f
-            )
+        color.red.coerceIn(
+            0f,
+            1f
+        )
 
     val g=
-        color.green
-            .coerceIn(
-                0f,
-                1f
-            )
+        color.green.coerceIn(
+            0f,
+            1f
+        )
 
     val b=
-        color.blue
-            .coerceIn(
-                0f,
-                1f
-            )
+        color.blue.coerceIn(
+            0f,
+            1f
+        )
 
-    val max=
+    val maximum=
         maxOf(
             r,
             g,
             b
         )
 
-    val min=
+    val minimum=
         minOf(
             r,
             g,
@@ -1017,44 +1035,45 @@ private fun rgbToHsv(
         )
 
     val delta=
-        max-min
+        maximum-
+            minimum
 
     var hue=
         when{
             delta==0f->
                 0f
 
-            max==r->
+            maximum==r->
                 60f*
-                (
                     (
                         (
-                            g-b
-                        )/
-                        delta
-                    )%
-                    6f
-                )
+                            (
+                                g-b
+                            )/
+                            delta
+                        )%
+                        6f
+                    )
 
-            max==g->
+            maximum==g->
                 60f*
-                (
                     (
-                        b-r
-                    )/
-                    delta+
-                    2f
-                )
+                        (
+                            b-r
+                        )/
+                        delta+
+                        2f
+                    )
 
             else->
                 60f*
-                (
                     (
-                        r-g
-                    )/
-                    delta+
-                    4f
-                )
+                        (
+                            r-g
+                        )/
+                        delta+
+                        4f
+                    )
         }
 
     if(hue<0f){
@@ -1062,41 +1081,39 @@ private fun rgbToHsv(
     }
 
     val saturation=
-        if(max==0f)
+        if(maximum==0f)
             0f
         else
-            delta/max
+            delta/
+                maximum
 
     return floatArrayOf(
         hue,
         saturation,
-        max
+        maximum
     )
 }
 
 private fun hueOf(
     color:Color
-):Float{
-    return rgbToHsv(
+):Float=
+    rgbToHsv(
         color
     )[0]
-}
 
 private fun saturationOf(
     color:Color
-):Float{
-    return rgbToHsv(
+):Float=
+    rgbToHsv(
         color
     )[1]
-}
 
 private fun brightnessOf(
     color:Color
-):Float{
-    return rgbToHsv(
+):Float=
+    rgbToHsv(
         color
     )[2]
-}
 
 private fun toHex(
     color:Color
@@ -1159,7 +1176,7 @@ private fun parseHexColor(
     }
 
     return runCatching{
-        val value=
+        val number=
             clean
                 .substring(1)
                 .toLong(16)
@@ -1167,24 +1184,27 @@ private fun parseHexColor(
         val r=
             (
                 (
-                    value shr 16
+                    number shr 16
                 ) and
                 0xFF
-            ).toFloat()/255f
+            ).toFloat()/
+                255f
 
         val g=
             (
                 (
-                    value shr 8
+                    number shr 8
                 ) and
                 0xFF
-            ).toFloat()/255f
+            ).toFloat()/
+                255f
 
         val b=
             (
-                value and
+                number and
                 0xFF
-            ).toFloat()/255f
+            ).toFloat()/
+                255f
 
         Color(
             red=r,
