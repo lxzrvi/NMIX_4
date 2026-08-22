@@ -679,36 +679,137 @@ private fun MotionPreview(
         repeat(
             a.animationQuantity
                 .coerceIn(1,5)
+@Composable
+private fun MotionPreview(
+    animation:NmixAnimationName,
+    soft:Boolean,
+    shape:PreviewShape
+){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+
+    val speed=
+        a.animationSpeed.coerceIn(
+            .45f,
+            2.20f
+        )
+
+    val duration=
+        (
+            (
+                if(soft)
+                    2400f
+                else
+                    1850f
+            )/
+                speed
+        )
+            .roundToInt()
+            .coerceAtLeast(480)
+
+    val transition=
+        rememberInfiniteTransition(
+            label=
+                "preview_${animation.name}_$duration"
+        )
+
+    val x by transition.animateFloat(
+        initialValue=-1f,
+        targetValue=1f,
+        animationSpec=
+            infiniteRepeatable(
+                tween(
+                    durationMillis=duration,
+                    easing=EaseInOutSine
+                ),
+                RepeatMode.Reverse
+            ),
+        label="previewX"
+    )
+
+    val y by transition.animateFloat(
+        initialValue=1f,
+        targetValue=-1f,
+        animationSpec=
+            infiniteRepeatable(
+                tween(
+                    durationMillis=
+                        duration+390,
+                    easing=EaseInOutSine
+                ),
+                RepeatMode.Reverse
+            ),
+        label="previewY"
+    )
+
+    val z by transition.animateFloat(
+        initialValue=-1f,
+        targetValue=1f,
+        animationSpec=
+            infiniteRepeatable(
+                tween(
+                    durationMillis=
+                        duration+760,
+                    easing=EaseInOutSine
+                ),
+                RepeatMode.Reverse
+            ),
+        label="previewZ"
+    )
+
+    /*
+     * Wider home positions.
+     */
+    val homes=listOf(
+        Offset(-.39f,-.30f),
+        Offset(.39f,.29f),
+        Offset(.37f,-.31f),
+        Offset(-.38f,.31f),
+        Offset(.01f,.01f)
+    )
+
+    BoxWithConstraints(
+        Modifier.fillMaxSize()
+    ){
+        val spreadX=maxWidth*.90f
+        val spreadY=maxHeight*.82f
+
+        repeat(
+            a.animationQuantity
+                .coerceIn(1,5)
         ){index->
-            val placement=
-                previewPlacements[
-                    index%
-                        previewPlacements.size
-                ]
+            val home=homes[index]
 
-            val mx=
-                when(index){
-                    0->x
-                    1->z
-                    2->-y
-                    3->-x
-                    else->y
-                }
+            val mx=when(index){
+                0->x
+                1->z
+                2->-y
+                3->-x
+                else->y
+            }
 
-            val my=
-                when(index){
-                    0->y
-                    1->-x
-                    2->z
-                    3->-z
-                    else->-x
-                }
+            val my=when(index){
+                0->y
+                1->-x
+                2->z
+                3->-z
+                else->-x
+            }
 
             val direction=
                 if(index%2==0)
                     1f
                 else
                     -1f
+
+            val itemScale=
+                when(index){
+                    0->1.04f
+                    1->.86f
+                    2->.72f
+                    3->.80f
+                    else->.66f
+                }
 
             PreviewGeometry(
                 shape=shape,
@@ -720,62 +821,60 @@ private fun MotionPreview(
                 soft=soft,
                 modifier=
                     Modifier
-                        .align(
-                            Alignment.Center
-                        )
+                        .align(Alignment.Center)
                         .offset(
                             x=
                                 spreadX*
-                                    placement.x,
+                                    home.x,
                             y=
                                 spreadY*
-                                    placement.y
+                                    home.y
                         )
-                        /*
-                         * Soft geometry gets a small
-                         * real Compose blur in
-                         * addition to feathered draw.
-                         */
                         .then(
-                            if(soft){
-                                Modifier.blur(
-                                    1.6.dp
-                                )
-                            }else{
+                            if(soft)
+                                Modifier.blur(1.4.dp)
+                            else
                                 Modifier
-                            }
                         )
                         .graphicsLayer{
+                            /*
+                             * Significantly wider
+                             * travel than before.
+                             */
                             translationX=
                                 mx*
-                                    13f*
-                                    placement.dx
+                                    (
+                                        25f+
+                                            index*2f
+                                    )
 
                             translationY=
                                 my*
-                                    8f*
-                                    placement.dy
+                                    (
+                                        15f+
+                                            index*1.5f
+                                    )
 
                             rotationZ=
                                 when(animation){
                                     NmixAnimationName.ORBIT->
                                         z*
-                                            18f*
+                                            19f*
                                             direction
 
                                     NmixAnimationName.FLOW->
                                         x*
-                                            8f*
+                                            10f*
                                             direction
 
                                     NmixAnimationName.FLOAT->
                                         z*
-                                            13f*
+                                            15f*
                                             direction
 
                                     NmixAnimationName.CROSS->
                                         z*
-                                            17f*
+                                            19f*
                                             direction
 
                                     else->
@@ -783,24 +882,26 @@ private fun MotionPreview(
                                 }
 
                             val pulse=
-                                when(animation){
-                                    NmixAnimationName.PULSE->
-                                        .82f+
-                                            (
-                                                (x+1f)/
-                                                    2f
-                                            )*.25f
-
-                                    else->
-                                        1f
+                                if(
+                                    animation==
+                                    NmixAnimationName.PULSE
+                                ){
+                                    .80f+
+                                        (
+                                            (x+1f)/
+                                                2f
+                                        )*.30f
+                                }else{
+                                    1f
                                 }
 
-                            val finalScale=
-                                placement.size*
+                            scaleX=
+                                itemScale*
                                     pulse
 
-                            scaleX=finalScale
-                            scaleY=finalScale
+                            scaleY=
+                                itemScale*
+                                    pulse
                         }
             )
         }
