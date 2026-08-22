@@ -33,6 +33,7 @@ import java.util.Locale
 import kotlin.random.Random
 import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
 
 @Composable
 fun NativeMainPageV2(
@@ -902,8 +903,14 @@ fun NativeMainPageV2(
         }
 
         AnimatedVisibility(
-            visible = top,
-            enter =
+            visible=top,
+            modifier=Modifier.blur(
+                if(settings || customColorOpen)
+                    3.dp
+                else
+                    0.dp
+            ),
+            enter=
                 fadeIn(
                     tween(
                         280,
@@ -1214,15 +1221,24 @@ fun NativeMainPageV2(
                         )
                     )
                     .background(
-                        if (a.darkMode) {
-                            Color(
-                                0xFF151917
-                            )
-                        } else {
-                            Color(
-                                0xFFF0F3F1
-                            )
-                        }
+                        if(a.darkMode)
+                            Color(0xFF151917)
+                        else
+                            p.accent.copy(alpha=.10f)
+                    )
+                    .border(
+                        .55.dp,
+                        p.accent.copy(
+                            alpha=
+                                if(a.darkMode)
+                                    .20f
+                                else
+                                    .28f
+                        ),
+                        RoundedCornerShape(
+                            topStart=25.dp,
+                            bottomStart=25.dp
+                        )
                     )
                     .clickable(
                         interactionSource =
@@ -1262,27 +1278,35 @@ fun NativeMainPageV2(
             verticalAlignment =
                 Alignment.CenterVertically
         ) {
-            NmixCircleButton(
-                icon =
-                    if (top) {
-                        NmixIcon.ARROW_UP
-                    } else {
-                        NmixIcon.ARROW_DOWN
-                    },
-
-                modifier =
-                    Modifier.size(
-                        48.dp
-                    ),
-
-                onClick = {
-                    top = !top
-
-                    if (!top) {
-                        settings = false
-                    }
+            Box(
+                Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .border(
+                            .55.dp,
+                            if(a.darkMode)
+                                Color(0xFF252B28)
+                            else
+                                Color.White.copy(alpha=.72f),
+                            CircleShape
+                        )
+                ){
+                    NmixCircleButton(
+                        icon=
+                            if(top)
+                                NmixIcon.ARROW_UP
+                            else
+                                NmixIcon.ARROW_DOWN,
+                        modifier=Modifier.fillMaxSize(),
+                        onClick={
+                            top=!top
+                
+                            if(!top){
+                                settings=false
+                            }
+                        }
+                    )
                 }
-            )
 
             Box(
                 Modifier
@@ -1298,6 +1322,17 @@ fun NativeMainPageV2(
                     )
                     .background(
                         p.accent
+                    )
+                    .border(
+                        .55.dp,
+                        if(a.darkMode)
+                            Color(0xFF252B28)
+                        else
+                            Color.White.copy(alpha=.72f),
+                        RoundedCornerShape(
+                            topStart=25.dp,
+                            bottomStart=25.dp
+                        )
                     )
                     .clickable(
                         interactionSource =
