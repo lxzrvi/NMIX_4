@@ -802,7 +802,9 @@ private fun HelpDetailBox(
  */
 
 @Composable
-fun NmixSettings(){
+fun NmixSettings(
+    onCustomColor:()->Unit={}
+){
     val a=
         LocalNmixAppearance.current
 
@@ -926,7 +928,15 @@ fun NmixSettings(){
         ThemeGrid(
             detail
         )
-
+        
+        Spacer(
+            Modifier.height(9.dp)
+        )
+        
+        NmixCustomThemeButton(
+            onClick=onCustomColor
+        )
+        
         Spacer(
             Modifier.height(20.dp)
         )
