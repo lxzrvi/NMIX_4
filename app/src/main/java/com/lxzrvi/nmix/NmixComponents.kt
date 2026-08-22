@@ -2543,6 +2543,9 @@ fun NmixPressBox(
     onClick:()->Unit,
     content:@Composable ()->Unit
 ){
+    val a=LocalNmixAppearance.current
+    val haptic=rememberNmixHapticAction()
+
     val interaction=
         remember{
             MutableInteractionSource()
@@ -2571,11 +2574,11 @@ fun NmixPressBox(
             .clip(shape)
             .background(color)
             .clickable(
-                interactionSource=
-                    interaction,
-                indication=null,
-                onClick=onClick
-            ),
+                interactionSource=interaction,
+                indication=null
+            ){
+                haptic(onClick)
+            },
         contentAlignment=
             Alignment.Center
     ){
