@@ -943,7 +943,7 @@ private fun BoxScope.FullscreenSharedMotion(){
                     )
             )
         }else{
-            val size=
+            val elementSize=
                 when(index){
                     0->370f
                     1->320f
@@ -951,10 +951,10 @@ private fun BoxScope.FullscreenSharedMotion(){
                     3->300f
                     else->250f
                 }
-
+            
             Canvas(
                 Modifier
-                    .size(size.dp)
+                    .size(elementSize.dp)
                     .align(Alignment.Center)
                     .offset(
                         x=(home.x*610f).dp,
