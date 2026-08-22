@@ -1426,20 +1426,612 @@ private fun FontPill(
                 if(selected)
                     1.05.dp
                 else
+@Composable
+fun NmixSettings(
+    onCustomColor:()->Unit={}
+){
+    val a=LocalNmixAppearance.current
+    val ui=a.uiColors()
+    val p=a.palette
+
+    val scroll=
+        rememberScrollState()
+
+    var detail by remember{
+        mutableIntStateOf(0)
+    }
+
+    LaunchedEffect(Unit){
+        while(true){
+            delay(3200)
+            detail=(detail+1)%2
+        }
+    }
+
+    /*
+     * Header stays fixed.
+     * Only settings below it scroll.
+     */
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(
+                start=13.dp,
+                end=13.dp,
+                top=12.dp
+            )
+    ){
+        Column(
+            Modifier.fillMaxWidth()
+        ){
+            Text(
+                "NMIX",
+                color=ui.text,
+                fontSize=17.sp,
+                fontWeight=FontWeight.Bold,
+                fontFamily=NmixLogoFont
+            )
+
+            Text(
+                "Appearance Settings",
+                color=ui.muted,
+                fontSize=9.sp,
+                fontFamily=a.fontFamily
+            )
+        }
+
+        Spacer(
+            Modifier.height(13.dp)
+        )
+
+        /*
+         * Everything below the fixed title
+         * is independently scrollable.
+         */
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(scroll)
+                .padding(bottom=22.dp)
+        ){
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical=5.dp),
+                verticalAlignment=
+                    Alignment.CenterVertically
+            ){
+                Column(
+                    Modifier.weight(1f)
+                ){
+                    Text(
+                        "Appearance",
+                        color=ui.text,
+                        fontSize=12.sp,
+                        fontWeight=
+                            FontWeight.SemiBold,
+                        fontFamily=a.fontFamily
+                    )
+
+                    Text(
+                        if(a.darkMode)
+                            "Dark mode"
+                        else
+                            "Light mode",
+                        color=ui.muted,
+                        fontSize=9.sp,
+                        fontFamily=a.fontFamily
+                    )
+                }
+
+                NmixSwitch(
+                    on=a.darkMode,
+                    accent=p.accent
+                ){
+                    a.toggleDarkMode()
+                }
+            }
+
+            Spacer(
+                Modifier.height(18.dp)
+            )
+
+            Text(
+                "Color Theme",
+                color=ui.text,
+                fontSize=12.sp,
+                fontWeight=
+                    FontWeight.SemiBold,
+                fontFamily=a.fontFamily
+            )
+
+            Text(
+                "Choose your NMIX color",
+                color=ui.muted,
+                fontSize=9.sp,
+                fontFamily=a.fontFamily
+            )
+
+            Spacer(
+                Modifier.height(10.dp)
+            )
+
+            ThemeGrid(
+                detail
+            )
+
+            Spacer(
+                Modifier.height(9.dp)
+            )
+
+            NmixCustomThemeButton(
+                onClick=onCustomColor
+            )
+
+            Spacer(
+                Modifier.height(20.dp)
+            )
+
+            NmixAnimationSettings()
+
+            Spacer(
+                Modifier.height(20.dp)
+            )
+
+            Text(
+                "Fonts",
+                color=ui.text,
+                fontSize=12.sp,
+                fontWeight=
+                    FontWeight.SemiBold,
+                fontFamily=a.fontFamily
+            )
+
+            Text(
+                "Preview your interface typeface",
+                color=ui.muted,
+                fontSize=9.sp,
+                fontFamily=a.fontFamily
+            )
+
+            Spacer(
+                Modifier.height(10.dp)
+            )
+
+            Column(
+                Modifier.fillMaxWidth(),
+                verticalArrangement=
+                    Arrangement.spacedBy(
+                        7.dp
+                    )
+            ){
+                NmixFontName.values()
+                    .forEach{font->
+                        FontPill(
+                            font=font,
+                            selected=
+                                a.font==font
+                        ){
+                            a.setFont(font)
+                        }
+                    }
+            }
+
+            Spacer(
+                Modifier.height(17.dp)
+            )
+
+            Text(
+                "NMIX logo uses Cinzel Decorative.",
+                color=ui.muted,
+                fontSize=8.sp,
+                fontFamily=a.fontFamily
+            )
+        }
+    }
+}
+
+/*
+ * ==================================================
+ * COLOR THEME
+ * ==================================================
+ */
+
+@Composable
+private fun ThemeGrid(
+    detail:Int
+){
+    val a=LocalNmixAppearance.current
+
+    Column(
+        Modifier.fillMaxWidth(),
+        verticalArrangement=
+            Arrangement.spacedBy(8.dp)
+    ){
+        NmixThemeName.values()
+            .toList()
+            .chunked(3)
+            .forEach{row->
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement=
+                        Arrangement.spacedBy(7.dp)
+                ){
+                    row.forEach{theme->
+                        ThemeCard(
+                            theme=theme,
+
+                            /*
+                             * When Custom is active,
+                             * no preset color remains
+                             * visually selected.
+                             */
+                            selected=
+                                !a.usingCustomColor &&
+                                a.theme==theme,
+
+                            detail=detail,
+                            modifier=
+                                Modifier.weight(1f)
+                        ){
+                            a.setTheme(theme)
+                        }
+                    }
+                }
+            }
+    }
+}
+
+private fun themeHex(
+    theme:NmixThemeName
+)=when(theme){
+    NmixThemeName.GREEN->
+        "#319B79"
+
+    NmixThemeName.BLUE->
+        "#348BB8"
+
+    NmixThemeName.PURPLE->
+        "#8A62C8"
+
+    NmixThemeName.ORANGE->
+        "#D57D35"
+
+    NmixThemeName.ROSE->
+        "#C85878"
+
+    NmixThemeName.CYAN->
+        "#26A6B5"
+}
+
+private fun themeMood(
+    theme:NmixThemeName
+)=when(theme){
+    NmixThemeName.GREEN->
+        "Balanced • Focused"
+
+    NmixThemeName.BLUE->
+        "Clear • Productive"
+
+    NmixThemeName.PURPLE->
+        "Creative • Calm"
+
+    NmixThemeName.ORANGE->
+        "Energetic • Warm"
+
+    NmixThemeName.ROSE->
+        "Soft • Expressive"
+
+    NmixThemeName.CYAN->
+        "Fresh • Precise"
+}
+
+private fun themeDetail(
+    theme:NmixThemeName
+)=when(theme){
+    NmixThemeName.GREEN->
+        "Calm natural tone"
+
+    NmixThemeName.BLUE->
+        "Clean focused energy"
+
+    NmixThemeName.PURPLE->
+        "Quiet creative mood"
+
+    NmixThemeName.ORANGE->
+        "Bright active feel"
+
+    NmixThemeName.ROSE->
+        "Warm expressive mood"
+
+    NmixThemeName.CYAN->
+        "Crisp modern clarity"
+}
+
+@Composable
+private fun ThemeCard(
+    theme:NmixThemeName,
+    selected:Boolean,
+    detail:Int,
+    modifier:Modifier,
+    onClick:()->Unit
+){
+    val a=LocalNmixAppearance.current
+    val current=a.palette
+    val ui=a.uiColors()
+    val palette=theme.palette()
+
+    val interaction=remember{
+        MutableInteractionSource()
+    }
+
+    val pressed by
+        interaction.collectIsPressedAsState()
+
+    val scale by
+        animateFloatAsState(
+            targetValue=
+                if(pressed)
+                    .97f
+                else
+                    1f,
+            label="themePress"
+        )
+
+    val shape=
+        RoundedCornerShape(14.dp)
+
+    val bg=
+        if(a.darkMode){
+            Color.White.copy(
+                alpha=.035f
+            )
+        }else{
+            Color(0xFFE8ECEA)
+                .copy(alpha=.86f)
+        }
+
+    val outline=
+        if(selected){
+            current.accent
+        }else{
+            current.accent.copy(
+                alpha=
+                    if(a.darkMode)
+                        .08f
+                    else
+                        .14f
+            )
+        }
+
+    val name=
+        theme.name
+            .lowercase()
+            .replaceFirstChar{
+                it.uppercase()
+            }
+
+    Column(
+        modifier
+            .height(132.dp)
+            .scale(scale)
+            .clip(shape)
+            .background(bg)
+            .border(
+                if(selected)
+                    1.1.dp
+                else
                     .4.dp,
                 outline,
                 shape
             )
             .combinedClickable(
-                interactionSource=
-                    interaction,
+                interactionSource=interaction,
                 indication=null,
                 onClick=onClick,
                 onLongClick={}
             )
-            .padding(
-                horizontal=13.dp
-            ),
+            .padding(6.dp)
+    ){
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(66.dp)
+                .clip(
+                    RoundedCornerShape(10.dp)
+                )
+                .background(
+                    palette.accent
+                ),
+            contentAlignment=
+                Alignment.Center
+        ){
+            Text(
+                themeHex(theme),
+                color=Color.White,
+                fontSize=7.5.sp,
+                fontWeight=
+                    FontWeight.Bold,
+                fontFamily=a.fontFamily,
+                maxLines=1
+            )
+
+            if(selected){
+                NmixIcon(
+                    NmixIcon.CHECK,
+                    Modifier
+                        .align(
+                            Alignment.TopEnd
+                        )
+                        .padding(6.dp)
+                        .size(13.dp),
+                    Color.White
+                )
+            }
+        }
+
+        Spacer(
+            Modifier.height(6.dp)
+        )
+
+        Text(
+            name,
+            color=ui.text,
+            fontSize=10.sp,
+            fontWeight=FontWeight.Bold,
+            fontFamily=a.fontFamily,
+            maxLines=1
+        )
+
+        Spacer(
+            Modifier.height(2.dp)
+        )
+
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(34.dp),
+            contentAlignment=
+                Alignment.TopStart
+        ){
+            AnimatedContent(
+                targetState=detail,
+                transitionSpec={
+                    (
+                        fadeIn(
+                            tween(320)
+                        )+
+                        slideInVertically(
+                            initialOffsetY={
+                                it/4
+                            },
+                            animationSpec=tween(
+                                320,
+                                easing=EaseOutCubic
+                            )
+                        )
+                    ) togetherWith (
+                        fadeOut(
+                            tween(220)
+                        )+
+                        slideOutVertically(
+                            targetOffsetY={
+                                -it/4
+                            },
+                            animationSpec=tween(
+                                260,
+                                easing=EaseInCubic
+                            )
+                        )
+                    )
+                },
+                label="themeDetail"
+            ){state->
+                Text(
+                    if(state==0)
+                        themeMood(theme)
+                    else
+                        themeDetail(theme),
+                    color=ui.muted,
+                    fontSize=7.1.sp,
+                    lineHeight=9.sp,
+                    fontWeight=
+                        if(state==0)
+                            FontWeight.SemiBold
+                        else
+                            FontWeight.Normal,
+                    fontFamily=a.fontFamily,
+                    maxLines=3,
+                    textAlign=
+                        TextAlign.Start
+                )
+            }
+        }
+    }
+}
+
+/*
+ * ==================================================
+ * FONT
+ * ==================================================
+ */
+
+@Composable
+private fun FontPill(
+    font:NmixFontName,
+    selected:Boolean,
+    onClick:()->Unit
+){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+    val ui=a.uiColors()
+
+    val interaction=remember{
+        MutableInteractionSource()
+    }
+
+    val pressed by
+        interaction.collectIsPressedAsState()
+
+    val scale by
+        animateFloatAsState(
+            targetValue=
+                if(pressed)
+                    .97f
+                else
+                    1f,
+            label="fontPress"
+        )
+
+    val shape=
+        RoundedCornerShape(50)
+
+    val bg=
+        if(a.darkMode){
+            Color.White.copy(
+                alpha=.035f
+            )
+        }else{
+            Color(0xFFE8ECEA)
+                .copy(alpha=.84f)
+        }
+
+    val outline=
+        if(selected){
+            p.accent
+        }else{
+            p.accent.copy(
+                alpha=
+                    if(a.darkMode)
+                        .08f
+                    else
+                        .14f
+            )
+        }
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .scale(scale)
+            .clip(shape)
+            .background(bg)
+            .border(
+                if(selected)
+                    1.05.dp
+                else
+                    .4.dp,
+                outline,
+                shape
+            )
+            .combinedClickable(
+                interactionSource=interaction,
+                indication=null,
+                onClick=onClick,
+                onLongClick={}
+            )
+            .padding(horizontal=13.dp),
         verticalAlignment=
             Alignment.CenterVertically
     ){
@@ -1449,10 +2041,8 @@ private fun FontPill(
                 Modifier.weight(1f),
             color=ui.text,
             fontSize=13.5.sp,
-            fontWeight=
-                FontWeight.Bold,
-            fontFamily=
-                font.family()
+            fontWeight=FontWeight.Bold,
+            fontFamily=font.family()
         )
 
         if(selected){
@@ -1465,6 +2055,12 @@ private fun FontPill(
     }
 }
 
+/*
+ * ==================================================
+ * APPEARANCE SWITCH
+ * ==================================================
+ */
+
 @Composable
 private fun NmixSwitch(
     on:Boolean,
@@ -1476,8 +2072,7 @@ private fun NmixSwitch(
     }
 
     val pressed by
-        interaction
-            .collectIsPressedAsState()
+        interaction.collectIsPressedAsState()
 
     val scale by
         animateFloatAsState(
@@ -1502,14 +2097,11 @@ private fun NmixSwitch(
                     accent
                 }else{
                     Color(0xFF6F7773)
-                        .copy(
-                            alpha=.42f
-                        )
+                        .copy(alpha=.42f)
                 }
             )
             .combinedClickable(
-                interactionSource=
-                    interaction,
+                interactionSource=interaction,
                 indication=null,
                 onClick=onClick,
                 onLongClick={}
@@ -1525,9 +2117,7 @@ private fun NmixSwitch(
             Modifier
                 .size(20.dp)
                 .clip(CircleShape)
-                .background(
-                    Color.White
-                )
+                .background(Color.White)
         )
     }
 }
