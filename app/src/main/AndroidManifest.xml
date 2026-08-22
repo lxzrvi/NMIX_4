@@ -2,18 +2,15 @@
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Android 13+ notification permission -->
     <uses-permission
         android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Foreground Timer / Stopwatch -->
     <uses-permission
         android:name="android.permission.FOREGROUND_SERVICE" />
 
     <uses-permission
         android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
-    <!-- Timer completion haptics -->
     <uses-permission
         android:name="android.permission.VIBRATE" />
 
@@ -25,6 +22,11 @@
         android:allowBackup="true"
         android:supportsRtl="true">
 
+        <!--
+            Default launcher component.
+            Icon manager disables this only while
+            an alternate icon alias is active.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -39,10 +41,7 @@
 
         </activity>
 
-        <!--
-            Native persistent Timer / Stopwatch service.
-            The Kotlin class will be added next.
-        -->
+        <!-- Timer / Stopwatch foreground service -->
         <service
             android:name=".NmixTimeService"
             android:exported="false"
@@ -53,6 +52,182 @@
                 android:value="NMIX user-started timer and stopwatch with persistent time notification" />
 
         </service>
+
+        <!-- ============================= -->
+        <!-- ADAPTIVE ICON ALIASES         -->
+        <!-- ============================= -->
+
+        <activity-alias
+            android:name=".IconGreenAdaptive"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_nmix_green"
+            android:roundIcon="@mipmap/ic_nmix_green"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".IconBlueAdaptive"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_nmix_blue"
+            android:roundIcon="@mipmap/ic_nmix_blue"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".IconPurpleAdaptive"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_nmix_purple"
+            android:roundIcon="@mipmap/ic_nmix_purple"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".IconOrangeAdaptive"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_nmix_orange"
+            android:roundIcon="@mipmap/ic_nmix_orange"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".IconRoseAdaptive"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_nmix_rose"
+            android:roundIcon="@mipmap/ic_nmix_rose"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".IconCyanAdaptive"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_nmix_cyan"
+            android:roundIcon="@mipmap/ic_nmix_cyan"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- ============================= -->
+        <!-- ROUND ICON ALIASES            -->
+        <!-- ============================= -->
+
+        <activity-alias
+            android:name=".IconGreenRound"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@drawable/ic_nmix_round_green"
+            android:roundIcon="@drawable/ic_nmix_round_green"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".IconBlueRound"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@drawable/ic_nmix_round_blue"
+            android:roundIcon="@drawable/ic_nmix_round_blue"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".IconPurpleRound"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@drawable/ic_nmix_round_purple"
+            android:roundIcon="@drawable/ic_nmix_round_purple"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".IconOrangeRound"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@drawable/ic_nmix_round_orange"
+            android:roundIcon="@drawable/ic_nmix_round_orange"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".IconRoseRound"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@drawable/ic_nmix_round_rose"
+            android:roundIcon="@drawable/ic_nmix_round_rose"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".IconCyanRound"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:icon="@drawable/ic_nmix_round_cyan"
+            android:roundIcon="@drawable/ic_nmix_round_cyan"
+            android:label="NMIX">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
     </application>
 
