@@ -755,9 +755,7 @@ private fun parseHex(
 
     if(
         !clean.matches(
-            Regex(
-                "^#[0-9A-Fa-f]{6}$"
-            )
+            Regex("^#[0-9A-Fa-f]{6}$")
         )
     ){
         return null
@@ -765,15 +763,22 @@ private fun parseHex(
 
     return runCatching{
         val argb=
-            AndroidColor.parseColor(
-                clean
-            )
+            AndroidColor.parseColor(clean)
 
         Color(
-            red=AndroidColor.red(argb)/255f,
-            green=AndroidColor.green(argb)/255f,
-            blue=AndroidColor.blue(argb)/255f,
-            alpha=AndroidColor.alpha(argb)/255f
+            (
+                AndroidColor.red(argb)/
+                255f
+            ),
+            (
+                AndroidColor.green(argb)/
+                255f
+            ),
+            (
+                AndroidColor.blue(argb)/
+                255f
+            ),
+            1f
         )
     }.getOrNull()
 }
