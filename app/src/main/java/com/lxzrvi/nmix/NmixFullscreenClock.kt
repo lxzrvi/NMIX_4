@@ -1191,9 +1191,9 @@ private fun BoxScope.FullscreenMotionLayer(){
                                     inset
                                 ),
                             size=
-                                Size(
-                                    size.width-inset*2,
-                                    size.height-inset*2
+                                androidx.compose.ui.geometry.Size(
+                                    this.size.width-inset*2,
+                                    this.size.height-inset*2
                                 ),
                             cornerRadius=
                                 CornerRadius(
