@@ -1589,70 +1589,51 @@ private fun WallpaperBar(
         verticalAlignment =
             Alignment.CenterVertically,
         horizontalArrangement =
-            Arrangement.spacedBy(
-                17.dp
-            )
+            Arrangement.spacedBy(17.dp)
     ) {
-        colors.forEachIndexed {
-            index,
-            color ->
-
+        colors.forEachIndexed { index, color ->
             RingChoice(
                 selected =
                     !customSelected &&
-                        index ==
-                        selected,
-                ringColor =
-                    accent
-            ) {
-                Box(
-                    Modifier
-                        .size(27.dp)
-                        .clip(
-                            CircleShape
-                        )
-                        .background(
-                            color
-                        )
-                )
-            }
-
-            Spacer(
-                Modifier.width(
-                    0.dp
-                )
+                        index == selected,
+                ringColor = accent,
+                onClick = {
+                    onSelect(index)
+                },
+                content = {
+                    Box(
+                        Modifier
+                            .size(27.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                    )
+                }
             )
         }
 
         RingChoice(
-            selected =
-                customSelected,
-            ringColor =
-                accent,
-            onClick =
-                onCustom
-        ) {
-            Box(
-                Modifier
-                    .size(27.dp)
-                    .clip(
-                        CircleShape
+            selected = customSelected,
+            ringColor = accent,
+            onClick = onCustom,
+            content = {
+                Box(
+                    Modifier
+                        .size(27.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Color(0xFF66706B)
+                        ),
+                    contentAlignment =
+                        Alignment.Center
+                ) {
+                    NmixIcon(
+                        NmixIcon.WALLPAPER,
+                        Modifier.size(13.dp),
+                        Color.White
                     )
-                    .background(
-                        Color(0xFF66706B)
-                    ),
-                contentAlignment =
-                    Alignment.Center
-            ) {
-                NmixIcon(
-                    NmixIcon.WALLPAPER,
-                    Modifier.size(
-                        13.dp
-                    ),
-                    Color.White
-                )
+                }
             }
-        }
+        )
     }
 }
 
