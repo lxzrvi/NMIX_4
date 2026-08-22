@@ -19,6 +19,11 @@ enum class NmixAnimationName{
     DRIFT,ORBIT,FLOW,FLOAT,PULSE,CROSS
 }
 
+enum class NmixIconStyle{
+    ADAPTIVE,
+    ROUND
+}
+
 fun NmixAnimationName.label():String=
     when(this){
         NmixAnimationName.DRIFT->"Drift"
@@ -101,23 +106,12 @@ private val CyanPalette=
 
 fun NmixThemeName.palette():NmixPalette=
     when(this){
-        NmixThemeName.GREEN->
-            GreenPalette
-
-        NmixThemeName.BLUE->
-            BluePalette
-
-        NmixThemeName.PURPLE->
-            PurplePalette
-
-        NmixThemeName.ORANGE->
-            OrangePalette
-
-        NmixThemeName.ROSE->
-            RosePalette
-
-        NmixThemeName.CYAN->
-            CyanPalette
+        NmixThemeName.GREEN->GreenPalette
+        NmixThemeName.BLUE->BluePalette
+        NmixThemeName.PURPLE->PurplePalette
+        NmixThemeName.ORANGE->OrangePalette
+        NmixThemeName.ROSE->RosePalette
+        NmixThemeName.CYAN->CyanPalette
     }
 
 private fun mixColor(
@@ -126,44 +120,25 @@ private fun mixColor(
     amount:Float
 ):Color{
     val t=
-        amount.coerceIn(
-            0f,
-            1f
-        )
+        amount.coerceIn(0f,1f)
 
     return Color(
         red=
             first.red+
-                (
-                    second.red-
-                        first.red
-                )*t,
+                (second.red-first.red)*t,
 
         green=
             first.green+
-                (
-                    second.green-
-                        first.green
-                )*t,
+                (second.green-first.green)*t,
 
         blue=
             first.blue+
-                (
-                    second.blue-
-                        first.blue
-                )*t,
+                (second.blue-first.blue)*t,
 
         alpha=1f
     )
 }
 
-/*
- * Custom transparency intentionally affects the
- * main accent tint, while derived dark/light/header
- * colors remain opaque. This prevents transparent
- * window/header holes while still making accent UI
- * more or less transparent.
- */
 private fun customPalette(
     color:Color,
     transparency:Float
@@ -297,20 +272,11 @@ val NmixLogoFont=
 
 fun NmixFontName.family():FontFamily=
     when(this){
-        NmixFontName.INTER->
-            NmixInter
-
-        NmixFontName.NUNITO->
-            NmixNunito
-
-        NmixFontName.OUTFIT->
-            NmixOutfit
-
-        NmixFontName.POPPINS->
-            NmixPoppins
-
-        NmixFontName.QUICKSAND->
-            NmixQuicksand
+        NmixFontName.INTER->NmixInter
+        NmixFontName.NUNITO->NmixNunito
+        NmixFontName.OUTFIT->NmixOutfit
+        NmixFontName.POPPINS->NmixPoppins
+        NmixFontName.QUICKSAND->NmixQuicksand
     }
 
 fun NmixFontName.label():String=
@@ -338,6 +304,17 @@ class NmixAppearanceState internal constructor(
     initialAnimationQuantity:Int,
     initialCustomColor:Color?,
     initialCustomTransparency:Float,
+
+    initialColorEnabled:Boolean,
+    initialAnimationEnabled:Boolean,
+    initialFontEnabled:Boolean,
+    initialHapticsEnabled:Boolean,
+
+    initialAppIconEnabled:Boolean,
+    initialIconFollowTheme:Boolean,
+    initialIconTheme:NmixThemeName,
+    initialIconStyle:NmixIconStyle,
+
     private val context:Context
 ){
     private var themeState by
@@ -372,6 +349,46 @@ class NmixAppearanceState internal constructor(
             initialCustomTransparency
         )
 
+    private var colorEnabledState by
+        mutableStateOf(
+            initialColorEnabled
+        )
+
+    private var animationEnabledState by
+        mutableStateOf(
+            initialAnimationEnabled
+        )
+
+    private var fontEnabledState by
+        mutableStateOf(
+            initialFontEnabled
+        )
+
+    private var hapticsEnabledState by
+        mutableStateOf(
+            initialHapticsEnabled
+        )
+
+    private var appIconEnabledState by
+        mutableStateOf(
+            initialAppIconEnabled
+        )
+
+    private var iconFollowThemeState by
+        mutableStateOf(
+            initialIconFollowTheme
+        )
+
+    private var iconThemeState by
+        mutableStateOf(
+            initialIconTheme
+        )
+
+    private var iconStyleState by
+        mutableStateOf(
+            initialIconStyle
+        )
+
     val theme:NmixThemeName
         get()=themeState
 
@@ -393,16 +410,36 @@ class NmixAppearanceState internal constructor(
     val customColor:Color?
         get()=customColorState
 
-    /*
-     * 0.0 = opaque
-     * 0.8 = maximum allowed transparency
-     */
     val customTransparency:Float
         get()=customTransparencyState
 
     val usingCustomColor:Boolean
         get()=
             customColorState!=null
+
+    val colorEnabled:Boolean
+        get()=colorEnabledState
+
+    val animationEnabled:Boolean
+        get()=animationEnabledState
+
+    val fontEnabled:Boolean
+        get()=fontEnabledState
+
+    val hapticsEnabled:Boolean
+        get()=hapticsEnabledState
+
+    val appIconEnabled:Boolean
+        get()=appIconEnabledState
+
+    val iconFollowTheme:Boolean
+        get()=iconFollowThemeState
+
+    val iconTheme:NmixThemeName
+        get()=iconThemeState
+
+    val iconStyle:NmixIconStyle
+        get()=iconStyleState
 
     val fontFamily:FontFamily
         get()=
@@ -420,6 +457,12 @@ class NmixAppearanceState internal constructor(
                 }
                 ?:themeState.palette()
 
+    /*
+     * ==================================================
+     * COLOR
+     * ==================================================
+     */
+
     fun setTheme(
         value:NmixThemeName
     ){
@@ -427,11 +470,14 @@ class NmixAppearanceState internal constructor(
         customColorState=null
         customTransparencyState=0f
 
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
+        if(
+            appIconEnabledState &&
+            iconFollowThemeState
+        ){
+            iconThemeState=value
+        }
+
+        prefs()
             .edit()
             .putString(
                 KEY_THEME,
@@ -443,32 +489,21 @@ class NmixAppearanceState internal constructor(
             .remove(
                 KEY_CUSTOM_TRANSPARENCY
             )
+            .putString(
+                KEY_ICON_THEME,
+                iconThemeState.name
+            )
             .apply()
     }
 
     fun setCustomColor(
         value:Color
     ){
-        val opaque=
-            value.copy(alpha=1f)
-
-        customColorState=opaque
-
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
-            .edit()
-            .putLong(
-                KEY_CUSTOM_COLOR,
-                colorToLong(opaque)
-            )
-            .putFloat(
-                KEY_CUSTOM_TRANSPARENCY,
+        setCustomAppearance(
+            color=value,
+            transparency=
                 customTransparencyState
-            )
-            .apply()
+        )
     }
 
     fun setCustomTransparency(
@@ -482,11 +517,7 @@ class NmixAppearanceState internal constructor(
 
         customTransparencyState=safe
 
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
+        prefs()
             .edit()
             .putFloat(
                 KEY_CUSTOM_TRANSPARENCY,
@@ -495,10 +526,6 @@ class NmixAppearanceState internal constructor(
             .apply()
     }
 
-    /*
-     * Used by the Custom picker Apply button so
-     * color + transparency become active together.
-     */
     fun setCustomAppearance(
         color:Color,
         transparency:Float
@@ -513,14 +540,11 @@ class NmixAppearanceState internal constructor(
             )
 
         customColorState=opaque
+
         customTransparencyState=
             safeTransparency
 
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
+        prefs()
             .edit()
             .putLong(
                 KEY_CUSTOM_COLOR,
@@ -532,6 +556,70 @@ class NmixAppearanceState internal constructor(
             )
             .apply()
     }
+
+    /*
+     * Color toggle OFF:
+     * immediately restore default Green.
+     *
+     * Turning it ON starts from Green as requested.
+     */
+    fun setColorEnabled(
+        value:Boolean
+    ){
+        colorEnabledState=value
+
+        if(!value){
+            themeState=
+                NmixThemeName.GREEN
+
+            customColorState=null
+
+            customTransparencyState=0f
+        }else{
+            themeState=
+                NmixThemeName.GREEN
+
+            customColorState=null
+
+            customTransparencyState=0f
+        }
+
+        if(
+            appIconEnabledState &&
+            iconFollowThemeState
+        ){
+            iconThemeState=
+                NmixThemeName.GREEN
+        }
+
+        prefs()
+            .edit()
+            .putBoolean(
+                KEY_COLOR_ENABLED,
+                value
+            )
+            .putString(
+                KEY_THEME,
+                NmixThemeName.GREEN.name
+            )
+            .remove(
+                KEY_CUSTOM_COLOR
+            )
+            .remove(
+                KEY_CUSTOM_TRANSPARENCY
+            )
+            .putString(
+                KEY_ICON_THEME,
+                iconThemeState.name
+            )
+            .apply()
+    }
+
+    /*
+     * ==================================================
+     * DARK / LIGHT
+     * ==================================================
+     */
 
     fun setDarkMode(
         value:Boolean
@@ -545,11 +633,7 @@ class NmixAppearanceState internal constructor(
 
         darkModeState=value
 
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
+        prefs()
             .edit()
             .putBoolean(
                 KEY_DARK,
@@ -564,6 +648,12 @@ class NmixAppearanceState internal constructor(
         )
     }
 
+    /*
+     * ==================================================
+     * FONT
+     * ==================================================
+     */
+
     fun setFont(
         value:NmixFontName
     ){
@@ -573,11 +663,7 @@ class NmixAppearanceState internal constructor(
 
         fontState=value
 
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
+        prefs()
             .edit()
             .putString(
                 KEY_FONT,
@@ -585,6 +671,36 @@ class NmixAppearanceState internal constructor(
             )
             .apply()
     }
+
+    /*
+     * OFF / ON both initialize Inter.
+     */
+    fun setFontEnabled(
+        value:Boolean
+    ){
+        fontEnabledState=value
+
+        fontState=
+            NmixFontName.INTER
+
+        prefs()
+            .edit()
+            .putBoolean(
+                KEY_FONT_ENABLED,
+                value
+            )
+            .putString(
+                KEY_FONT,
+                NmixFontName.INTER.name
+            )
+            .apply()
+    }
+
+    /*
+     * ==================================================
+     * ANIMATION
+     * ==================================================
+     */
 
     fun setAnimation(
         value:NmixAnimationName
@@ -598,11 +714,7 @@ class NmixAppearanceState internal constructor(
 
         animationState=value
 
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
+        prefs()
             .edit()
             .putString(
                 KEY_ANIMATION,
@@ -622,11 +734,7 @@ class NmixAppearanceState internal constructor(
 
         animationSpeedState=safe
 
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
+        prefs()
             .edit()
             .putFloat(
                 KEY_ANIMATION_SPEED,
@@ -646,11 +754,7 @@ class NmixAppearanceState internal constructor(
 
         animationQuantityState=safe
 
-        context
-            .getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE
-            )
+        prefs()
             .edit()
             .putInt(
                 KEY_ANIMATION_QUANTITY,
@@ -658,6 +762,156 @@ class NmixAppearanceState internal constructor(
             )
             .apply()
     }
+
+    /*
+     * Animation OFF / ON defaults:
+     * Drift
+     * Normal = 1.0
+     * Quantity = 2
+     */
+    fun setAnimationEnabled(
+        value:Boolean
+    ){
+        animationEnabledState=value
+
+        animationState=
+            NmixAnimationName.DRIFT
+
+        animationSpeedState=1f
+        animationQuantityState=2
+
+        prefs()
+            .edit()
+            .putBoolean(
+                KEY_ANIMATION_ENABLED,
+                value
+            )
+            .putString(
+                KEY_ANIMATION,
+                NmixAnimationName.DRIFT.name
+            )
+            .putFloat(
+                KEY_ANIMATION_SPEED,
+                1f
+            )
+            .putInt(
+                KEY_ANIMATION_QUANTITY,
+                2
+            )
+            .apply()
+    }
+
+    /*
+     * ==================================================
+     * HAPTICS
+     * ==================================================
+     */
+
+    fun setHapticsEnabled(
+        value:Boolean
+    ){
+        hapticsEnabledState=value
+
+        prefs()
+            .edit()
+            .putBoolean(
+                KEY_HAPTICS_ENABLED,
+                value
+            )
+            .apply()
+    }
+
+    fun toggleHaptics(){
+        setHapticsEnabled(
+            !hapticsEnabledState
+        )
+    }
+
+    /*
+     * ==================================================
+     * APP ICON SETTINGS
+     * ==================================================
+     *
+     * State is stored here.
+     * Actual PackageManager alias switch is handled
+     * by the icon manager added in the next step.
+     */
+
+    fun setAppIconEnabled(
+        value:Boolean
+    ){
+        appIconEnabledState=value
+
+        prefs()
+            .edit()
+            .putBoolean(
+                KEY_APP_ICON_ENABLED,
+                value
+            )
+            .apply()
+    }
+
+    fun setIconFollowTheme(
+        value:Boolean
+    ){
+        iconFollowThemeState=value
+
+        if(value){
+            /*
+             * Exact preset themes follow directly.
+             * Custom icon selection remains handled
+             * by the icon manager/fallback UI.
+             */
+            iconThemeState=
+                themeState
+        }
+
+        prefs()
+            .edit()
+            .putBoolean(
+                KEY_ICON_FOLLOW_THEME,
+                value
+            )
+            .putString(
+                KEY_ICON_THEME,
+                iconThemeState.name
+            )
+            .apply()
+    }
+
+    fun setIconTheme(
+        value:NmixThemeName
+    ){
+        iconThemeState=value
+
+        prefs()
+            .edit()
+            .putString(
+                KEY_ICON_THEME,
+                value.name
+            )
+            .apply()
+    }
+
+    fun setIconStyle(
+        value:NmixIconStyle
+    ){
+        iconStyleState=value
+
+        prefs()
+            .edit()
+            .putString(
+                KEY_ICON_STYLE,
+                value.name
+            )
+            .apply()
+    }
+
+    private fun prefs()=
+        context.getSharedPreferences(
+            PREFS,
+            Context.MODE_PRIVATE
+        )
 
     companion object{
         const val PREFS=
@@ -686,62 +940,82 @@ class NmixAppearanceState internal constructor(
 
         const val KEY_CUSTOM_TRANSPARENCY=
             "custom_transparency_v1"
+
+        const val KEY_COLOR_ENABLED=
+            "color_enabled_v1"
+
+        const val KEY_ANIMATION_ENABLED=
+            "animation_enabled_v1"
+
+        const val KEY_FONT_ENABLED=
+            "font_enabled_v1"
+
+        const val KEY_HAPTICS_ENABLED=
+            "haptics_enabled_v1"
+
+        const val KEY_APP_ICON_ENABLED=
+            "app_icon_enabled_v1"
+
+        const val KEY_ICON_FOLLOW_THEME=
+            "icon_follow_theme_v1"
+
+        const val KEY_ICON_THEME=
+            "icon_theme_v1"
+
+        const val KEY_ICON_STYLE=
+            "icon_style_v1"
     }
 }
 
 /*
  * ==================================================
- * COLOR PERSISTENCE
+ * COLOR STORAGE
  * ==================================================
  */
 
 private fun colorToLong(
     color:Color
 ):Long{
-    val a=
+    val alpha=
         (
-            color.alpha*
-                255f
+            color.alpha*255f
         )
             .toInt()
             .coerceIn(0,255)
 
-    val r=
+    val red=
         (
-            color.red*
-                255f
+            color.red*255f
         )
             .toInt()
             .coerceIn(0,255)
 
-    val g=
+    val green=
         (
-            color.green*
-                255f
+            color.green*255f
         )
             .toInt()
             .coerceIn(0,255)
 
-    val b=
+    val blue=
         (
-            color.blue*
-                255f
+            color.blue*255f
         )
             .toInt()
             .coerceIn(0,255)
 
     return (
-        (a.toLong() shl 24) or
-        (r.toLong() shl 16) or
-        (g.toLong() shl 8) or
-        b.toLong()
+        (alpha.toLong() shl 24) or
+        (red.toLong() shl 16) or
+        (green.toLong() shl 8) or
+        blue.toLong()
     )
 }
 
 private fun colorFromLong(
     value:Long
 ):Color{
-    val a=
+    val alpha=
         (
             (
                 value shr 24
@@ -749,7 +1023,7 @@ private fun colorFromLong(
                 0xFF
         ).toFloat()/255f
 
-    val r=
+    val red=
         (
             (
                 value shr 16
@@ -757,7 +1031,7 @@ private fun colorFromLong(
                 0xFF
         ).toFloat()/255f
 
-    val g=
+    val green=
         (
             (
                 value shr 8
@@ -765,23 +1039,23 @@ private fun colorFromLong(
                 0xFF
         ).toFloat()/255f
 
-    val b=
+    val blue=
         (
             value and
                 0xFF
         ).toFloat()/255f
 
     return Color(
-        red=r,
-        green=g,
-        blue=b,
-        alpha=a
+        red=red,
+        green=green,
+        blue=blue,
+        alpha=alpha
     )
 }
 
 /*
  * ==================================================
- * REMEMBER / LOAD
+ * LOAD STATE
  * ==================================================
  */
 
@@ -839,28 +1113,30 @@ fun rememberNmixAppearance(
                 NmixAnimationName.DRIFT
             )
 
-        val savedSpeed=
-            prefs.getFloat(
-                NmixAppearanceState.KEY_ANIMATION_SPEED,
-                1f
-            ).coerceIn(
-                .45f,
-                2.20f
+        val savedIconTheme=
+            runCatching{
+                NmixThemeName.valueOf(
+                    prefs.getString(
+                        NmixAppearanceState.KEY_ICON_THEME,
+                        savedTheme.name
+                    )
+                        ?:savedTheme.name
+                )
+            }.getOrDefault(
+                savedTheme
             )
 
-        val savedQuantity=
-            prefs.getInt(
-                NmixAppearanceState.KEY_ANIMATION_QUANTITY,
-                2
-            ).coerceIn(
-                1,
-                5
-            )
-
-        val savedDark=
-            prefs.getBoolean(
-                NmixAppearanceState.KEY_DARK,
-                false
+        val savedIconStyle=
+            runCatching{
+                NmixIconStyle.valueOf(
+                    prefs.getString(
+                        NmixAppearanceState.KEY_ICON_STYLE,
+                        NmixIconStyle.ADAPTIVE.name
+                    )
+                        ?:NmixIconStyle.ADAPTIVE.name
+                )
+            }.getOrDefault(
+                NmixIconStyle.ADAPTIVE
             )
 
         val savedCustom=
@@ -879,26 +1155,94 @@ fun rememberNmixAppearance(
                 null
             }
 
-        val savedTransparency=
-            prefs.getFloat(
-                NmixAppearanceState.KEY_CUSTOM_TRANSPARENCY,
-                0f
-            ).coerceIn(
-                0f,
-                .80f
-            )
-
         NmixAppearanceState(
             initialTheme=savedTheme,
-            initialDark=savedDark,
+
+            initialDark=
+                prefs.getBoolean(
+                    NmixAppearanceState.KEY_DARK,
+                    false
+                ),
+
             initialFont=savedFont,
-            initialAnimation=savedAnimation,
-            initialAnimationSpeed=savedSpeed,
-            initialAnimationQuantity=savedQuantity,
-            initialCustomColor=savedCustom,
+
+            initialAnimation=
+                savedAnimation,
+
+            initialAnimationSpeed=
+                prefs.getFloat(
+                    NmixAppearanceState.KEY_ANIMATION_SPEED,
+                    1f
+                ).coerceIn(
+                    .45f,
+                    2.20f
+                ),
+
+            initialAnimationQuantity=
+                prefs.getInt(
+                    NmixAppearanceState.KEY_ANIMATION_QUANTITY,
+                    2
+                ).coerceIn(
+                    1,
+                    5
+                ),
+
+            initialCustomColor=
+                savedCustom,
+
             initialCustomTransparency=
-                savedTransparency,
-            context=appContext
+                prefs.getFloat(
+                    NmixAppearanceState.KEY_CUSTOM_TRANSPARENCY,
+                    0f
+                ).coerceIn(
+                    0f,
+                    .80f
+                ),
+
+            initialColorEnabled=
+                prefs.getBoolean(
+                    NmixAppearanceState.KEY_COLOR_ENABLED,
+                    true
+                ),
+
+            initialAnimationEnabled=
+                prefs.getBoolean(
+                    NmixAppearanceState.KEY_ANIMATION_ENABLED,
+                    true
+                ),
+
+            initialFontEnabled=
+                prefs.getBoolean(
+                    NmixAppearanceState.KEY_FONT_ENABLED,
+                    true
+                ),
+
+            initialHapticsEnabled=
+                prefs.getBoolean(
+                    NmixAppearanceState.KEY_HAPTICS_ENABLED,
+                    false
+                ),
+
+            initialAppIconEnabled=
+                prefs.getBoolean(
+                    NmixAppearanceState.KEY_APP_ICON_ENABLED,
+                    false
+                ),
+
+            initialIconFollowTheme=
+                prefs.getBoolean(
+                    NmixAppearanceState.KEY_ICON_FOLLOW_THEME,
+                    true
+                ),
+
+            initialIconTheme=
+                savedIconTheme,
+
+            initialIconStyle=
+                savedIconStyle,
+
+            context=
+                appContext
         )
     }
 }
@@ -922,7 +1266,9 @@ data class NmixUiColors(
     val displayEnd:Color
 )
 
-fun NmixAppearanceState.uiColors():NmixUiColors{
+fun NmixAppearanceState.uiColors():
+    NmixUiColors{
+
     val p=palette
 
     return if(darkMode){
@@ -1001,12 +1347,6 @@ fun NmixAppearanceState.uiColors():NmixUiColors{
         )
     }
 }
-
-/*
- * ==================================================
- * PROVIDER
- * ==================================================
- */
 
 val LocalNmixAppearance=
     staticCompositionLocalOf<
