@@ -15,7 +15,7 @@ enum class NmixIcon{
     ARROW_UP,ARROW_DOWN,CHEVRON_DOWN,MENU,CLOSE,
     FULLSCREEN,BACK,PLUS,MINUS,RESET,RANDOM,
     DECIMAL,PLUS_MINUS,BACKSPACE,CHECK,
-    ROTATE,WALLPAPER
+    ROTATE,WALLPAPER,SETTINGS
 }
 
 @Composable
@@ -325,6 +325,22 @@ fun NmixIcon(
                 line(.23f,.67f,.38f,.67f)
             }
 
+            NmixIcon.SETTINGS->{
+                ring(.5f,.5f,.19f)
+            
+                line(.5f,.14f,.5f,.24f)
+                line(.5f,.76f,.5f,.86f)
+                line(.14f,.5f,.24f,.5f)
+                line(.76f,.5f,.86f,.5f)
+            
+                line(.25f,.25f,.32f,.32f)
+                line(.68f,.68f,.75f,.75f)
+                line(.75f,.25f,.68f,.32f)
+                line(.32f,.68f,.25f,.75f)
+            
+                dot(.5f,.5f,.045f)
+            }
+            
             NmixIcon.WALLPAPER->{
                 val frame=Path().apply{
                     moveTo(w*.20f,h*.22f)
