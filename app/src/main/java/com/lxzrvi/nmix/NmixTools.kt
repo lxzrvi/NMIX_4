@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,7 +62,6 @@ fun NmixCalculator(
                             )->1
 
                             key=="AC"->2
-
                             else->0
                         }
 
@@ -282,16 +282,14 @@ fun NmixCounters(
             CounterButton(
                 icon=NmixIcon.PLUS,
                 title="Add",
-                modifier=
-                    Modifier.weight(1f),
+                modifier=Modifier.weight(1f),
                 onClick=add
             )
 
             CounterButton(
                 icon=NmixIcon.RESET,
                 title="Reset",
-                modifier=
-                    Modifier.weight(1f),
+                modifier=Modifier.weight(1f),
                 onClick=reset
             )
         }
@@ -304,16 +302,14 @@ fun NmixCounters(
             CounterButton(
                 icon=NmixIcon.RANDOM,
                 title="Random",
-                modifier=
-                    Modifier.weight(1f),
+                modifier=Modifier.weight(1f),
                 onClick=random
             )
 
             CounterButton(
                 icon=NmixIcon.MINUS,
                 title="Minus",
-                modifier=
-                    Modifier.weight(1f),
+                modifier=Modifier.weight(1f),
                 onClick=minus
             )
         }
@@ -395,7 +391,7 @@ private fun CounterButton(
 
 /*
  * ==================================================
- * HOW TO USE NMIX
+ * HOW TO USE
  * ==================================================
  */
 
@@ -418,7 +414,7 @@ fun NmixInstructions(){
             ),
             HelpItem(
                 "Editing",
-                "Use decimal, ±, backspace and AC. Calculator fields automatically change placement when the Display becomes compact."
+                "Use decimal, ±, backspace and AC. Calculator fields smoothly change placement as the Display is resized."
             ),
             HelpItem(
                 "Timer",
@@ -430,7 +426,7 @@ fun NmixInstructions(){
             ),
             HelpItem(
                 "Fullscreen",
-                "Fullscreen Clock includes clock styles, fonts, colors, wallpapers, custom images, Display controls, rotation and Clean View. Customization is preserved."
+                "Fullscreen Clock includes clock styles, fonts, colors, wallpapers, custom images, Display controls, rotation and Clean View."
             ),
             HelpItem(
                 "Stopwatch",
@@ -442,7 +438,7 @@ fun NmixInstructions(){
             ),
             HelpItem(
                 "Appearance",
-                "Settings includes dark or light appearance, six color themes, Soft and Hard background animation styles, and selectable interface fonts."
+                "Settings includes light and dark appearance, preset and custom colors, animation controls and selectable interface fonts."
             ),
             HelpItem(
                 "Navigation",
@@ -515,9 +511,7 @@ fun NmixInstructions(){
                         )
                     )
                 ) togetherWith (
-                    fadeOut(
-                        tween(190)
-                    )+
+                    fadeOut(tween(190))+
                     slideOutVertically(
                         targetOffsetY={
                             -it/10
@@ -682,9 +676,7 @@ private fun HelpDetailBox(
             fontFamily=a.fontFamily
         )
 
-        Spacer(
-            Modifier.height(5.dp)
-        )
+        Spacer(Modifier.height(5.dp))
 
         Text(
             item.detail,
@@ -725,7 +717,7 @@ fun NmixSettings(
     }
 
     /*
-     * NMIX header remains fixed.
+     * NMIX title stays permanently fixed.
      */
     Column(
         Modifier
@@ -751,12 +743,40 @@ fun NmixSettings(
             fontFamily=a.fontFamily
         )
 
-        Spacer(
-            Modifier.height(13.dp)
+        /*
+         * Soft fade zone instead of a hard line.
+         * Scrolling content visually disappears
+         * underneath the fixed header.
+         */
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(18.dp)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            if(a.darkMode)
+                                Color(0xFF151917)
+                                    .copy(alpha=.92f)
+                            else
+                                Color(0xFFF0F4F2)
+                                    .copy(alpha=.92f),
+
+                            if(a.darkMode)
+                                Color(0xFF151917)
+                                    .copy(alpha=.45f)
+                            else
+                                Color(0xFFF0F4F2)
+                                    .copy(alpha=.45f),
+
+                            Color.Transparent
+                        )
+                    )
+                )
         )
 
         /*
-         * Only options below the header scroll.
+         * Only this area scrolls.
          */
         Column(
             Modifier
@@ -803,9 +823,7 @@ fun NmixSettings(
                 }
             }
 
-            Spacer(
-                Modifier.height(18.dp)
-            )
+            Spacer(Modifier.height(18.dp))
 
             Text(
                 "Color Theme",
@@ -823,29 +841,21 @@ fun NmixSettings(
                 fontFamily=a.fontFamily
             )
 
-            Spacer(
-                Modifier.height(10.dp)
-            )
+            Spacer(Modifier.height(10.dp))
 
             ThemeGrid(detail)
 
-            Spacer(
-                Modifier.height(9.dp)
-            )
+            Spacer(Modifier.height(9.dp))
 
             NmixCustomThemeButton(
                 onClick=onCustomColor
             )
 
-            Spacer(
-                Modifier.height(20.dp)
-            )
+            Spacer(Modifier.height(20.dp))
 
             NmixAnimationSettings()
 
-            Spacer(
-                Modifier.height(20.dp)
-            )
+            Spacer(Modifier.height(20.dp))
 
             Text(
                 "Fonts",
@@ -863,9 +873,7 @@ fun NmixSettings(
                 fontFamily=a.fontFamily
             )
 
-            Spacer(
-                Modifier.height(10.dp)
-            )
+            Spacer(Modifier.height(10.dp))
 
             Column(
                 Modifier.fillMaxWidth(),
@@ -884,9 +892,7 @@ fun NmixSettings(
                     }
             }
 
-            Spacer(
-                Modifier.height(17.dp)
-            )
+            Spacer(Modifier.height(17.dp))
 
             Text(
                 "NMIX logo uses Cinzel Decorative.",
@@ -900,7 +906,7 @@ fun NmixSettings(
 
 /*
  * ==================================================
- * COLOR THEME
+ * COLOR THEMES
  * ==================================================
  */
 
@@ -927,15 +933,9 @@ private fun ThemeGrid(
                     row.forEach{theme->
                         ThemeCard(
                             theme=theme,
-
-                            /*
-                             * Custom active means no
-                             * preset remains selected.
-                             */
                             selected=
                                 !a.usingCustomColor &&
                                 a.theme==theme,
-
                             detail=detail,
                             modifier=
                                 Modifier.weight(1f)
@@ -1036,16 +1036,17 @@ private fun ThemeCard(
         RoundedCornerShape(14.dp)
 
     val bg=
-        if(a.darkMode)
+        if(a.darkMode){
             Color.White.copy(alpha=.035f)
-        else
+        }else{
             Color(0xFFE8ECEA)
                 .copy(alpha=.86f)
+        }
 
     val outline=
-        if(selected)
+        if(selected){
             current.accent
-        else
+        }else{
             current.accent.copy(
                 alpha=
                     if(a.darkMode)
@@ -1053,6 +1054,7 @@ private fun ThemeCard(
                     else
                         .14f
             )
+        }
 
     val name=
         theme.name
@@ -1090,9 +1092,7 @@ private fun ThemeCard(
                 .clip(
                     RoundedCornerShape(10.dp)
                 )
-                .background(
-                    palette.accent
-                ),
+                .background(palette.accent),
             contentAlignment=
                 Alignment.Center
         ){
@@ -1109,9 +1109,7 @@ private fun ThemeCard(
                 NmixIcon(
                     NmixIcon.CHECK,
                     Modifier
-                        .align(
-                            Alignment.TopEnd
-                        )
+                        .align(Alignment.TopEnd)
                         .padding(6.dp)
                         .size(13.dp),
                     Color.White
@@ -1119,9 +1117,7 @@ private fun ThemeCard(
             }
         }
 
-        Spacer(
-            Modifier.height(6.dp)
-        )
+        Spacer(Modifier.height(6.dp))
 
         Text(
             name,
@@ -1132,9 +1128,7 @@ private fun ThemeCard(
             maxLines=1
         )
 
-        Spacer(
-            Modifier.height(2.dp)
-        )
+        Spacer(Modifier.height(2.dp))
 
         Box(
             Modifier
@@ -1147,9 +1141,7 @@ private fun ThemeCard(
                 targetState=detail,
                 transitionSpec={
                     (
-                        fadeIn(
-                            tween(320)
-                        )+
+                        fadeIn(tween(320))+
                         slideInVertically(
                             initialOffsetY={
                                 it/4
@@ -1160,9 +1152,7 @@ private fun ThemeCard(
                             )
                         )
                     ) togetherWith (
-                        fadeOut(
-                            tween(220)
-                        )+
+                        fadeOut(tween(220))+
                         slideOutVertically(
                             targetOffsetY={
                                 -it/4
@@ -1234,16 +1224,17 @@ private fun FontPill(
         RoundedCornerShape(50)
 
     val bg=
-        if(a.darkMode)
+        if(a.darkMode){
             Color.White.copy(alpha=.035f)
-        else
+        }else{
             Color(0xFFE8ECEA)
                 .copy(alpha=.84f)
+        }
 
     val outline=
-        if(selected)
+        if(selected){
             p.accent
-        else
+        }else{
             p.accent.copy(
                 alpha=
                     if(a.darkMode)
@@ -1251,6 +1242,7 @@ private fun FontPill(
                     else
                         .14f
             )
+        }
 
     Row(
         Modifier
