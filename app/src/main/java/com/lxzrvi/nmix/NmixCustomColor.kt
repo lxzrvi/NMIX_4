@@ -661,7 +661,12 @@ private fun hsvColor(
             )
         )
 
-    return Color(argb)
+    return Color(
+        red=AndroidColor.red(argb)/255f,
+        green=AndroidColor.green(argb)/255f,
+        blue=AndroidColor.blue(argb)/255f,
+        alpha=AndroidColor.alpha(argb)/255f
+    )
 }
 
 private fun colorHue(
@@ -746,8 +751,7 @@ private fun colorHex(
 private fun parseHex(
     value:String
 ):Color?{
-    val clean=
-        value.trim()
+    val clean=value.trim()
 
     if(
         !clean.matches(
@@ -760,10 +764,16 @@ private fun parseHex(
     }
 
     return runCatching{
-        Color(
+        val argb=
             AndroidColor.parseColor(
                 clean
             )
+
+        Color(
+            red=AndroidColor.red(argb)/255f,
+            green=AndroidColor.green(argb)/255f,
+            blue=AndroidColor.blue(argb)/255f,
+            alpha=AndroidColor.alpha(argb)/255f
         )
     }.getOrNull()
 }
