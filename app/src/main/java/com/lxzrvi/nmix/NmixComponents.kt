@@ -75,9 +75,18 @@ private fun nmixMix(
     end:Float,
     progress:Float
 ):Float{
-    val t=progress.coerceIn(0f,1f)
-    return start+(end-start)*t
+    val t=
+        progress.coerceIn(0f,1f)
+
+    return start+
+        (end-start)*t
 }
+
+/*
+ * ==================================================
+ * TOOL SECTION
+ * ==================================================
+ */
 
 @Composable
 fun NmixToolSection(
@@ -93,7 +102,8 @@ fun NmixToolSection(
     val ui=a.uiColors()
 
     val progress by animateFloatAsState(
-        targetValue=if(open)1f else 0f,
+        targetValue=
+            if(open)1f else 0f,
         animationSpec=tween(
             520,
             easing=EaseInOutCubic
@@ -101,22 +111,37 @@ fun NmixToolSection(
         label="toolProgress"
     )
 
-    val outerRotation=180f*progress
-    val innerRotation=-180f*progress
-    val arrowRotation=180f*progress
+    val outerRotation=
+        180f*progress
 
-    val outerSize=(42f-3f*progress).dp
-    val innerSize=(36f-2f*progress).dp
+    val innerRotation=
+        -180f*progress
 
-    val outerRadius=(8.5f+10f*progress).dp
-    val innerRadius=(6.5f+9f*progress).dp
+    val arrowRotation=
+        180f*progress
+
+    val outerSize=
+        (42f-3f*progress).dp
+
+    val innerSize=
+        (36f-2f*progress).dp
+
+    val outerRadius=
+        (8.5f+10f*progress).dp
+
+    val innerRadius=
+        (6.5f+9f*progress).dp
 
     /*
-     * Label/card uses the SAME progress as icon.
+     * Uses the same progress as the icon.
      */
-    val sectionRadius=(16f+7f*progress).dp
+    val sectionRadius=
+        (16f+7f*progress).dp
+
     val sectionShape=
-        RoundedCornerShape(sectionRadius)
+        RoundedCornerShape(
+            sectionRadius
+        )
 
     val glass=
         Brush.horizontalGradient(
@@ -166,9 +191,10 @@ fun NmixToolSection(
             Modifier
                 .fillMaxWidth()
                 .clickable(
-                    interactionSource=remember{
-                        MutableInteractionSource()
-                    },
+                    interactionSource=
+                        remember{
+                            MutableInteractionSource()
+                        },
                     indication=null,
                     onClick=onClick
                 )
@@ -178,10 +204,13 @@ fun NmixToolSection(
         ){
             Box(
                 Modifier.size(42.dp),
-                contentAlignment=Alignment.Center
+                contentAlignment=
+                    Alignment.Center
             ){
                 val outerShape=
-                    RoundedCornerShape(outerRadius)
+                    RoundedCornerShape(
+                        outerRadius
+                    )
 
                 Box(
                     Modifier
@@ -189,7 +218,9 @@ fun NmixToolSection(
                         .rotate(outerRotation)
                         .clip(outerShape)
                         .background(
-                            p.accent.copy(alpha=.66f)
+                            p.accent.copy(
+                                alpha=.66f
+                            )
                         )
                         .border(
                             .65.dp,
@@ -212,11 +243,13 @@ fun NmixToolSection(
                             Color.White.copy(
                                 alpha=.46f
                             ),
-                        topLeft=Offset(sw,sw),
-                        size=Size(
-                            size.width-sw*2,
-                            size.height-sw*2
-                        ),
+                        topLeft=
+                            Offset(sw,sw),
+                        size=
+                            Size(
+                                size.width-sw*2,
+                                size.height-sw*2
+                            ),
                         cornerRadius=
                             CornerRadius(
                                 innerRadius.toPx()
@@ -232,7 +265,9 @@ fun NmixToolSection(
                 )
             }
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(
+                Modifier.width(12.dp)
+            )
 
             Column(
                 Modifier.weight(1f)
@@ -271,7 +306,8 @@ fun NmixToolSection(
                         350,
                         easing=EaseOutCubic
                     ),
-                    expandFrom=Alignment.Top
+                    expandFrom=
+                        Alignment.Top
                 )+
                 fadeIn(tween(210)),
             exit=
@@ -280,7 +316,8 @@ fun NmixToolSection(
                         320,
                         easing=EaseInOutCubic
                     ),
-                    shrinkTowards=Alignment.Top
+                    shrinkTowards=
+                        Alignment.Top
                 )+
                 fadeOut(tween(180))
         ){
@@ -288,6 +325,12 @@ fun NmixToolSection(
         }
     }
 }
+
+/*
+ * ==================================================
+ * COMMON CONTROLS
+ * ==================================================
+ */
 
 @Composable
 fun NmixOption(
@@ -301,32 +344,37 @@ fun NmixOption(
     val p=a.palette
     val ui=a.uiColors()
 
-    val interaction=remember{
-        MutableInteractionSource()
-    }
+    val interaction=
+        remember{
+            MutableInteractionSource()
+        }
 
     val pressed by
         interaction.collectIsPressedAsState()
 
-    val scale by animateFloatAsState(
-        if(pressed).965f else 1f,
-        spring(
-            dampingRatio=.72f,
-            stiffness=620f
-        ),
-        label="optionPress"
-    )
+    val pressScale by
+        animateFloatAsState(
+            if(pressed).965f else 1f,
+            spring(
+                dampingRatio=.72f,
+                stiffness=620f
+            ),
+            label="optionPress"
+        )
 
-    val shape=RoundedCornerShape(13.dp)
+    val shape=
+        RoundedCornerShape(13.dp)
 
     Row(
         modifier
-            .scale(scale)
+            .scale(pressScale)
             .height(58.dp)
             .clip(shape)
             .background(
                 if(selected)
-                    p.accent.copy(alpha=.84f)
+                    p.accent.copy(
+                        alpha=.84f
+                    )
                 else
                     p.accent.copy(
                         alpha=
@@ -348,11 +396,14 @@ fun NmixOption(
                 shape
             )
             .clickable(
-                interactionSource=interaction,
+                interactionSource=
+                    interaction,
                 indication=null,
                 onClick=onClick
             )
-            .padding(horizontal=13.dp),
+            .padding(
+                horizontal=13.dp
+            ),
         verticalAlignment=
             Alignment.CenterVertically
     ){
@@ -367,11 +418,16 @@ fun NmixOption(
                 )
                 .background(
                     if(selected)
-                        Color.White.copy(alpha=.92f)
+                        Color.White.copy(
+                            alpha=.92f
+                        )
                     else
-                        p.accent.copy(alpha=.15f)
+                        p.accent.copy(
+                            alpha=.15f
+                        )
                 ),
-            contentAlignment=Alignment.Center
+            contentAlignment=
+                Alignment.Center
         ){
             NmixIcon(
                 icon,
@@ -380,7 +436,9 @@ fun NmixOption(
             )
         }
 
-        Spacer(Modifier.width(12.dp))
+        Spacer(
+            Modifier.width(12.dp)
+        )
 
         Text(
             title,
@@ -407,12 +465,14 @@ fun NmixCircleButton(
     val a=LocalNmixAppearance.current
 
     NmixPressBox(
-        modifier,
-        CircleShape,
-        color?:a.palette.accent.copy(
-            alpha=.80f
-        ),
-        onClick
+        modifier=modifier,
+        shape=CircleShape,
+        color=
+            color
+                ?:a.palette.accent.copy(
+                    alpha=.80f
+                ),
+        onClick=onClick
     ){
         NmixIcon(
             icon,
@@ -433,13 +493,19 @@ fun NmixSmallIconButton(
     val p=a.palette
 
     NmixPressBox(
-        modifier,
-        RoundedCornerShape(9.dp),
-        if(selected)
-            Color.White.copy(alpha=.17f)
-        else
-            p.accent.copy(alpha=.13f),
-        onClick
+        modifier=modifier,
+        shape=
+            RoundedCornerShape(9.dp),
+        color=
+            if(selected)
+                Color.White.copy(
+                    alpha=.17f
+                )
+            else
+                p.accent.copy(
+                    alpha=.13f
+                ),
+        onClick=onClick
     ){
         NmixIcon(
             icon,
@@ -462,11 +528,14 @@ fun NmixTextButton(
     val a=LocalNmixAppearance.current
     val p=a.palette
 
-    val shape=RoundedCornerShape(50)
+    val shape=
+        RoundedCornerShape(50)
 
     val bg=
         if(accent)
-            p.accent.copy(alpha=.78f)
+            p.accent.copy(
+                alpha=.78f
+            )
         else
             p.accent.copy(
                 alpha=
@@ -493,10 +562,11 @@ fun NmixTextButton(
             )
     ){
         NmixPressBox(
-            Modifier.fillMaxSize(),
-            shape,
-            Color.Transparent,
-            onClick
+            modifier=
+                Modifier.fillMaxSize(),
+            shape=shape,
+            color=Color.Transparent,
+            onClick=onClick
         ){
             Text(
                 text,
@@ -525,7 +595,10 @@ fun NmixKey(
     val p=a.palette
 
     val bg=when(type){
-        1->p.accent.copy(alpha=.86f)
+        1->
+            p.accent.copy(
+                alpha=.86f
+            )
 
         2->
             Color(0xFFD83939)
@@ -536,7 +609,9 @@ fun NmixKey(
                 Color(0xFF090C0B)
                     .copy(alpha=.75f)
             else
-                p.accent.copy(alpha=.08f)
+                p.accent.copy(
+                    alpha=.08f
+                )
     }
 
     val fg=when(type){
@@ -546,10 +621,10 @@ fun NmixKey(
     }
 
     NmixPressBox(
-        modifier,
-        CircleShape,
-        bg,
-        onClick
+        modifier=modifier,
+        shape=CircleShape,
+        color=bg,
+        onClick=onClick
     ){
         Text(
             text,
@@ -561,6 +636,7 @@ fun NmixKey(
         )
     }
 }
+
 /*
  * ==================================================
  * DISPLAY
@@ -586,9 +662,10 @@ fun NmixDisplay(
     val p=a.palette
     val density=LocalDensity.current
 
-    val interaction=remember{
-        MutableInteractionSource()
-    }
+    val interaction=
+        remember{
+            MutableInteractionSource()
+        }
 
     var heightPx by remember{
         mutableIntStateOf(0)
@@ -600,1137 +677,13 @@ fun NmixDisplay(
         }
 
     /*
-     * Normalize actual Display height.
-     *
-     * 1.0 = full
-     * 0.0 = minimum
+     * Normalized Display height:
+     * 1 = Full
+     * 0 = minimum Small
      */
     val maximumDisplayHeight=305f
     val minimumDisplayHeight=82f
 
-    val displayPercent=
-        if(heightPx<=0){
-            1f
-        }else{
-            (
-                (
-                    heightDp-
-                        minimumDisplayHeight
-                    )/
-                    (
-                        maximumDisplayHeight-
-                            minimumDisplayHeight
-                    )
-                )
-                .coerceIn(0f,1f)
-        }
-
-    /*
-     * 100-72 FULL
-     * 72-62  FULL -> SEMI
-     * 62-38  SEMI, continuously shrinking
-     * 38-28  SEMI -> MINI
-     * 28-0   MINI, continuously shrinking
-     */
-    val fullToSemi=
-        (
-            (0.72f-displayPercent)/
-                .10f
-        ).coerceIn(0f,1f)
-
-    val semiShrink=
-        (
-            (0.62f-displayPercent)/
-                .24f
-        ).coerceIn(0f,1f)
-
-    val semiToMini=
-        (
-            (0.38f-displayPercent)/
-                .10f
-        ).coerceIn(0f,1f)
-
-    val miniShrink=
-        (
-            (0.28f-displayPercent)/
-                .28f
-        ).coerceIn(0f,1f)
-
-    /*
-     * Radius begins late during SEMI -> MINI.
-     */
-    val transitionRadius=
-        (
-            (semiToMini-.52f)/
-                .48f
-        ).coerceIn(0f,1f)
-
-    val radiusProgress=
-        maxOf(
-            transitionRadius,
-            miniShrink
-        )
-
-    val displayRadius=
-        nmixMix(
-            19f,
-            54f,
-            radiusProgress
-        ).dp
-
-    val displayShape=
-        RoundedCornerShape(
-            displayRadius
-        )
-
-    val calcProgress by
-        animateFloatAsState(
-            targetValue=
-                if(calcVisible)
-                    1f
-                else
-                    0f,
-            animationSpec=tween(
-                300,
-                easing=EaseInOutCubic
-            ),
-            label="calculatorVisibility"
-        )
-
-    val motion=
-        rememberNmixMotion(
-            "displayMotion"
-        )
-
-    Box(
-        modifier
-            .onSizeChanged{
-                heightPx=it.height
-            }
-            .clip(displayShape)
-            .background(
-                nmixScreenColor()
-            )
-            .border(
-                .55.dp,
-                nmixScreenBorder(),
-                displayShape
-            )
-            .clickable(
-                interactionSource=interaction,
-                indication=null,
-                onClick=onClick
-            )
-    ){
-        DisplayMotionLayer(
-            motion=motion
-        )
-
-        /*
-         * Same three physical children during
-         * Full -> Semi -> Mini.
-         */
-        if(calcVisible){
-            NmixCalculatorMorphFields(
-                first=
-                    calcFirst.ifEmpty{
-                        "_"
-                    },
-                operator=
-                    calcOperator.ifEmpty{
-                        "sign"
-                    },
-                second=
-                    calcSecond.ifEmpty{
-                        "_"
-                    },
-                fullToSemi=fullToSemi,
-                semiShrink=semiShrink,
-                semiToMini=semiToMini,
-                miniShrink=miniShrink,
-                displayRadiusProgress=
-                    radiusProgress,
-                modifier=
-                    Modifier
-                        .fillMaxSize()
-                        .graphicsLayer{
-                            alpha=calcProgress
-                        }
-            )
-        }
-
-        /*
-         * Main Display content.
-         *
-         * This is kept independent of calculator
-         * fields so it can smoothly move right.
-         */
-        val sideProgress=
-            when{
-                !calcVisible->
-                    0f
-
-                semiToMini>0f->
-                    1f
-
-                else->
-                    fullToSemi
-            }
-
-        val fieldWidthFraction=
-            when{
-                !calcVisible->
-                    0f
-
-                semiToMini>0f->
-                    nmixMix(
-                        .30f,
-                        .48f,
-                        semiToMini
-                    )
-
-                fullToSemi>0f->
-                    .30f*fullToSemi
-
-                else->
-                    0f
-            }
-
-        /*
-         * FULL portion.
-         */
-        if(displayPercent>.62f){
-            Text(
-                label,
-                Modifier
-                    .align(
-                        Alignment.TopCenter
-                    )
-                    .padding(
-                        top=
-                            if(calcVisible)
-                                71.dp
-                            else
-                                17.dp
-                    )
-                    .graphicsLayer{
-                        translationX=
-                            43f*
-                                sideProgress
-
-                        translationY=
-                            4f*
-                                sideProgress
-                    },
-                color=
-                    if(a.darkMode)
-                        p.accentLight
-                    else
-                        p.accentDark,
-                fontSize=
-                    nmixMix(
-                        9f,
-                        8.3f,
-                        sideProgress
-                    ).sp,
-                fontWeight=
-                    FontWeight.Bold,
-                letterSpacing=2.sp,
-                fontFamily=a.fontFamily,
-                maxLines=1
-            )
-
-            Text(
-                value,
-                Modifier
-                    .align(
-                        Alignment.Center
-                    )
-                    .graphicsLayer{
-                        translationX=
-                            56f*
-                                sideProgress
-
-                        translationY=
-                            if(calcVisible)
-                                nmixMix(
-                                    18f,
-                                    8f,
-                                    sideProgress
-                                )
-                            else
-                                0f
-                    }
-                    .padding(
-                        horizontal=
-                            if(timer)
-                                70.dp
-                            else
-                                16.dp
-                    ),
-                color=
-                    nmixDisplayText(),
-                fontSize=
-                    nmixMix(
-                        40f,
-                        35f,
-                        sideProgress
-                    ).sp,
-                fontWeight=
-                    FontWeight.SemiBold,
-                fontFamily=a.fontFamily,
-                maxLines=1
-            )
-
-            Text(
-                status,
-                Modifier
-                    .align(
-                        Alignment.BottomCenter
-                    )
-                    .padding(
-                        horizontal=18.dp,
-                        vertical=15.dp
-                    )
-                    .graphicsLayer{
-                        translationX=
-                            42f*
-                                sideProgress
-                    },
-                color=
-                    if(a.darkMode)
-                        p.accentLight.copy(
-                            alpha=.78f
-                        )
-                    else
-                        p.accentDark.copy(
-                            alpha=.80f
-                        ),
-                fontSize=
-                    nmixMix(
-                        11f,
-                        9.5f,
-                        sideProgress
-                    ).sp,
-                lineHeight=15.sp,
-                fontWeight=
-                    FontWeight.Medium,
-                fontFamily=a.fontFamily,
-                textAlign=
-                    TextAlign.Center,
-                maxLines=2
-            )
-        }else{
-            /*
-             * SEMI / MINI.
-             */
-            val contentWidth=
-                if(calcVisible)
-                    (
-                        1f-
-                            fieldWidthFraction
-                    ).coerceIn(
-                        .49f,
-                        .70f
-                    )
-                else
-                    .84f
-
-            val detailsAlpha=
-                (
-                    1f-
-                        semiToMini*.82f-
-                        miniShrink*.18f
-                ).coerceIn(0f,1f)
-
-            Column(
-                Modifier
-                    .fillMaxWidth(
-                        contentWidth
-                    )
-                    .align(
-                        if(calcVisible)
-                            Alignment.CenterEnd
-                        else
-                            Alignment.Center
-                    )
-                    .padding(
-                        start=
-                            if(calcVisible)
-                                8.dp
-                            else
-                                5.dp,
-                        end=10.dp
-                    ),
-                horizontalAlignment=
-                    Alignment.CenterHorizontally,
-                verticalArrangement=
-                    Arrangement.Center
-            ){
-                if(detailsAlpha>.05f){
-                    Text(
-                        label,
-                        Modifier.graphicsLayer{
-                            alpha=
-                                detailsAlpha
-                        },
-                        color=
-                            if(a.darkMode)
-                                p.accentLight
-                            else
-                                p.accentDark,
-                        fontSize=
-                            (
-                                8f-
-                                    semiShrink*.7f-
-                                    semiToMini*.5f
-                            )
-                                .coerceAtLeast(
-                                    6.7f
-                                ).sp,
-                        fontWeight=
-                            FontWeight.Bold,
-                        letterSpacing=1.2.sp,
-                        fontFamily=a.fontFamily,
-                        maxLines=1
-                    )
-
-                    Spacer(
-                        Modifier.height(
-                            nmixMix(
-                                3f,
-                                1f,
-                                semiShrink
-                            ).dp
-                        )
-                    )
-                }
-
-                Text(
-                    value,
-                    color=
-                        nmixDisplayText(),
-                    fontSize=
-                        (
-                            34f-
-                                semiShrink*5f-
-                                semiToMini*4f-
-                                miniShrink*3f
-                        )
-                            .coerceAtLeast(
-                                22f
-                            ).sp,
-                    fontWeight=
-                        FontWeight.SemiBold,
-                    fontFamily=a.fontFamily,
-                    maxLines=1,
-                    textAlign=
-                        TextAlign.Center
-                )
-
-                if(detailsAlpha>.15f){
-                    Spacer(
-                        Modifier.height(
-                            nmixMix(
-                                3f,
-                                1f,
-                                semiShrink
-                            ).dp
-                        )
-                    )
-
-                    Text(
-                        status,
-                        Modifier.graphicsLayer{
-                            alpha=
-                                detailsAlpha
-                        },
-                        color=
-                            if(a.darkMode)
-                                p.accentLight.copy(
-                                    alpha=.76f
-                                )
-                            else
-                                p.accentDark.copy(
-                                    alpha=.78f
-                                ),
-                        fontSize=
-                            (
-                                8.5f-
-                                    semiShrink*.8f-
-                                    semiToMini*.4f
-                            )
-                                .coerceAtLeast(
-                                    6.8f
-                                ).sp,
-                        lineHeight=10.sp,
-                        fontWeight=
-                            FontWeight.Medium,
-                        fontFamily=a.fontFamily,
-                        textAlign=
-                            TextAlign.Center,
-                        maxLines=2
-                    )
-                }
-            }
-        }
-
-        /*
-         * Timer controls remain unchanged in
-         * behavior, only scale with Display.
-         */
-        val timerSize=
-            (
-                47f-
-                    semiShrink*7f-
-                    semiToMini*5f-
-                    miniShrink*4f
-            )
-                .coerceAtLeast(
-                    31f
-                ).dp
-
-        AnimatedVisibility(
-            visible=timer,
-            modifier=
-                Modifier
-                    .align(
-                        Alignment.CenterStart
-                    )
-                    .padding(
-                        start=
-                            if(displayPercent<.28f)
-                                8.dp
-                            else
-                                13.dp
-                    ),
-            enter=
-                fadeIn(tween(230))+
-                scaleIn(),
-            exit=
-                fadeOut(tween(190))+
-                scaleOut()
-        ){
-            NmixCircleButton(
-                NmixIcon.MINUS,
-                Modifier.size(
-                    timerSize
-                ),
-                onClick=onMinus
-            )
-        }
-
-        AnimatedVisibility(
-            visible=timer,
-            modifier=
-                Modifier
-                    .align(
-                        Alignment.CenterEnd
-                    )
-                    .padding(
-                        end=
-                            if(displayPercent<.28f)
-                                8.dp
-                            else
-                                13.dp
-                    ),
-            enter=
-                fadeIn(tween(230))+
-                scaleIn(),
-            exit=
-                fadeOut(tween(190))+
-                scaleOut()
-        ){
-            NmixCircleButton(
-                NmixIcon.PLUS,
-                Modifier.size(
-                    timerSize
-                ),
-                onClick=onPlus
-            )
-        }
-    }
-}
-
-/*
- * ==================================================
- * THREE-FIELD PHYSICAL MORPH
- * ==================================================
- */
-
-@Composable
-private fun NmixCalculatorMorphFields(
-    first:String,
-    operator:String,
-    second:String,
-    fullToSemi:Float,
-    semiShrink:Float,
-    semiToMini:Float,
-    miniShrink:Float,
-    displayRadiusProgress:Float,
-    modifier:Modifier=Modifier
-){
-    val density=LocalDensity.current
-
-    fun dataScale(
-        text:String
-    ):Float{
-        return when{
-            text.length>=15->.56f
-            text.length>=12->.64f
-            text.length>=9->.72f
-            text.length>=7->.80f
-            text.length>=5->.89f
-            else->1f
-        }
-    }
-
-    val baseText=
-        (
-            14f-
-                semiShrink*2.5f-
-                semiToMini*1.5f-
-                miniShrink*1.5f
-        ).coerceAtLeast(8f)
-
-    Layout(
-        modifier=modifier,
-        content={
-            MorphFieldVisual(
-                text=first,
-                textSize=
-                    (
-                        baseText*
-                            dataScale(first)
-                    )
-                        .coerceAtLeast(
-                            7f
-                        ).sp,
-                kind=0,
-                radiusProgress=
-                    displayRadiusProgress,
-                miniProgress=
-                    semiToMini
-            )
-
-            MorphFieldVisual(
-                text=operator,
-                textSize=
-                    (
-                        baseText*.78f
-                    )
-                        .coerceAtLeast(
-                            6.5f
-                        ).sp,
-                kind=1,
-                radiusProgress=
-                    displayRadiusProgress,
-                miniProgress=
-                    semiToMini
-            )
-
-            MorphFieldVisual(
-                text=second,
-                textSize=
-                    (
-                        baseText*
-                            dataScale(second)
-                    )
-                        .coerceAtLeast(
-                            7f
-                        ).sp,
-                kind=2,
-                radiusProgress=
-                    displayRadiusProgress,
-                miniProgress=
-                    semiToMini
-            )
-        }
-    ){measurables,constraints->
-
-        val width=
-            constraints.maxWidth
-
-        val height=
-            constraints.maxHeight
-
-        fun px(dpValue:Float):Float{
-            return with(density){
-                dpValue.dp.toPx()
-            }
-        }
-
-        /*
-         * ------------------------------
-         * FULL
-         * ------------------------------
-         */
-        val fullOuter=
-            px(12f)
-
-        val fullGap=
-            px(7f)
-
-        val fullTop=
-            px(12f)
-
-        val fullHeight=
-            px(46f)
-
-        val fullOperatorWidth=
-            px(58f)
-
-        val fullNumberWidth=
-            (
-                width-
-                    fullOuter*2-
-                    fullGap*2-
-                    fullOperatorWidth
-            )/2f
-
-        val fullX=
-            floatArrayOf(
-                fullOuter,
-
-                fullOuter+
-                    fullNumberWidth+
-                    fullGap,
-
-                fullOuter+
-                    fullNumberWidth+
-                    fullGap+
-                    fullOperatorWidth+
-                    fullGap
-            )
-
-        val fullY=
-            floatArrayOf(
-                fullTop,
-                fullTop,
-                fullTop
-            )
-
-        val fullW=
-            floatArrayOf(
-                fullNumberWidth,
-                fullOperatorWidth,
-                fullNumberWidth
-            )
-
-        val fullH=
-            floatArrayOf(
-                fullHeight,
-                fullHeight,
-                fullHeight
-            )
-
-        /*
-         * ------------------------------
-         * SEMI
-         * ------------------------------
-         *
-         * Outer top/bottom gaps equal.
-         * Inner gaps equal and smaller.
-         */
-        val semiWidth=
-            width*
-                nmixMix(
-                    .30f,
-                    .27f,
-                    semiShrink
-                )
-
-        val semiLeft=
-            nmixMix(
-                px(7f),
-                px(5f),
-                semiShrink
-            )
-
-        val outerGap=
-            maxOf(
-                nmixMix(
-                    height*.065f,
-                    height*.045f,
-                    semiShrink
-                ),
-                px(3f)
-            )
-
-        val innerGap=
-            nmixMix(
-                px(5f),
-                px(2.5f),
-                semiShrink
-            )
-
-        val availableSemiHeight=
-            (
-                height-
-                    outerGap*2-
-                    innerGap*2
-            ).coerceAtLeast(
-                px(54f)
-            )
-
-        val heightRatio=
-            1f+
-                .78f+
-                1f
-
-        val semiNumberHeight=
-            availableSemiHeight/
-                heightRatio
-
-        val semiOperatorHeight=
-            semiNumberHeight*
-                .78f
-
-        val semiX=
-            floatArrayOf(
-                semiLeft,
-                semiLeft,
-                semiLeft
-            )
-
-        val semiY=
-            floatArrayOf(
-                outerGap,
-
-                outerGap+
-                    semiNumberHeight+
-                    innerGap,
-
-                outerGap+
-                    semiNumberHeight+
-                    innerGap+
-                    semiOperatorHeight+
-                    innerGap
-            )
-
-        val semiW=
-            floatArrayOf(
-                semiWidth,
-                semiWidth,
-                semiWidth
-            )
-
-        val semiH=
-            floatArrayOf(
-                semiNumberHeight,
-                semiOperatorHeight,
-                semiNumberHeight
-            )
-
-        /*
-         * ------------------------------
-         * MINI
-         * ------------------------------
-         */
-        val miniLeft=
-            nmixMix(
-                px(7f),
-                px(5f),
-                miniShrink
-            )
-
-        val miniTotalWidth=
-            width*
-                nmixMix(
-                    .45f,
-                    .48f,
-                    miniShrink
-                )
-
-        val miniGap=
-            nmixMix(
-                px(4f),
-                px(2f),
-                miniShrink
-            )
-
-        val miniOperatorWidth=
-            miniTotalWidth*
-                .25f
-
-        val miniNumberWidth=
-            (
-                miniTotalWidth-
-                    miniOperatorWidth-
-                    miniGap*2
-            )/2f
-
-        val miniOuterVertical=
-            nmixMix(
-                px(8f),
-                px(4f),
-                miniShrink
-            )
-
-        val miniHeight=
-            (
-                height-
-                    miniOuterVertical*2
-            ).coerceAtLeast(
-                px(25f)
-            )
-
-        val miniY=
-            (
-                height-
-                    miniHeight
-            )/2f
-
-        val miniX=
-            floatArrayOf(
-                miniLeft,
-
-                miniLeft+
-                    miniNumberWidth+
-                    miniGap,
-
-                miniLeft+
-                    miniNumberWidth+
-                    miniGap+
-                    miniOperatorWidth+
-                    miniGap
-            )
-
-        val miniYs=
-            floatArrayOf(
-                miniY,
-                miniY,
-                miniY
-            )
-
-        val miniW=
-            floatArrayOf(
-                miniNumberWidth,
-                miniOperatorWidth,
-                miniNumberWidth
-            )
-
-        val miniH=
-            floatArrayOf(
-                miniHeight,
-                miniHeight,
-                miniHeight
-            )
-
-        /*
-         * FULL -> SEMI.
-         */
-        val stageX=FloatArray(3)
-        val stageY=FloatArray(3)
-        val stageW=FloatArray(3)
-        val stageH=FloatArray(3)
-
-        repeat(3){index->
-            stageX[index]=
-                nmixMix(
-                    fullX[index],
-                    semiX[index],
-                    fullToSemi
-                )
-
-            stageY[index]=
-                nmixMix(
-                    fullY[index],
-                    semiY[index],
-                    fullToSemi
-                )
-
-            stageW[index]=
-                nmixMix(
-                    fullW[index],
-                    semiW[index],
-                    fullToSemi
-                )
-
-            stageH[index]=
-                nmixMix(
-                    fullH[index],
-                    semiH[index],
-                    fullToSemi
-                )
-        }
-
-        /*
-         * SEMI -> MINI.
-         */
-        val finalX=FloatArray(3)
-        val finalY=FloatArray(3)
-        val finalW=FloatArray(3)
-        val finalH=FloatArray(3)
-
-        repeat(3){index->
-            finalX[index]=
-                nmixMix(
-                    stageX[index],
-                    miniX[index],
-                    semiToMini
-                )
-
-            finalY[index]=
-                nmixMix(
-                    stageY[index],
-                    miniYs[index],
-                    semiToMini
-                )
-
-            finalW[index]=
-                nmixMix(
-                    stageW[index],
-                    miniW[index],
-                    semiToMini
-                )
-
-            finalH[index]=
-                nmixMix(
-                    stageH[index],
-                    miniH[index],
-                    semiToMini
-                )
-        }
-
-        val placeables=
-            measurables.mapIndexed{
-                index,
-                measurable->
-
-                val childWidth=
-                    finalW[index]
-                        .toInt()
-                        .coerceAtLeast(1)
-                        .coerceAtMost(width)
-
-                val childHeight=
-                    finalH[index]
-                        .toInt()
-                        .coerceAtLeast(1)
-                        .coerceAtMost(height)
-
-                measurable.measure(
-                    androidx.compose.ui.unit
-                        .Constraints.fixed(
-                            childWidth,
-                            childHeight
-                        )
-                )
-            }
-
-        layout(width,height){
-            placeables.forEachIndexed{
-                index,
-                placeable->
-
-                val maxX=
-                    (
-                        width-
-                            placeable.width
-                    ).coerceAtLeast(0)
-
-                val maxY=
-                    (
-                        height-
-                            placeable.height
-                    ).coerceAtLeast(0)
-
-                placeable.placeRelative(
-                    x=
-                        finalX[index]
-                            .toInt()
-                            .coerceIn(
-                                0,
-                                maxX
-                            ),
-                    y=
-                        finalY[index]
-                            .toInt()
-                            .coerceIn(
-                                0,
-                                maxY
-                            )
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun MorphFieldVisual(
-    text:String,
-    textSize:TextUnit,
-    kind:Int,
-    radiusProgress:Float,
-    miniProgress:Float
-){
-    val a=LocalNmixAppearance.current
-    val p=a.palette
-
-    val outerRadius=
-        nmixMix(
-            6f,
-            30f,
-            radiusProgress
-        ).dp
-
-    /*
-     * During MINI, fields become a connected
-     * horizontal family without rounding every
-     * internal edge.
-     */
-    val mini=
-        miniProgress.coerceIn(
-            0f,
-            1f
-        )
-
-    val shape=
-        when(kind){
-            0->
-                RoundedCornerShape(
-                    topStart=
-                        outerRadius,
-@Composable
-fun NmixDisplay(
-    label:String,
-    value:String,
-    status:String,
-    timer:Boolean,
-    calcVisible:Boolean,
-    calcFirst:String,
-    calcOperator:String,
-    calcSecond:String,
-    onMinus:()->Unit,
-    onPlus:()->Unit,
-    onClick:()->Unit,
-    modifier:Modifier=Modifier
-){
-    val a=LocalNmixAppearance.current
-    val p=a.palette
-    val density=LocalDensity.current
-
-    val interaction=remember{
-        MutableInteractionSource()
-    }
-
-    var heightPx by remember{
-        mutableIntStateOf(0)
-    }
-
-    val heightDp=
-        with(density){
-            heightPx.toDp().value
-        }
-
-    val maximumDisplayHeight=305f
-    val minimumDisplayHeight=82f
-
-    /*
-     * 1 = FULL
-     * 0 = minimum SMALL
-     */
     val displayPercent=
         if(heightPx<=0){
             1f
@@ -1744,61 +697,73 @@ fun NmixDisplay(
                     maximumDisplayHeight-
                         minimumDisplayHeight
                 )
-            ).coerceIn(0f,1f)
+            ).coerceIn(
+                0f,
+                1f
+            )
         }
 
     /*
-     * Only three meaningful states:
-     *
-     * FULL  : 100 -> 72
-     * HALF  : 58  -> 24
-     * SMALL : 10  -> 0
-     *
-     * Between them the same boxes physically
-     * travel. There is no extra middle state.
+     * Full -> Half transition.
      */
     val fullToHalf=
         (
             (0.72f-displayPercent)/
                 .14f
-        ).coerceIn(0f,1f)
+        ).coerceIn(
+            0f,
+            1f
+        )
 
     /*
-     * HALF gets the longest resize range.
+     * Half occupies the longest range.
      */
     val halfShrink=
         (
             (0.58f-displayPercent)/
                 .34f
-        ).coerceIn(0f,1f)
+        ).coerceIn(
+            0f,
+            1f
+        )
 
+    /*
+     * Direct Half -> Small.
+     * No extra intermediate layout.
+     */
     val halfToSmall=
         (
             (0.24f-displayPercent)/
                 .14f
-        ).coerceIn(0f,1f)
+        ).coerceIn(
+            0f,
+            1f
+        )
 
     val smallShrink=
         (
             (0.10f-displayPercent)/
                 .10f
-        ).coerceIn(0f,1f)
+        ).coerceIn(
+            0f,
+            1f
+        )
 
     /*
-     * Display becomes pill-like only towards
-     * SMALL.
+     * Display radius changes late,
+     * only as Small begins.
      */
     val radiusProgress=
-        (
+        maxOf(
             (
-                halfToSmall-.40f
-            )/
-            .60f
+                (halfToSmall-.40f)/
+                    .60f
+            ).coerceIn(
+                0f,
+                1f
+            ),
+            smallShrink
         )
-            .coerceIn(0f,1f)
-            .coerceAtLeast(
-                smallShrink
-            )
 
     val displayRadius=
         nmixMix(
@@ -1812,7 +777,7 @@ fun NmixDisplay(
             displayRadius
         )
 
-    val calcProgress by
+    val calcAlpha by
         animateFloatAsState(
             targetValue=
                 if(calcVisible)
@@ -1846,7 +811,8 @@ fun NmixDisplay(
                 displayShape
             )
             .clickable(
-                interactionSource=interaction,
+                interactionSource=
+                    interaction,
                 indication=null,
                 onClick=onClick
             )
@@ -1883,15 +849,11 @@ fun NmixDisplay(
                     Modifier
                         .fillMaxSize()
                         .graphicsLayer{
-                            alpha=calcProgress
+                            alpha=calcAlpha
                         }
             )
         }
 
-        /*
-         * Content width follows the field group
-         * continuously.
-         */
         val fieldFraction=
             when{
                 !calcVisible->
@@ -1925,7 +887,7 @@ fun NmixDisplay(
             }
 
         /*
-         * FULL content.
+         * Full + Full->Half.
          */
         if(displayPercent>.58f){
             Text(
@@ -2050,7 +1012,7 @@ fun NmixDisplay(
             )
         }else{
             /*
-             * HALF + SMALL content.
+             * Half + Small.
              */
             val contentWidth=
                 if(calcVisible)
@@ -2069,7 +1031,10 @@ fun NmixDisplay(
                     1f-
                         halfToSmall*.82f-
                         smallShrink*.18f
-                ).coerceIn(0f,1f)
+                ).coerceIn(
+                    0f,
+                    1f
+                )
 
             Column(
                 Modifier
@@ -2272,6 +1237,12 @@ fun NmixDisplay(
     }
 }
 
+/*
+ * ==================================================
+ * CALCULATOR THREE-FIELD MORPH
+ * ==================================================
+ */
+
 @Composable
 private fun NmixCalculatorMorphFields(
     first:String,
@@ -2306,7 +1277,9 @@ private fun NmixCalculatorMorphFields(
                 halfShrink*3f-
                 halfToSmall*1.3f-
                 smallShrink*1.2f
-        ).coerceAtLeast(7.8f)
+        ).coerceAtLeast(
+            7.8f
+        )
 
     Layout(
         modifier=modifier,
@@ -2318,8 +1291,9 @@ private fun NmixCalculatorMorphFields(
                         baseText*
                             dataScale(first)
                     )
-                        .coerceAtLeast(6.8f)
-                        .sp,
+                        .coerceAtLeast(
+                            6.8f
+                        ).sp,
                 kind=0,
                 fullToHalf=fullToHalf,
                 halfToSmall=halfToSmall,
@@ -2333,8 +1307,9 @@ private fun NmixCalculatorMorphFields(
                     (
                         baseText*.78f
                     )
-                        .coerceAtLeast(6.3f)
-                        .sp,
+                        .coerceAtLeast(
+                            6.3f
+                        ).sp,
                 kind=1,
                 fullToHalf=fullToHalf,
                 halfToSmall=halfToSmall,
@@ -2349,8 +1324,9 @@ private fun NmixCalculatorMorphFields(
                         baseText*
                             dataScale(second)
                     )
-                        .coerceAtLeast(6.8f)
-                        .sp,
+                        .coerceAtLeast(
+                            6.8f
+                        ).sp,
                 kind=2,
                 fullToHalf=fullToHalf,
                 halfToSmall=halfToSmall,
@@ -2359,8 +1335,11 @@ private fun NmixCalculatorMorphFields(
             )
         }
     ){measurables,constraints->
-        val width=constraints.maxWidth
-        val height=constraints.maxHeight
+        val width=
+            constraints.maxWidth
+
+        val height=
+            constraints.maxHeight
 
         fun px(value:Float):Float{
             return with(density){
@@ -2369,13 +1348,24 @@ private fun NmixCalculatorMorphFields(
         }
 
         /*
-         * FULL
+         * FULL:
+         * [1][sign][2]
+         * across top.
          */
-        val fullOuter=px(12f)
-        val fullGap=px(7f)
-        val fullTop=px(12f)
-        val fullHeight=px(46f)
-        val fullSignWidth=px(58f)
+        val fullOuter=
+            px(12f)
+
+        val fullGap=
+            px(7f)
+
+        val fullTop=
+            px(12f)
+
+        val fullHeight=
+            px(46f)
+
+        val fullSignWidth=
+            px(58f)
 
         val fullNumberWidth=
             (
@@ -2385,41 +1375,55 @@ private fun NmixCalculatorMorphFields(
                     fullSignWidth
             )/2f
 
-        val fullX=floatArrayOf(
-            fullOuter,
-            fullOuter+
-                fullNumberWidth+
-                fullGap,
-            fullOuter+
-                fullNumberWidth+
-                fullGap+
-                fullSignWidth+
-                fullGap
-        )
+        val fullX=
+            floatArrayOf(
+                fullOuter,
 
-        val fullY=floatArrayOf(
-            fullTop,
-            fullTop,
-            fullTop
-        )
+                fullOuter+
+                    fullNumberWidth+
+                    fullGap,
 
-        val fullW=floatArrayOf(
-            fullNumberWidth,
-            fullSignWidth,
-            fullNumberWidth
-        )
+                fullOuter+
+                    fullNumberWidth+
+                    fullGap+
+                    fullSignWidth+
+                    fullGap
+            )
 
-        val fullH=floatArrayOf(
-            fullHeight,
-            fullHeight,
-            fullHeight
-        )
+        val fullY=
+            floatArrayOf(
+                fullTop,
+                fullTop,
+                fullTop
+            )
+
+        val fullW=
+            floatArrayOf(
+                fullNumberWidth,
+                fullSignWidth,
+                fullNumberWidth
+            )
+
+        val fullH=
+            floatArrayOf(
+                fullHeight,
+                fullHeight,
+                fullHeight
+            )
 
         /*
-         * HALF
+         * HALF:
          *
-         * top/bottom outer gaps equal.
-         * both inner gaps equal + smaller.
+         * outer gap
+         * 1
+         * small gap
+         * sign
+         * small gap
+         * 2
+         * outer gap
+         *
+         * outer gaps are equal.
+         * inner gaps are equal.
          */
         val halfWidth=
             width*
@@ -2471,40 +1475,45 @@ private fun NmixCalculatorMorphFields(
         val signHeight=
             numberHeight*.78f
 
-        val halfX=floatArrayOf(
-            halfLeft,
-            halfLeft,
-            halfLeft
-        )
+        val halfX=
+            floatArrayOf(
+                halfLeft,
+                halfLeft,
+                halfLeft
+            )
 
-        val halfY=floatArrayOf(
-            outerGap,
+        val halfY=
+            floatArrayOf(
+                outerGap,
 
-            outerGap+
-                numberHeight+
-                innerGap,
+                outerGap+
+                    numberHeight+
+                    innerGap,
 
-            outerGap+
-                numberHeight+
-                innerGap+
-                signHeight+
-                innerGap
-        )
+                outerGap+
+                    numberHeight+
+                    innerGap+
+                    signHeight+
+                    innerGap
+            )
 
-        val halfW=floatArrayOf(
-            halfWidth,
-            halfWidth,
-            halfWidth
-        )
+        val halfW=
+            floatArrayOf(
+                halfWidth,
+                halfWidth,
+                halfWidth
+            )
 
-        val halfH=floatArrayOf(
-            numberHeight,
-            signHeight,
-            numberHeight
-        )
+        val halfH=
+            floatArrayOf(
+                numberHeight,
+                signHeight,
+                numberHeight
+            )
 
         /*
-         * SMALL
+         * SMALL:
+         * [1][sign][2] on left.
          */
         val smallLeft=
             nmixMix(
@@ -2559,110 +1568,128 @@ private fun NmixCalculatorMorphFields(
                     smallHeight
             )/2f
 
-        val smallX=floatArrayOf(
-            smallLeft,
+        val smallX=
+            floatArrayOf(
+                smallLeft,
 
-            smallLeft+
-                smallNumberWidth+
-                smallGap,
+                smallLeft+
+                    smallNumberWidth+
+                    smallGap,
 
-            smallLeft+
-                smallNumberWidth+
-                smallGap+
-                smallSignWidth+
-                smallGap
-        )
+                smallLeft+
+                    smallNumberWidth+
+                    smallGap+
+                    smallSignWidth+
+                    smallGap
+            )
 
-        val smallYs=floatArrayOf(
-            smallY,
-            smallY,
-            smallY
-        )
+        val smallYs=
+            floatArrayOf(
+                smallY,
+                smallY,
+                smallY
+            )
 
-        val smallW=floatArrayOf(
-            smallNumberWidth,
-            smallSignWidth,
-            smallNumberWidth
-        )
+        val smallW=
+            floatArrayOf(
+                smallNumberWidth,
+                smallSignWidth,
+                smallNumberWidth
+            )
 
-        val smallH=floatArrayOf(
-            smallHeight,
-            smallHeight,
-            smallHeight
-        )
+        val smallH=
+            floatArrayOf(
+                smallHeight,
+                smallHeight,
+                smallHeight
+            )
 
         /*
-         * Direct FULL -> HALF interpolation.
+         * Direct FULL -> HALF.
          */
-        val halfStageX=FloatArray(3)
-        val halfStageY=FloatArray(3)
-        val halfStageW=FloatArray(3)
-        val halfStageH=FloatArray(3)
+        val halfStageX=
+            FloatArray(3)
 
-        repeat(3){i->
-            halfStageX[i]=
+        val halfStageY=
+            FloatArray(3)
+
+        val halfStageW=
+            FloatArray(3)
+
+        val halfStageH=
+            FloatArray(3)
+
+        repeat(3){index->
+            halfStageX[index]=
                 nmixMix(
-                    fullX[i],
-                    halfX[i],
+                    fullX[index],
+                    halfX[index],
                     fullToHalf
                 )
 
-            halfStageY[i]=
+            halfStageY[index]=
                 nmixMix(
-                    fullY[i],
-                    halfY[i],
+                    fullY[index],
+                    halfY[index],
                     fullToHalf
                 )
 
-            halfStageW[i]=
+            halfStageW[index]=
                 nmixMix(
-                    fullW[i],
-                    halfW[i],
+                    fullW[index],
+                    halfW[index],
                     fullToHalf
                 )
 
-            halfStageH[i]=
+            halfStageH[index]=
                 nmixMix(
-                    fullH[i],
-                    halfH[i],
+                    fullH[index],
+                    halfH[index],
                     fullToHalf
                 )
         }
 
         /*
-         * Direct HALF -> SMALL interpolation.
+         * Direct HALF -> SMALL.
          */
-        val finalX=FloatArray(3)
-        val finalY=FloatArray(3)
-        val finalW=FloatArray(3)
-        val finalH=FloatArray(3)
+        val finalX=
+            FloatArray(3)
 
-        repeat(3){i->
-            finalX[i]=
+        val finalY=
+            FloatArray(3)
+
+        val finalW=
+            FloatArray(3)
+
+        val finalH=
+            FloatArray(3)
+
+        repeat(3){index->
+            finalX[index]=
                 nmixMix(
-                    halfStageX[i],
-                    smallX[i],
+                    halfStageX[index],
+                    smallX[index],
                     halfToSmall
                 )
 
-            finalY[i]=
+            finalY[index]=
                 nmixMix(
-                    halfStageY[i],
-                    smallYs[i],
+                    halfStageY[index],
+                    smallYs[index],
                     halfToSmall
                 )
 
-            finalW[i]=
+            finalW[index]=
                 nmixMix(
-                    halfStageW[i],
-                    smallW[i],
+                    halfStageW[index],
+                    smallW[index],
                     halfToSmall
                 )
 
-            finalH[i]=
+            finalH[index]=
                 nmixMix(
-                    halfStageH[i],
-                    smallH[i],
+                    halfStageH[index],
+                    smallH[index],
                     halfToSmall
                 )
         }
@@ -2672,22 +1699,27 @@ private fun NmixCalculatorMorphFields(
                 index,
                 measurable->
 
+                val childWidth=
+                    finalW[index]
+                        .toInt()
+                        .coerceAtLeast(1)
+                        .coerceAtMost(
+                            width.coerceAtLeast(1)
+                        )
+
+                val childHeight=
+                    finalH[index]
+                        .toInt()
+                        .coerceAtLeast(1)
+                        .coerceAtMost(
+                            height.coerceAtLeast(1)
+                        )
+
                 measurable.measure(
                     androidx.compose.ui.unit
                         .Constraints.fixed(
-                            finalW[index]
-                                .toInt()
-                                .coerceIn(
-                                    1,
-                                    width.coerceAtLeast(1)
-                                ),
-
-                            finalH[index]
-                                .toInt()
-                                .coerceIn(
-                                    1,
-                                    height.coerceAtLeast(1)
-                                )
+                            childWidth,
+                            childHeight
                         )
                 )
             }
@@ -2697,16 +1729,25 @@ private fun NmixCalculatorMorphFields(
                 index,
                 placeable->
 
+                val maxX=
+                    (
+                        width-
+                            placeable.width
+                    ).coerceAtLeast(0)
+
+                val maxY=
+                    (
+                        height-
+                            placeable.height
+                    ).coerceAtLeast(0)
+
                 placeable.placeRelative(
                     x=
                         finalX[index]
                             .toInt()
                             .coerceIn(
                                 0,
-                                (
-                                    width-
-                                        placeable.width
-                                ).coerceAtLeast(0)
+                                maxX
                             ),
 
                     y=
@@ -2714,10 +1755,7 @@ private fun NmixCalculatorMorphFields(
                             .toInt()
                             .coerceIn(
                                 0,
-                                (
-                                    height-
-                                        placeable.height
-                                ).coerceAtLeast(0)
+                                maxY
                             )
                 )
             }
@@ -2725,6 +1763,24 @@ private fun NmixCalculatorMorphFields(
     }
 }
 
+/*
+ * Exact radius rules:
+ *
+ * FULL
+ * 1    -> top-left only
+ * sign -> square
+ * 2    -> top-right only
+ *
+ * HALF
+ * 1    -> top-left only
+ * sign -> square
+ * 2    -> bottom-left only
+ *
+ * SMALL
+ * 1    -> top-left + bottom-left
+ * sign -> square
+ * 2    -> square
+ */
 @Composable
 private fun MorphFieldVisual(
     text:String,
@@ -2744,24 +1800,8 @@ private fun MorphFieldVisual(
     val small=
         halfToSmall
 
-    /*
-     * FULL:
-     * 1    = top-left only
-     * sign = square
-     * 2    = top-right only
-     *
-     * HALF:
-     * 1    = top-left only
-     * sign = square
-     * 2    = bottom-left only
-     *
-     * SMALL:
-     * 1    = top-left + bottom-left
-     * sign = square
-     * 2    = square
-     */
-
-    val normalRadius=11f
+    val normalRadius=
+        11f
 
     val pillRadius=
         nmixMix(
@@ -2788,8 +1828,7 @@ private fun MorphFieldVisual(
                     )
 
                 RoundedCornerShape(
-                    topStart=
-                        topLeft.dp,
+                    topStart=topLeft.dp,
                     topEnd=0.dp,
                     bottomEnd=0.dp,
                     bottomStart=
@@ -2801,31 +1840,18 @@ private fun MorphFieldVisual(
                 RoundedCornerShape(0.dp)
 
             else->{
-                /*
-                 * FULL top-right fades away as
-                 * box moves to HALF.
-                 */
                 val topRight=
                     normalRadius*
                         full
 
-                /*
-                 * HALF bottom-left grows during
-                 * Full -> Half, then disappears
-                 * again during Half -> Small.
-                 */
                 val bottomLeft=
                     normalRadius*
                         fullToHalf*
-                        (
-                            1f-
-                                small
-                        )
+                        (1f-small)
 
                 RoundedCornerShape(
                     topStart=0.dp,
-                    topEnd=
-                        topRight.dp,
+                    topEnd=topRight.dp,
                     bottomEnd=0.dp,
                     bottomStart=
                         bottomLeft.dp
@@ -2864,7 +1890,8 @@ private fun MorphFieldVisual(
     ){
         Text(
             text,
-            color=nmixDisplayText(),
+            color=
+                nmixDisplayText(),
             fontSize=textSize,
             fontWeight=
                 FontWeight.SemiBold,
@@ -2875,72 +1902,12 @@ private fun MorphFieldVisual(
         )
     }
 }
+
 /*
  * ==================================================
  * DISPLAY MOTION
  * ==================================================
  */
-
-private data class DisplayMotionPlacement(
-    val x:Float,
-    val y:Float,
-    val dx:Float,
-    val dy:Float,
-    val scale:Float,
-    val phase:Float
-)
-
-/*
- * Elements start in different areas instead of
- * stacking at one center point.
- */
-private val displayMotionPlacements=
-    listOf(
-        DisplayMotionPlacement(
-            -.31f,
-            -.24f,
-            1.00f,
-            .74f,
-            .92f,
-            .00f
-        ),
-
-        DisplayMotionPlacement(
-            .29f,
-            .23f,
-            -.88f,
-            -.96f,
-            .74f,
-            .37f
-        ),
-
-        DisplayMotionPlacement(
-            .28f,
-            -.27f,
-            .76f,
-            -.82f,
-            .62f,
-            .68f
-        ),
-
-        DisplayMotionPlacement(
-            -.29f,
-            .27f,
-            -.72f,
-            .86f,
-            .68f,
-            .91f
-        ),
-
-        DisplayMotionPlacement(
-            .02f,
-            .02f,
-            .58f,
-            -.61f,
-            .56f,
-            .52f
-        )
-    )
 
 @Composable
 private fun BoxScope.DisplayMotionLayer(
@@ -2958,44 +1925,22 @@ private fun BoxScope.DisplayMotionLayer(
 
     val quantity=
         a.animationQuantity
-            .coerceIn(
-                1,
-                5
-            )
+            .coerceIn(1,5)
+
+    /*
+     * Home points are deliberately separated.
+     */
+    val homes=
+        listOf(
+            Offset(-.40f,-.31f),
+            Offset(.40f,.30f),
+            Offset(.39f,-.32f),
+            Offset(-.39f,.32f),
+            Offset(.02f,.02f)
+        )
 
     repeat(quantity){index->
-        val item=
-            displayMotionPlacements[
-                index%
-                    displayMotionPlacements.size
-            ]
-
-        /*
-         * Different combinations of x/y/z create
-         * independent-looking paths while still
-         * staying inside an imaginary bounded area.
-         *
-         * Reverse infinite animation in
-         * rememberNmixMotion makes motion turn at
-         * path limits like a soft wall bounce.
-         */
-        val mx=
-            when(index){
-                0->motion.x
-                1->motion.z
-                2->-motion.y
-                3->-motion.x
-                else->motion.y
-            }
-
-        val my=
-            when(index){
-                0->motion.y
-                1->-motion.x
-                2->motion.z
-                3->-motion.z
-                else->-motion.x
-            }
+        val home=homes[index]
 
         val direction=
             if(index%2==0)
@@ -3003,45 +1948,63 @@ private fun BoxScope.DisplayMotionLayer(
             else
                 -1f
 
+        val mx=when(index){
+            0->motion.x
+            1->motion.z
+            2->-motion.y
+            3->-motion.x
+            else->motion.y
+        }
+
+        val my=when(index){
+            0->motion.y
+            1->-motion.x
+            2->motion.z
+            3->-motion.z
+            else->-motion.x
+        }
+
+        val itemScale=when(index){
+            0->1f
+            1->.82f
+            2->.70f
+            3->.76f
+            else->.64f
+        }
+
         if(soft){
-            val geometryShape=
+            val shape=
                 when(a.animation){
                     NmixAnimationName.DRIFT->
                         CircleShape
 
                     NmixAnimationName.ORBIT->
                         RoundedCornerShape(
-                            48.dp
+                            52.dp
                         )
 
                     NmixAnimationName.FLOW->
                         RoundedCornerShape(
-                            28.dp
+                            30.dp
                         )
 
                     else->
                         CircleShape
                 }
 
-            /*
-             * SOFT:
-             * larger feathered geometry.
-             * Shape remains visible but does not
-             * become a hard solid chunk.
-             */
             val baseSize=
                 when(a.animation){
                     NmixAnimationName.DRIFT->
-                        210f
+                        285f
 
                     NmixAnimationName.ORBIT->
-                        175f
+                        245f
 
                     NmixAnimationName.FLOW->
-                        165f
+                        225f
 
                     else->
-                        190f
+                        250f
                 }
 
             Box(
@@ -3049,62 +2012,63 @@ private fun BoxScope.DisplayMotionLayer(
                     .size(
                         (
                             baseSize*
-                                item.scale
+                                itemScale
                         ).dp
                     )
-                    .align(
-                        Alignment.Center
-                    )
+                    .align(Alignment.Center)
                     .offset(
                         x=
                             (
-                                item.x*
-                                    150f
+                                home.x*
+                                    205f
                             ).dp,
                         y=
                             (
-                                item.y*
-                                    112f
+                                home.y*
+                                    150f
                             ).dp
                     )
                     .graphicsLayer{
                         translationX=
                             mx*
-                                72f*
-                                item.dx
+                                (
+                                    125f+
+                                        index*10f
+                                )
 
                         translationY=
                             my*
-                                46f*
-                                item.dy
-
-                        val localPulse=
-                            motion.pulse*
                                 (
-                                    .94f+
-                                        item.phase*
-                                        .08f
-                                    )
+                                    78f+
+                                        index*7f
+                                )
 
-                        scaleX=localPulse
-                        scaleY=localPulse
+                        val pulse=
+                            motion.pulse*
+                                when(index){
+                                    0->1f
+                                    1->.96f
+                                    2->1.04f
+                                    3->.98f
+                                    else->1.02f
+                                }
+
+                        scaleX=pulse
+                        scaleY=pulse
 
                         rotationZ=
-                            when(
-                                a.animation
-                            ){
+                            when(a.animation){
                                 NmixAnimationName.ORBIT->
                                     motion.z*
-                                        14f*
+                                        18f*
                                         direction
 
                                 NmixAnimationName.FLOW->
                                     motion.x*
-                                        7f*
+                                        10f*
                                         direction
 
-                                else->
-                                    0f
+                                else->0f
                             }
                     }
                     .background(
@@ -3113,92 +2077,89 @@ private fun BoxScope.DisplayMotionLayer(
                                 arrayOf(
                                     0f to
                                         (
-                                            if(
-                                                index%2==0
-                                            )
+                                            if(index%2==0)
                                                 p.accent
                                             else
                                                 p.accentLight
                                         ).copy(
                                             alpha=
                                                 if(a.darkMode)
-                                                    .27f
+                                                    .30f
                                                 else
-                                                    .22f
+                                                    .24f
                                         ),
 
-                                    .36f to
+                                    .30f to
                                         p.accent.copy(
                                             alpha=
                                                 if(a.darkMode)
-                                                    .17f
+                                                    .19f
                                                 else
-                                                    .14f
+                                                    .16f
                                         ),
 
-                                    .65f to
+                                    .58f to
                                         p.accent.copy(
-                                            alpha=.075f
+                                            alpha=.09f
                                         ),
 
-                                    .84f to
+                                    .78f to
                                         p.accent.copy(
-                                            alpha=.022f
+                                            alpha=.035f
+                                        ),
+
+                                    .92f to
+                                        p.accent.copy(
+                                            alpha=.009f
                                         ),
 
                                     1f to
                                         Color.Transparent
                                 )
                         ),
-                        geometryShape
+                        shape
                     )
             )
         }else{
-            /*
-             * HARD:
-             * actual recognisable shape,
-             * lower opacity,
-             * mildly feathered outer edge.
-             */
             val hardSize=
-                (
-                    78f*
-                        item.scale
-                )
-                    .coerceAtLeast(
-                        38f
-                    )
+                when(index){
+                    0->122f
+                    1->103f
+                    2->91f
+                    3->98f
+                    else->82f
+                }
 
             Canvas(
                 Modifier
-                    .size(
-                        hardSize.dp
-                    )
-                    .align(
-                        Alignment.Center
-                    )
+                    .size(hardSize.dp)
+                    .align(Alignment.Center)
                     .offset(
                         x=
                             (
-                                item.x*
-                                    155f
+                                home.x*
+                                    205f
                             ).dp,
                         y=
                             (
-                                item.y*
-                                    112f
+                                home.y*
+                                    150f
                             ).dp
                     )
                     .graphicsLayer{
                         translationX=
                             mx*
-                                82f*
-                                item.dx
+                                (
+                                    132f+
+                                        index*9f
+                                )
 
                         translationY=
                             my*
-                                52f*
-                                item.dy
+                                (
+                                    82f+
+                                        index*6f
+                                )
 
                         if(
                             a.animation==
@@ -3213,7 +2174,7 @@ private fun BoxScope.DisplayMotionLayer(
 
                         rotationZ=
                             motion.z*
-                                14f*
+                                18f*
                                 direction
                     }
             ){
@@ -3223,30 +2184,27 @@ private fun BoxScope.DisplayMotionLayer(
                     else
                         p.accentLight
 
-                val mainAlpha=
+                val alpha=
                     if(a.darkMode)
-                        .17f
+                        .16f
                     else
-                        .14f
+                        .13f
 
                 when(a.animation){
                     NmixAnimationName.FLOAT->{
-                        /*
-                         * Feather shell.
-                         */
                         drawRoundRect(
                             color=
                                 color.copy(
-                                    alpha=.045f
+                                    alpha=.035f
                                 ),
                             cornerRadius=
                                 CornerRadius(
-                                    16.dp.toPx()
+                                    20.dp.toPx()
                                 )
                         )
 
-                        val outerInset=
-                            2.dp.toPx()
+                        val shell=
+                            3.dp.toPx()
 
                         drawRoundRect(
                             color=
@@ -3255,30 +2213,27 @@ private fun BoxScope.DisplayMotionLayer(
                                 ),
                             topLeft=
                                 Offset(
-                                    outerInset,
-                                    outerInset
+                                    shell,
+                                    shell
                                 ),
                             size=
                                 Size(
-                                    size.width-
-                                        outerInset*2,
-                                    size.height-
-                                        outerInset*2
+                                    size.width-shell*2,
+                                    size.height-shell*2
                                 ),
                             cornerRadius=
                                 CornerRadius(
-                                    14.dp.toPx()
+                                    17.dp.toPx()
                                 )
                         )
 
                         val inset=
-                            4.dp.toPx()
+                            7.dp.toPx()
 
                         drawRoundRect(
                             color=
                                 color.copy(
-                                    alpha=
-                                        mainAlpha
+                                    alpha=alpha
                                 ),
                             topLeft=
                                 Offset(
@@ -3287,406 +2242,6 @@ private fun BoxScope.DisplayMotionLayer(
                                 ),
                             size=
                                 Size(
-                                    size.width-
-                                        inset*2,
-                                    size.height-
-                                        inset*2
-                                ),
-                            cornerRadius=
-                                CornerRadius(
-                                    12.dp.toPx()
-                                )
-                        )
-                    }
-
-                    NmixAnimationName.PULSE->{
-                        val outerPath=
-                            Path().apply{
-                                moveTo(
-                                    size.width*.5f,
-                                    size.height*.035f
-                                )
-
-                                lineTo(
-                                    size.width*.965f,
-                                    size.height*.91f
-                                )
-
-                                lineTo(
-                                    size.width*.035f,
-                                    size.height*.91f
-                                )
-
-                                close()
-                            }
-
-                        drawPath(
-                            outerPath,
-                            color.copy(
-                                alpha=.045f
-                            )
-                        )
-
-                        val innerPath=
-                            Path().apply{
-                                moveTo(
-                                    size.width*.5f,
-                                    size.height*.10f
-                                )
-
-                                lineTo(
-                                    size.width*.90f,
-                                    size.height*.86f
-                                )
-
-                                lineTo(
-                                    size.width*.10f,
-                                    size.height*.86f
-                                )
-
-                                close()
-                            }
-
-                        drawPath(
-                            innerPath,
-                            color.copy(
-                                alpha=
-                                    mainAlpha
-                            )
-                        )
-
-                        drawPath(
-                            innerPath,
-                            color.copy(
-                                alpha=.055f
-                            ),
-                            style=Stroke(
-                                2.dp.toPx()
-                            )
-                        )
-                    }
-
-                    NmixAnimationName.CROSS->{
-                        val outerPath=
-                            Path().apply{
-                                moveTo(
-                                    size.width*.5f,
-                                    size.height*.02f
-                                )
-
-                                lineTo(
-                                    size.width*.98f,
-                                    size.height*.5f
-                                )
-
-                                lineTo(
-                                    size.width*.5f,
-                                    size.height*.98f
-                                )
-
-                                lineTo(
-                                    size.width*.02f,
-                                    size.height*.5f
-@Composable
-private fun BoxScope.DisplayMotionLayer(
-    motion:NmixMotionValues
-){
-    val a=LocalNmixAppearance.current
-    val p=a.palette
-
-    val soft=
-        a.animation in listOf(
-            NmixAnimationName.DRIFT,
-            NmixAnimationName.ORBIT,
-            NmixAnimationName.FLOW
-        )
-
-    val quantity=
-        a.animationQuantity.coerceIn(1,5)
-
-    /*
-     * Wide home positions.
-     * Elements intentionally start far apart.
-     */
-    val homes=listOf(
-        Offset(-.40f,-.31f),
-        Offset(.40f,.30f),
-        Offset(.39f,-.32f),
-        Offset(-.39f,.32f),
-        Offset(.02f,.02f)
-    )
-
-    repeat(quantity){index->
-        val home=homes[index]
-        val direction=
-            if(index%2==0)1f else -1f
-
-        /*
-         * Different motion channels prevent all
-         * shapes from travelling together.
-         */
-        val mx=when(index){
-            0->motion.x
-            1->motion.z
-            2->-motion.y
-            3->-motion.x
-            else->motion.y
-        }
-
-        val my=when(index){
-            0->motion.y
-            1->-motion.x
-            2->motion.z
-            3->-motion.z
-            else->-motion.x
-        }
-
-        /*
-         * Different sizes make quantity look
-         * naturally distributed.
-         */
-        val itemScale=when(index){
-            0->1.00f
-            1->.82f
-            2->.70f
-            3->.76f
-            else->.64f
-        }
-
-        if(soft){
-            val shape=
-                when(a.animation){
-                    NmixAnimationName.DRIFT->
-                        CircleShape
-
-                    NmixAnimationName.ORBIT->
-                        RoundedCornerShape(52.dp)
-
-                    NmixAnimationName.FLOW->
-                        RoundedCornerShape(30.dp)
-
-                    else->
-                        CircleShape
-                }
-
-            /*
-             * Larger than before.
-             */
-            val baseSize=
-                when(a.animation){
-                    NmixAnimationName.DRIFT->285f
-                    NmixAnimationName.ORBIT->245f
-                    NmixAnimationName.FLOW->225f
-                    else->250f
-                }
-
-            Box(
-                Modifier
-                    .size(
-                        (baseSize*itemScale).dp
-                    )
-                    .align(Alignment.Center)
-                    .offset(
-                        x=(home.x*205f).dp,
-                        y=(home.y*150f).dp
-                    )
-                    .graphicsLayer{
-                        /*
-                         * Much wider travel.
-                         * Reverse motion from
-                         * rememberNmixMotion gives
-                         * imaginary-wall turns.
-                         */
-                        translationX=
-                            mx*
-                                (125f+index*10f)
-
-                        translationY=
-                            my*
-                                (78f+index*7f)
-
-                        val pulse=
-                            motion.pulse*
-                                when(index){
-                                    0->1f
-                                    1->.96f
-                                    2->1.04f
-                                    3->.98f
-                                    else->1.02f
-                                }
-
-                        scaleX=pulse
-                        scaleY=pulse
-
-                        rotationZ=
-                            when(a.animation){
-                                NmixAnimationName.ORBIT->
-                                    motion.z*
-                                        18f*
-                                        direction
-
-                                NmixAnimationName.FLOW->
-                                    motion.x*
-                                        10f*
-                                        direction
-
-                                else->0f
-                            }
-                    }
-                    .background(
-                        Brush.radialGradient(
-                            colorStops=arrayOf(
-                                0f to
-                                    (
-                                        if(index%2==0)
-                                            p.accent
-                                        else
-                                            p.accentLight
-                                    ).copy(
-                                        alpha=
-                                            if(a.darkMode)
-                                                .30f
-                                            else
-                                                .24f
-                                    ),
-
-                                .30f to
-                                    p.accent.copy(
-                                        alpha=
-                                            if(a.darkMode)
-                                                .19f
-                                            else
-                                                .16f
-                                    ),
-
-                                .58f to
-                                    p.accent.copy(
-                                        alpha=.09f
-                                    ),
-
-                                .78f to
-                                    p.accent.copy(
-                                        alpha=.035f
-                                    ),
-
-                                .92f to
-                                    p.accent.copy(
-                                        alpha=.009f
-                                    ),
-
-                                1f to
-                                    Color.Transparent
-                            )
-                        ),
-                        shape
-                    )
-            )
-        }else{
-            /*
-             * HARD shapes are also larger and
-             * travel much farther.
-             */
-            val hardSize=
-                when(index){
-                    0->122f
-                    1->103f
-                    2->91f
-                    3->98f
-                    else->82f
-                }
-
-            Canvas(
-                Modifier
-                    .size(hardSize.dp)
-                    .align(Alignment.Center)
-                    .offset(
-                        x=(home.x*205f).dp,
-                        y=(home.y*150f).dp
-                    )
-                    .graphicsLayer{
-                        translationX=
-                            mx*
-                                (132f+index*9f)
-
-                        translationY=
-                            my*
-                                (82f+index*6f)
-
-                        if(
-                            a.animation==
-                            NmixAnimationName.PULSE
-                        ){
-                            scaleX=motion.pulse
-                            scaleY=motion.pulse
-                        }
-
-                        rotationZ=
-                            motion.z*
-                                18f*
-                                direction
-                    }
-            ){
-                val color=
-                    if(index%2==0)
-                        p.accent
-                    else
-                        p.accentLight
-
-                val alpha=
-                    if(a.darkMode)
-                        .16f
-                    else
-                        .13f
-
-                when(a.animation){
-                    NmixAnimationName.FLOAT->{
-                        /*
-                         * Outer feather shell.
-                         */
-                        drawRoundRect(
-                            color=
-                                color.copy(
-                                    alpha=.035f
-                                ),
-                            cornerRadius=
-                                CornerRadius(
-                                    20.dp.toPx()
-                                )
-                        )
-
-                        val shell=
-                            3.dp.toPx()
-
-                        drawRoundRect(
-                            color=
-                                color.copy(
-                                    alpha=.065f
-                                ),
-                            topLeft=
-                                Offset(shell,shell),
-                            size=
-                                Size(
-                                    size.width-shell*2,
-                                    size.height-shell*2
-                                ),
-                            cornerRadius=
-                                CornerRadius(
-                                    17.dp.toPx()
-                                )
-                        )
-
-                        val inset=
-                            7.dp.toPx()
-
-                        drawRoundRect(
-                            color=
-                                color.copy(
-                                    alpha=alpha
-                                ),
-                            topLeft=
-                                Offset(inset,inset),
-                            size=
-                                Size(
                                     size.width-inset*2,
                                     size.height-inset*2
                                 ),
@@ -3704,344 +2259,25 @@ private fun BoxScope.DisplayMotionLayer(
                                     size.width*.5f,
                                     size.height*.02f
                                 )
+
                                 lineTo(
                                     size.width*.98f,
                                     size.height*.93f
                                 )
-                                lineTo(
-                                    size.width*.02f,
-                                    size.height*.93f
-@Composable
-private fun BoxScope.DisplayMotionLayer(
-    motion:NmixMotionValues
-){
-    val a=LocalNmixAppearance.current
-    val p=a.palette
 
-    val soft=
-        a.animation in listOf(
-            NmixAnimationName.DRIFT,
-            NmixAnimationName.ORBIT,
-            NmixAnimationName.FLOW
-        )
-
-    val quantity=
-        a.animationQuantity.coerceIn(1,5)
-
-    /*
-     * Wide home positions.
-     * Elements intentionally start far apart.
-     */
-    val homes=listOf(
-        Offset(-.40f,-.31f),
-        Offset(.40f,.30f),
-        Offset(.39f,-.32f),
-        Offset(-.39f,.32f),
-        Offset(.02f,.02f)
-    )
-
-    repeat(quantity){index->
-        val home=homes[index]
-        val direction=
-            if(index%2==0)1f else -1f
-
-        /*
-         * Different motion channels prevent all
-         * shapes from travelling together.
-         */
-        val mx=when(index){
-            0->motion.x
-            1->motion.z
-            2->-motion.y
-            3->-motion.x
-            else->motion.y
-        }
-
-        val my=when(index){
-            0->motion.y
-            1->-motion.x
-            2->motion.z
-            3->-motion.z
-            else->-motion.x
-        }
-
-        /*
-         * Different sizes make quantity look
-         * naturally distributed.
-         */
-        val itemScale=when(index){
-            0->1.00f
-            1->.82f
-            2->.70f
-            3->.76f
-            else->.64f
-        }
-
-        if(soft){
-            val shape=
-                when(a.animation){
-                    NmixAnimationName.DRIFT->
-                        CircleShape
-
-                    NmixAnimationName.ORBIT->
-                        RoundedCornerShape(52.dp)
-
-                    NmixAnimationName.FLOW->
-                        RoundedCornerShape(30.dp)
-
-                    else->
-                        CircleShape
-                }
-
-            /*
-             * Larger than before.
-             */
-            val baseSize=
-                when(a.animation){
-                    NmixAnimationName.DRIFT->285f
-                    NmixAnimationName.ORBIT->245f
-                    NmixAnimationName.FLOW->225f
-                    else->250f
-                }
-
-            Box(
-                Modifier
-                    .size(
-                        (baseSize*itemScale).dp
-                    )
-                    .align(Alignment.Center)
-                    .offset(
-                        x=(home.x*205f).dp,
-                        y=(home.y*150f).dp
-                    )
-                    .graphicsLayer{
-                        /*
-                         * Much wider travel.
-                         * Reverse motion from
-                         * rememberNmixMotion gives
-                         * imaginary-wall turns.
-                         */
-                        translationX=
-                            mx*
-                                (125f+index*10f)
-
-                        translationY=
-                            my*
-                                (78f+index*7f)
-
-                        val pulse=
-                            motion.pulse*
-                                when(index){
-                                    0->1f
-                                    1->.96f
-                                    2->1.04f
-                                    3->.98f
-                                    else->1.02f
-                                }
-
-                        scaleX=pulse
-                        scaleY=pulse
-
-                        rotationZ=
-                            when(a.animation){
-                                NmixAnimationName.ORBIT->
-                                    motion.z*
-                                        18f*
-                                        direction
-
-                                NmixAnimationName.FLOW->
-                                    motion.x*
-                                        10f*
-                                        direction
-
-                                else->0f
-                            }
-                    }
-                    .background(
-                        Brush.radialGradient(
-                            colorStops=arrayOf(
-                                0f to
-                                    (
-                                        if(index%2==0)
-                                            p.accent
-                                        else
-                                            p.accentLight
-                                    ).copy(
-                                        alpha=
-                                            if(a.darkMode)
-                                                .30f
-                                            else
-                                                .24f
-                                    ),
-
-                                .30f to
-                                    p.accent.copy(
-                                        alpha=
-                                            if(a.darkMode)
-                                                .19f
-                                            else
-                                                .16f
-                                    ),
-
-                                .58f to
-                                    p.accent.copy(
-                                        alpha=.09f
-                                    ),
-
-                                .78f to
-                                    p.accent.copy(
-                                        alpha=.035f
-                                    ),
-
-                                .92f to
-                                    p.accent.copy(
-                                        alpha=.009f
-                                    ),
-
-                                1f to
-                                    Color.Transparent
-                            )
-                        ),
-                        shape
-                    )
-            )
-        }else{
-            /*
-             * HARD shapes are also larger and
-             * travel much farther.
-             */
-            val hardSize=
-                when(index){
-                    0->122f
-                    1->103f
-                    2->91f
-                    3->98f
-                    else->82f
-                }
-
-            Canvas(
-                Modifier
-                    .size(hardSize.dp)
-                    .align(Alignment.Center)
-                    .offset(
-                        x=(home.x*205f).dp,
-                        y=(home.y*150f).dp
-                    )
-                    .graphicsLayer{
-                        translationX=
-                            mx*
-                                (132f+index*9f)
-
-                        translationY=
-                            my*
-                                (82f+index*6f)
-
-                        if(
-                            a.animation==
-                            NmixAnimationName.PULSE
-                        ){
-                            scaleX=motion.pulse
-                            scaleY=motion.pulse
-                        }
-
-                        rotationZ=
-                            motion.z*
-                                18f*
-                                direction
-                    }
-            ){
-                val color=
-                    if(index%2==0)
-                        p.accent
-                    else
-                        p.accentLight
-
-                val alpha=
-                    if(a.darkMode)
-                        .16f
-                    else
-                        .13f
-
-                when(a.animation){
-                    NmixAnimationName.FLOAT->{
-                        /*
-                         * Outer feather shell.
-                         */
-                        drawRoundRect(
-                            color=
-                                color.copy(
-                                    alpha=.035f
-                                ),
-                            cornerRadius=
-                                CornerRadius(
-                                    20.dp.toPx()
-                                )
-                        )
-
-                        val shell=
-                            3.dp.toPx()
-
-                        drawRoundRect(
-                            color=
-                                color.copy(
-                                    alpha=.065f
-                                ),
-                            topLeft=
-                                Offset(shell,shell),
-                            size=
-                                Size(
-                                    size.width-shell*2,
-                                    size.height-shell*2
-                                ),
-                            cornerRadius=
-                                CornerRadius(
-                                    17.dp.toPx()
-                                )
-                        )
-
-                        val inset=
-                            7.dp.toPx()
-
-                        drawRoundRect(
-                            color=
-                                color.copy(
-                                    alpha=alpha
-                                ),
-                            topLeft=
-                                Offset(inset,inset),
-                            size=
-                                Size(
-                                    size.width-inset*2,
-                                    size.height-inset*2
-                                ),
-                            cornerRadius=
-                                CornerRadius(
-                                    14.dp.toPx()
-                                )
-                        )
-                    }
-
-                    NmixAnimationName.PULSE->{
-                        val outer=
-                            Path().apply{
-                                moveTo(
-                                    size.width*.5f,
-                                    size.height*.02f
-                                )
-                                lineTo(
-                                    size.width*.98f,
-                                    size.height*.93f
-                                )
                                 lineTo(
                                     size.width*.02f,
                                     size.height*.93f
                                 )
+
                                 close()
                             }
 
                         drawPath(
                             outer,
-                            color.copy(alpha=.035f)
+                            color.copy(
+                                alpha=.035f
+                            )
                         )
 
                         val inner=
@@ -4050,25 +2286,32 @@ private fun BoxScope.DisplayMotionLayer(
                                     size.width*.5f,
                                     size.height*.09f
                                 )
+
                                 lineTo(
                                     size.width*.91f,
                                     size.height*.87f
                                 )
+
                                 lineTo(
                                     size.width*.09f,
                                     size.height*.87f
                                 )
+
                                 close()
                             }
 
                         drawPath(
                             inner,
-                            color.copy(alpha=alpha)
+                            color.copy(
+                                alpha=alpha
+                            )
                         )
 
                         drawPath(
                             inner,
-                            color.copy(alpha=.055f),
+                            color.copy(
+                                alpha=.055f
+                            ),
                             style=Stroke(
                                 2.5.dp.toPx()
                             )
@@ -4082,24 +2325,30 @@ private fun BoxScope.DisplayMotionLayer(
                                     size.width*.5f,
                                     size.height*.01f
                                 )
+
                                 lineTo(
                                     size.width*.99f,
                                     size.height*.5f
                                 )
+
                                 lineTo(
                                     size.width*.5f,
                                     size.height*.99f
                                 )
+
                                 lineTo(
                                     size.width*.01f,
                                     size.height*.5f
                                 )
+
                                 close()
                             }
 
                         drawPath(
                             outer,
-                            color.copy(alpha=.035f)
+                            color.copy(
+                                alpha=.035f
+                            )
                         )
 
                         val inner=
@@ -4108,29 +2357,37 @@ private fun BoxScope.DisplayMotionLayer(
                                     size.width*.5f,
                                     size.height*.08f
                                 )
+
                                 lineTo(
                                     size.width*.92f,
                                     size.height*.5f
                                 )
+
                                 lineTo(
                                     size.width*.5f,
                                     size.height*.92f
                                 )
+
                                 lineTo(
                                     size.width*.08f,
                                     size.height*.5f
                                 )
+
                                 close()
                             }
 
                         drawPath(
                             inner,
-                            color.copy(alpha=alpha)
+                            color.copy(
+                                alpha=alpha
+                            )
                         )
 
                         drawPath(
                             inner,
-                            color.copy(alpha=.05f),
+                            color.copy(
+                                alpha=.05f
+                            ),
                             style=Stroke(
                                 2.5.dp.toPx()
                             )
@@ -4211,6 +2468,7 @@ fun NmixCalcField(
         )
     }
 }
+
 /*
  * ==================================================
  * GLASS BOX
@@ -4239,11 +2497,6 @@ fun NmixGlassBox(
                     Color(0xFF151A18)
                         .copy(alpha=.80f)
                 }else{
-                    /*
-                     * Light mode keeps translucency,
-                     * but no washed-out pure white
-                     * glass surface.
-                     */
                     Color(0xFFE6EAE8)
                         .copy(alpha=.88f)
                 }
@@ -4298,7 +2551,7 @@ fun NmixPressBox(
     val pressed by
         interaction.collectIsPressedAsState()
 
-    val scale by
+    val pressScale by
         animateFloatAsState(
             targetValue=
                 if(pressed)
@@ -4314,7 +2567,7 @@ fun NmixPressBox(
 
     Box(
         modifier
-            .scale(scale)
+            .scale(pressScale)
             .clip(shape)
             .background(color)
             .clickable(
