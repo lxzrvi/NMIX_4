@@ -1254,18 +1254,6 @@ private fun NmixCalculatorMorphFields(
         val height=
             constraints.maxHeight
 
-        if(
-            width<=0 ||
-            height<=0
-        ){
-            layout(
-                width.coerceAtLeast(0),
-                height.coerceAtLeast(0)
-            ){}
-
-            return@Layout
-        }
-
         fun px(dpValue:Float):Float{
             return with(density){
                 dpValue.dp.toPx()
