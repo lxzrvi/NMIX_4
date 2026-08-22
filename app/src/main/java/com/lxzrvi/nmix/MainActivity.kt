@@ -254,9 +254,14 @@ private fun NmixLaunchScreen(){
     )
 
     val motion=
-        rememberInfiniteTransition(
-            label="launchMotion"
+        rememberNmixMotion(
+            "landingMotion"
         )
+
+    val x=motion.x
+    val y=motion.y
+    val z=motion.z
+    val pulse=motion.pulse
 
     val x by motion.animateFloat(
         -1f,
