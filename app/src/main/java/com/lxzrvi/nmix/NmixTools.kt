@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -154,6 +155,7 @@ private fun ModeRow(
     val a=LocalNmixAppearance.current
     val p=a.palette
     val ui=a.uiColors()
+    val haptic=rememberNmixHapticAction()
 
     val interaction=remember{
         MutableInteractionSource()
@@ -163,11 +165,7 @@ private fun ModeRow(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue=
-            if(pressed)
-                .965f
-            else
-                1f,
+        if(pressed).965f else 1f,
         label="modePress"
     )
 
@@ -181,9 +179,9 @@ private fun ModeRow(
             .scale(scale)
             .clip(shape)
             .background(
-                if(selected){
+                if(selected)
                     p.accent.copy(alpha=.84f)
-                }else{
+                else
                     p.accent.copy(
                         alpha=
                             if(a.darkMode)
@@ -191,7 +189,6 @@ private fun ModeRow(
                             else
                                 .08f
                     )
-                }
             )
             .border(
                 .45.dp,
@@ -207,9 +204,13 @@ private fun ModeRow(
             .combinedClickable(
                 interactionSource=interaction,
                 indication=null,
-                onClick=onClick,
+                onClick={
+                    haptic(onClick)
+                },
                 onLongClick={
-                    onLong?.invoke()
+                    onLong?.let{
+                        haptic(it)
+                    }
                 }
             )
             .padding(horizontal=13.dp),
@@ -241,9 +242,7 @@ private fun ModeRow(
             )
         }
 
-        Spacer(
-            Modifier.width(12.dp)
-        )
+        Spacer(Modifier.width(12.dp))
 
         Text(
             title,
@@ -253,8 +252,7 @@ private fun ModeRow(
                 else
                     ui.text,
             fontSize=13.sp,
-            fontWeight=
-                FontWeight.SemiBold,
+            fontWeight=FontWeight.SemiBold,
             fontFamily=a.fontFamily
         )
     }
@@ -280,17 +278,17 @@ fun NmixCounters(
                 Arrangement.spacedBy(8.dp)
         ){
             CounterButton(
-                icon=NmixIcon.PLUS,
-                title="Add",
-                modifier=Modifier.weight(1f),
-                onClick=add
+                NmixIcon.PLUS,
+                "Add",
+                Modifier.weight(1f),
+                add
             )
 
             CounterButton(
-                icon=NmixIcon.RESET,
-                title="Reset",
-                modifier=Modifier.weight(1f),
-                onClick=reset
+                NmixIcon.RESET,
+                "Reset",
+                Modifier.weight(1f),
+                reset
             )
         }
 
@@ -300,17 +298,17 @@ fun NmixCounters(
                 Arrangement.spacedBy(8.dp)
         ){
             CounterButton(
-                icon=NmixIcon.RANDOM,
-                title="Random",
-                modifier=Modifier.weight(1f),
-                onClick=random
+                NmixIcon.RANDOM,
+                "Random",
+                Modifier.weight(1f),
+                random
             )
 
             CounterButton(
-                icon=NmixIcon.MINUS,
-                title="Minus",
-                modifier=Modifier.weight(1f),
-                onClick=minus
+                NmixIcon.MINUS,
+                "Minus",
+                Modifier.weight(1f),
+                minus
             )
         }
     }
@@ -326,6 +324,7 @@ private fun CounterButton(
     val a=LocalNmixAppearance.current
     val p=a.palette
     val ui=a.uiColors()
+    val haptic=rememberNmixHapticAction()
 
     val shape=
         RoundedCornerShape(12.dp)
@@ -356,11 +355,12 @@ private fun CounterButton(
             )
     ){
         NmixPressBox(
-            modifier=
-                Modifier.fillMaxSize(),
-            shape=shape,
-            color=Color.Transparent,
-            onClick=onClick
+            Modifier.fillMaxSize(),
+            shape,
+            Color.Transparent,
+            {
+                haptic(onClick)
+            }
         ){
             Row(
                 verticalAlignment=
@@ -372,16 +372,13 @@ private fun CounterButton(
                     p.accent
                 )
 
-                Spacer(
-                    Modifier.width(8.dp)
-                )
+                Spacer(Modifier.width(8.dp))
 
                 Text(
                     title,
                     color=ui.text,
                     fontSize=12.sp,
-                    fontWeight=
-                        FontWeight.SemiBold,
+                    fontWeight=FontWeight.SemiBold,
                     fontFamily=a.fontFamily
                 )
             }
@@ -391,7 +388,7 @@ private fun CounterButton(
 
 /*
  * ==================================================
- * HOW TO USE
+ * HELP
  * ==================================================
  */
 
@@ -406,43 +403,43 @@ fun NmixInstructions(){
         listOf(
             HelpItem(
                 "Calculator",
-                "Enter numbers with the native keypad. Use +, −, ×, ÷ or %. Tap = or the large Display when the expression is complete."
+                "Enter numbers with the native keypad. Use +, −, ×, ÷ or %. Tap = or the Display when complete."
             ),
             HelpItem(
                 "Display",
-                "The large Display shows results and live values. Drag the •••• handle in the colored header to resize the top screen. Your selected height is remembered."
+                "The large Display shows results and live values. Drag the four-dot handle to resize it."
             ),
             HelpItem(
                 "Editing",
-                "Use decimal, ±, backspace and AC. Calculator fields smoothly change placement as the Display is resized."
+                "Use decimal, ±, backspace and AC. Calculator fields smoothly change placement while resizing."
             ),
             HelpItem(
                 "Timer",
-                "Tap Timer to start or pause. Hold Timer to reset to zero. Use − and + on the Display to remove or add five seconds."
+                "Tap Timer to start or pause. Hold Timer to reset. Use − and + on the Display for five-second changes."
             ),
             HelpItem(
                 "Clock",
-                "Tap Clock for live local time. Use the fullscreen icon to open the customizable Fullscreen Clock."
+                "Tap Clock for local time. Use fullscreen for the customizable Fullscreen Clock."
             ),
             HelpItem(
                 "Fullscreen",
-                "Fullscreen Clock includes clock styles, fonts, colors, wallpapers, custom images, Display controls, rotation and Clean View."
+                "Fullscreen Clock follows NMIX appearance and animation preferences."
             ),
             HelpItem(
                 "Stopwatch",
-                "Tap Stopwatch to start or pause. Hold it to reset. The large Display shows elapsed time with hundredths."
+                "Tap Stopwatch to start or pause. Hold it to reset."
             ),
             HelpItem(
                 "Counters",
-                "Add and Minus change the value. Reset returns to zero. Random generates a number from 1 to 1000."
+                "Add, Minus, Reset and Random operate through the main Display."
             ),
             HelpItem(
                 "Appearance",
-                "Settings includes light and dark appearance, preset and custom colors, animation controls and selectable interface fonts."
+                "Settings controls appearance, colors, animation, fonts, haptics and launcher icon."
             ),
             HelpItem(
                 "Navigation",
-                "Use the top-left arrow to collapse or restore the top screen. Back to the Start appears at the end of the Main page."
+                "Use the top-left arrow to collapse the Display. Back to the Start is at the page end."
             )
         )
     }
@@ -465,28 +462,20 @@ fun NmixInstructions(){
                 ){
                     rowItems.forEach{item->
                         HelpTitleBox(
-                            item=item,
-                            selected=
-                                selected==item.title,
-                            modifier=
-                                Modifier.weight(1f)
+                            item,
+                            selected==item.title,
+                            Modifier.weight(1f)
                         ){
                             selected=
-                                if(
-                                    selected==item.title
-                                )
+                                if(selected==item.title)
                                     null
                                 else
                                     item.title
                         }
                     }
 
-                    repeat(
-                        5-rowItems.size
-                    ){
-                        Spacer(
-                            Modifier.weight(1f)
-                        )
+                    repeat(5-rowItems.size){
+                        Spacer(Modifier.weight(1f))
                     }
                 }
             }
@@ -502,9 +491,7 @@ fun NmixInstructions(){
                         )
                     )+
                     slideInVertically(
-                        initialOffsetY={
-                            it/8
-                        },
+                        initialOffsetY={it/8},
                         animationSpec=tween(
                             340,
                             easing=EaseOutCubic
@@ -513,9 +500,7 @@ fun NmixInstructions(){
                 ) togetherWith (
                     fadeOut(tween(190))+
                     slideOutVertically(
-                        targetOffsetY={
-                            -it/10
-                        },
+                        targetOffsetY={-it/10},
                         animationSpec=tween(240)
                     )
                 )
@@ -523,16 +508,13 @@ fun NmixInstructions(){
             label="helpDetail"
         ){title->
             if(title!=null){
-                val item=
+                HelpDetailBox(
                     items.first{
                         it.title==title
                     }
-
-                HelpDetailBox(item)
-            }else{
-                Spacer(
-                    Modifier.height(0.dp)
                 )
+            }else{
+                Spacer(Modifier.height(0.dp))
             }
         }
     }
@@ -548,6 +530,7 @@ private fun HelpTitleBox(
     val a=LocalNmixAppearance.current
     val p=a.palette
     val ui=a.uiColors()
+    val haptic=rememberNmixHapticAction()
 
     val interaction=remember{
         MutableInteractionSource()
@@ -557,12 +540,8 @@ private fun HelpTitleBox(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue=
-            if(pressed)
-                .95f
-            else
-                1f,
-        animationSpec=spring(
+        if(pressed).95f else 1f,
+        spring(
             dampingRatio=.74f,
             stiffness=650f
         ),
@@ -589,10 +568,7 @@ private fun HelpTitleBox(
                 )
             )
             .border(
-                if(selected)
-                    1.dp
-                else
-                    .45.dp,
+                if(selected)1.dp else .45.dp,
                 p.accent.copy(
                     alpha=
                         if(selected)
@@ -606,9 +582,10 @@ private fun HelpTitleBox(
             )
             .clickable(
                 interactionSource=interaction,
-                indication=null,
-                onClick=onClick
-            )
+                indication=null
+            ){
+                haptic(onClick)
+            }
             .padding(horizontal=4.dp),
         contentAlignment=
             Alignment.Center
@@ -698,15 +675,21 @@ private fun HelpDetailBox(
 fun NmixSettings(
     onCustomColor:()->Unit={}
 ){
+    val context=LocalContext.current
     val a=LocalNmixAppearance.current
-    val ui=a.uiColors()
     val p=a.palette
+    val ui=a.uiColors()
+    val haptic=rememberNmixHapticAction()
 
     val scroll=
         rememberScrollState()
 
     var detail by remember{
         mutableIntStateOf(0)
+    }
+
+    var iconNotice by remember{
+        mutableStateOf(false)
     }
 
     LaunchedEffect(Unit){
@@ -716,9 +699,18 @@ fun NmixSettings(
         }
     }
 
-    /*
-     * NMIX title stays permanently fixed.
-     */
+    fun applyIcon(){
+        val success=
+            NmixIconManager.applyFromState(
+                context,
+                a
+            )
+
+        if(success){
+            iconNotice=true
+        }
+    }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -743,170 +735,722 @@ fun NmixSettings(
             fontFamily=a.fontFamily
         )
 
-        /*
-         * Soft fade zone instead of a hard line.
-         * Scrolling content visually disappears
-         * underneath the fixed header.
-         */
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(18.dp)
+                .height(10.dp)
                 .background(
                     Brush.verticalGradient(
                         listOf(
                             if(a.darkMode)
                                 Color(0xFF151917)
-                                    .copy(alpha=.92f)
+                                    .copy(alpha=.26f)
                             else
                                 Color(0xFFF0F4F2)
-                                    .copy(alpha=.92f),
-
-                            if(a.darkMode)
-                                Color(0xFF151917)
-                                    .copy(alpha=.45f)
-                            else
-                                Color(0xFFF0F4F2)
-                                    .copy(alpha=.45f),
-
+                                    .copy(alpha=.30f),
                             Color.Transparent
                         )
                     )
                 )
         )
 
-        /*
-         * Only this area scrolls.
-         */
         Column(
             Modifier
                 .fillMaxWidth()
                 .weight(1f)
                 .verticalScroll(scroll)
-                .padding(bottom=22.dp)
+                .padding(bottom=24.dp)
         ){
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical=5.dp),
-                verticalAlignment=
-                    Alignment.CenterVertically
+            SettingsToggleRow(
+                title="Appearance",
+                detail=
+                    if(a.darkMode)
+                        "Dark mode"
+                    else
+                        "Light mode",
+                enabled=a.darkMode
             ){
-                Column(
-                    Modifier.weight(1f)
-                ){
-                    Text(
-                        "Appearance",
-                        color=ui.text,
-                        fontSize=12.sp,
-                        fontWeight=
-                            FontWeight.SemiBold,
-                        fontFamily=a.fontFamily
-                    )
-
-                    Text(
-                        if(a.darkMode)
-                            "Dark mode"
-                        else
-                            "Light mode",
-                        color=ui.muted,
-                        fontSize=9.sp,
-                        fontFamily=a.fontFamily
-                    )
-                }
-
-                NmixSwitch(
-                    on=a.darkMode,
-                    accent=p.accent
-                ){
+                haptic{
                     a.toggleDarkMode()
                 }
             }
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(14.dp))
 
-            Text(
-                "Color Theme",
-                color=ui.text,
-                fontSize=12.sp,
-                fontWeight=
-                    FontWeight.SemiBold,
-                fontFamily=a.fontFamily
-            )
-
-            Text(
-                "Choose your NMIX color",
-                color=ui.muted,
-                fontSize=9.sp,
-                fontFamily=a.fontFamily
-            )
-
-            Spacer(Modifier.height(10.dp))
-
-            ThemeGrid(detail)
-
-            Spacer(Modifier.height(9.dp))
-
-            NmixCustomThemeButton(
-                onClick=onCustomColor
-            )
-
-            Spacer(Modifier.height(20.dp))
-
-            NmixAnimationSettings()
-
-            Spacer(Modifier.height(20.dp))
-
-            Text(
-                "Fonts",
-                color=ui.text,
-                fontSize=12.sp,
-                fontWeight=
-                    FontWeight.SemiBold,
-                fontFamily=a.fontFamily
-            )
-
-            Text(
-                "Preview your interface typeface",
-                color=ui.muted,
-                fontSize=9.sp,
-                fontFamily=a.fontFamily
-            )
-
-            Spacer(Modifier.height(10.dp))
-
-            Column(
-                Modifier.fillMaxWidth(),
-                verticalArrangement=
-                    Arrangement.spacedBy(7.dp)
+            SettingsToggleRow(
+                title="Colors",
+                detail=
+                    if(a.colorEnabled)
+                        "Color controls enabled"
+                    else
+                        "Default Green",
+                enabled=a.colorEnabled
             ){
-                NmixFontName.values()
-                    .forEach{font->
-                        FontPill(
-                            font=font,
-                            selected=
-                                a.font==font
-                        ){
-                            a.setFont(font)
-                        }
-                    }
+                haptic{
+                    a.setColorEnabled(
+                        !a.colorEnabled
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible=a.colorEnabled,
+                enter=
+                    expandVertically(
+                        tween(
+                            330,
+                            easing=EaseOutCubic
+                        )
+                    )+
+                    fadeIn(tween(220)),
+                exit=
+                    shrinkVertically(
+                        tween(
+                            280,
+                            easing=EaseInOutCubic
+                        )
+                    )+
+                    fadeOut(tween(160))
+            ){
+                Column{
+                    Spacer(Modifier.height(12.dp))
+
+                    Text(
+                        "Color Theme",
+                        color=ui.text,
+                        fontSize=12.sp,
+                        fontWeight=FontWeight.SemiBold,
+                        fontFamily=a.fontFamily
+                    )
+
+                    Text(
+                        "Choose your NMIX color",
+                        color=ui.muted,
+                        fontSize=9.sp,
+                        fontFamily=a.fontFamily
+                    )
+
+                    Spacer(Modifier.height(10.dp))
+
+                    ThemeGrid(detail)
+
+                    Spacer(Modifier.height(9.dp))
+
+                    NmixCustomThemeButton(
+                        onClick=onCustomColor
+                    )
+                }
             }
 
             Spacer(Modifier.height(17.dp))
 
-            Text(
-                "NMIX logo uses Cinzel Decorative.",
-                color=ui.muted,
-                fontSize=8.sp,
-                fontFamily=a.fontFamily
+            SettingsToggleRow(
+                title="Animation",
+                detail=
+                    if(a.animationEnabled)
+                        "${a.animation.label()} • ${a.animationQuantity} elements"
+                    else
+                        "Motion disabled",
+                enabled=a.animationEnabled
+            ){
+                haptic{
+                    a.setAnimationEnabled(
+                        !a.animationEnabled
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible=a.animationEnabled,
+                enter=
+                    expandVertically(
+                        tween(
+                            340,
+                            easing=EaseOutCubic
+                        )
+                    )+
+                    fadeIn(tween(230)),
+                exit=
+                    shrinkVertically(
+                        tween(
+                            290,
+                            easing=EaseInOutCubic
+                        )
+                    )+
+                    fadeOut(tween(170))
+            ){
+                Column{
+                    Spacer(Modifier.height(12.dp))
+                    NmixAnimationSettings()
+                }
+            }
+
+            Spacer(Modifier.height(17.dp))
+
+            SettingsToggleRow(
+                title="Fonts",
+                detail=
+                    if(a.fontEnabled)
+                        a.font.label()
+                    else
+                        "Default Inter",
+                enabled=a.fontEnabled
+            ){
+                haptic{
+                    a.setFontEnabled(
+                        !a.fontEnabled
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible=a.fontEnabled,
+                enter=
+                    expandVertically(
+                        tween(
+                            330,
+                            easing=EaseOutCubic
+                        )
+                    )+
+                    fadeIn(tween(220)),
+                exit=
+                    shrinkVertically(
+                        tween(
+                            280,
+                            easing=EaseInOutCubic
+                        )
+                    )+
+                    fadeOut(tween(160))
+            ){
+                Column{
+                    Spacer(Modifier.height(11.dp))
+
+                    Text(
+                        "Preview your interface typeface",
+                        color=ui.muted,
+                        fontSize=9.sp,
+                        fontFamily=a.fontFamily
+                    )
+
+                    Spacer(Modifier.height(9.dp))
+
+                    Column(
+                        Modifier.fillMaxWidth(),
+                        verticalArrangement=
+                            Arrangement.spacedBy(7.dp)
+                    ){
+                        NmixFontName.values()
+                            .forEach{font->
+                                FontPill(
+                                    font=font,
+                                    selected=
+                                        a.font==font
+                                ){
+                                    haptic{
+                                        a.setFont(font)
+                                    }
+                                }
+                            }
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Text(
+                        "NMIX logo uses Cinzel Decorative.",
+                        color=ui.muted,
+                        fontSize=8.sp,
+                        fontFamily=a.fontFamily
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(17.dp))
+
+            SettingsToggleRow(
+                title="Vibration",
+                detail="Soft interface haptics",
+                enabled=a.hapticsEnabled
+            ){
+                /*
+                 * Perform old-state haptic first so
+                 * enabling gives immediate feedback.
+                 */
+                a.setHapticsEnabled(
+                    !a.hapticsEnabled
+                )
+
+                if(a.hapticsEnabled){
+                    haptic{}
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            AppIconSettings(
+                iconNotice=iconNotice,
+                onDismissNotice={
+                    iconNotice=false
+                },
+                applyIcon={
+                    haptic{
+                        applyIcon()
+                    }
+                }
             )
         }
     }
 }
 
+@Composable
+private fun SettingsToggleRow(
+    title:String,
+    detail:String,
+    enabled:Boolean,
+    onToggle:()->Unit
+){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+    val ui=a.uiColors()
+
+    val shape=
+        RoundedCornerShape(14.dp)
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .clip(shape)
+            .background(
+                if(a.darkMode)
+                    Color(0xFF151A18)
+                        .copy(alpha=.78f)
+                else
+                    Color(0xFFE8ECEA)
+                        .copy(alpha=.88f)
+            )
+            .background(
+                p.accent.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .035f
+                        else
+                            .025f
+                )
+            )
+            .border(
+                .45.dp,
+                p.accent.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .14f
+                        else
+                            .21f
+                ),
+                shape
+            )
+            .clickable(
+                interactionSource=remember{
+                    MutableInteractionSource()
+                },
+                indication=null,
+                onClick=onToggle
+            )
+            .padding(horizontal=11.dp),
+        verticalAlignment=
+            Alignment.CenterVertically
+    ){
+        Column(
+            Modifier.weight(1f)
+        ){
+            Text(
+                title,
+                color=ui.text,
+                fontSize=11.sp,
+                fontWeight=FontWeight.SemiBold,
+                fontFamily=a.fontFamily
+            )
+
+            Text(
+                detail,
+                color=ui.muted,
+                fontSize=8.sp,
+                fontFamily=a.fontFamily
+            )
+        }
+
+        NmixSwitch(
+            on=enabled,
+            accent=p.accent,
+            onClick=onToggle
+        )
+    }
+}
+
 /*
  * ==================================================
- * COLOR THEMES
+ * APP ICON
+ * ==================================================
+ */
+
+@Composable
+private fun AppIconSettings(
+    iconNotice:Boolean,
+    onDismissNotice:()->Unit,
+    applyIcon:()->Unit
+){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+    val ui=a.uiColors()
+
+    val shape=
+        RoundedCornerShape(16.dp)
+
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(
+                if(a.darkMode)
+                    Color(0xFF151A18)
+                        .copy(alpha=.80f)
+                else
+                    Color(0xFFE8ECEA)
+                        .copy(alpha=.89f)
+            )
+            .border(
+                .45.dp,
+                p.accent.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .15f
+                        else
+                            .22f
+                ),
+                shape
+            )
+            .padding(11.dp)
+    ){
+        Text(
+            "APP ICON",
+            color=p.accent,
+            fontSize=8.sp,
+            fontWeight=FontWeight.Bold,
+            letterSpacing=1.sp,
+            fontFamily=a.fontFamily
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        SettingsToggleRow(
+            title="Set App Icon",
+            detail=
+                if(a.appIconEnabled)
+                    "Alternate NMIX icon active"
+                else
+                    "Use default app icon",
+            enabled=a.appIconEnabled
+        ){
+            a.setAppIconEnabled(
+                !a.appIconEnabled
+            )
+
+            applyIcon()
+        }
+
+        AnimatedVisibility(
+            visible=a.appIconEnabled,
+            enter=
+                expandVertically(
+                    tween(
+                        330,
+                        easing=EaseOutCubic
+                    )
+                )+
+                fadeIn(tween(220)),
+            exit=
+                shrinkVertically(
+                    tween(
+                        280,
+                        easing=EaseInOutCubic
+                    )
+                )+
+                fadeOut(tween(160))
+        ){
+            Column{
+                Spacer(Modifier.height(9.dp))
+
+                SettingsToggleRow(
+                    title="Follow Theme",
+                    detail=
+                        if(a.iconFollowTheme)
+                            "Preset theme controls icon"
+                        else
+                            "Choose icon color manually",
+                    enabled=a.iconFollowTheme
+                ){
+                    a.setIconFollowTheme(
+                        !a.iconFollowTheme
+                    )
+
+                    applyIcon()
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                Text(
+                    "Icon Color",
+                    color=ui.text,
+                    fontSize=10.sp,
+                    fontWeight=FontWeight.SemiBold,
+                    fontFamily=a.fontFamily
+                )
+
+                Spacer(Modifier.height(7.dp))
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement=
+                        Arrangement.spacedBy(6.dp)
+                ){
+                    NmixThemeName.values()
+                        .forEach{theme->
+                            IconColorChoice(
+                                theme=theme,
+                                selected=
+                                    a.iconTheme==theme,
+                                enabled=
+                                    !a.iconFollowTheme,
+                                modifier=
+                                    Modifier.weight(1f)
+                            ){
+                                a.setIconTheme(theme)
+                                applyIcon()
+                            }
+                        }
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                Text(
+                    "Icon Style",
+                    color=ui.text,
+                    fontSize=10.sp,
+                    fontWeight=FontWeight.SemiBold,
+                    fontFamily=a.fontFamily
+                )
+
+                Spacer(Modifier.height(7.dp))
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement=
+                        Arrangement.spacedBy(7.dp)
+                ){
+                    IconStyleChoice(
+                        text="Adaptive",
+                        selected=
+                            a.iconStyle==
+                                NmixIconStyle.ADAPTIVE,
+                        modifier=Modifier.weight(1f)
+                    ){
+                        a.setIconStyle(
+                            NmixIconStyle.ADAPTIVE
+                        )
+
+                        applyIcon()
+                    }
+
+                    IconStyleChoice(
+                        text="Round",
+                        selected=
+                            a.iconStyle==
+                                NmixIconStyle.ROUND,
+                        modifier=Modifier.weight(1f)
+                    ){
+                        a.setIconStyle(
+                            NmixIconStyle.ROUND
+                        )
+
+                        applyIcon()
+                    }
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible=iconNotice
+        ){
+            Column{
+                Spacer(Modifier.height(10.dp))
+
+                val noticeShape=
+                    RoundedCornerShape(11.dp)
+
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(noticeShape)
+                        .background(
+                            p.accent.copy(alpha=.08f)
+                        )
+                        .border(
+                            .4.dp,
+                            p.accent.copy(alpha=.18f),
+                            noticeShape
+                        )
+                        .padding(9.dp),
+                    verticalAlignment=
+                        Alignment.CenterVertically
+                ){
+                    Text(
+                        "Icon updated. Launcher may need a moment to refresh.",
+                        modifier=Modifier.weight(1f),
+                        color=ui.muted,
+                        fontSize=7.5.sp,
+                        lineHeight=10.sp,
+                        fontFamily=a.fontFamily
+                    )
+
+                    Text(
+                        "OK",
+                        color=p.accent,
+                        fontSize=8.sp,
+                        fontWeight=FontWeight.Bold,
+                        fontFamily=a.fontFamily,
+                        modifier=
+                            Modifier.clickable(
+                                interactionSource=remember{
+                                    MutableInteractionSource()
+                                },
+                                indication=null,
+                                onClick=onDismissNotice
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun IconColorChoice(
+    theme:NmixThemeName,
+    selected:Boolean,
+    enabled:Boolean,
+    modifier:Modifier,
+    onClick:()->Unit
+){
+    val a=LocalNmixAppearance.current
+    val color=theme.palette().accent
+
+    val shape=
+        CircleShape
+
+    Box(
+        modifier
+            .aspectRatio(1f)
+            .clip(shape)
+            .background(
+                color.copy(
+                    alpha=
+                        if(enabled)
+                            1f
+                        else
+                            .38f
+                )
+            )
+            .then(
+                if(selected){
+                    Modifier.border(
+                        2.dp,
+                        if(a.darkMode)
+                            Color.White
+                        else
+                            Color(0xFF252A27),
+                        shape
+                    )
+                }else{
+                    Modifier
+                }
+            )
+            .clickable(
+                enabled=enabled,
+                interactionSource=remember{
+                    MutableInteractionSource()
+                },
+                indication=null,
+                onClick=onClick
+            )
+    )
+}
+
+@Composable
+private fun IconStyleChoice(
+    text:String,
+    selected:Boolean,
+    modifier:Modifier,
+    onClick:()->Unit
+){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+    val ui=a.uiColors()
+
+    val shape=
+        RoundedCornerShape(11.dp)
+
+    Box(
+        modifier
+            .height(38.dp)
+            .clip(shape)
+            .background(
+                p.accent.copy(
+                    alpha=
+                        if(selected)
+                            .15f
+                        else
+                            .055f
+                )
+            )
+            .border(
+                if(selected)
+                    1.dp
+                else
+                    .4.dp,
+                p.accent.copy(
+                    alpha=
+                        if(selected)
+                            .72f
+                        else
+                            .16f
+                ),
+                shape
+            )
+            .clickable(
+                interactionSource=remember{
+                    MutableInteractionSource()
+                },
+                indication=null,
+                onClick=onClick
+            ),
+        contentAlignment=Alignment.Center
+    ){
+        Text(
+            text,
+            color=
+                if(selected)
+                    p.accent
+                else
+                    ui.text,
+            fontSize=9.sp,
+            fontWeight=FontWeight.SemiBold,
+            fontFamily=a.fontFamily
+        )
+    }
+}
+
+/*
+ * ==================================================
+ * THEMES
  * ==================================================
  */
 
@@ -941,6 +1485,17 @@ private fun ThemeGrid(
                                 Modifier.weight(1f)
                         ){
                             a.setTheme(theme)
+
+                            if(
+                                a.appIconEnabled &&
+                                a.iconFollowTheme
+                            ){
+                                NmixIconManager
+                                    .applyFromState(
+                                        LocalContext.current,
+                                        a
+                                    )
+                            }
                         }
                     }
                 }
@@ -962,45 +1517,23 @@ private fun themeHex(
 private fun themeMood(
     theme:NmixThemeName
 )=when(theme){
-    NmixThemeName.GREEN->
-        "Balanced • Focused"
-
-    NmixThemeName.BLUE->
-        "Clear • Productive"
-
-    NmixThemeName.PURPLE->
-        "Creative • Calm"
-
-    NmixThemeName.ORANGE->
-        "Energetic • Warm"
-
-    NmixThemeName.ROSE->
-        "Soft • Expressive"
-
-    NmixThemeName.CYAN->
-        "Fresh • Precise"
+    NmixThemeName.GREEN->"Balanced • Focused"
+    NmixThemeName.BLUE->"Clear • Productive"
+    NmixThemeName.PURPLE->"Creative • Calm"
+    NmixThemeName.ORANGE->"Energetic • Warm"
+    NmixThemeName.ROSE->"Soft • Expressive"
+    NmixThemeName.CYAN->"Fresh • Precise"
 }
 
 private fun themeDetail(
     theme:NmixThemeName
 )=when(theme){
-    NmixThemeName.GREEN->
-        "Calm natural tone"
-
-    NmixThemeName.BLUE->
-        "Clean focused energy"
-
-    NmixThemeName.PURPLE->
-        "Quiet creative mood"
-
-    NmixThemeName.ORANGE->
-        "Bright active feel"
-
-    NmixThemeName.ROSE->
-        "Warm expressive mood"
-
-    NmixThemeName.CYAN->
-        "Crisp modern clarity"
+    NmixThemeName.GREEN->"Calm natural tone"
+    NmixThemeName.BLUE->"Clean focused energy"
+    NmixThemeName.PURPLE->"Quiet creative mood"
+    NmixThemeName.ORANGE->"Bright active feel"
+    NmixThemeName.ROSE->"Warm expressive mood"
+    NmixThemeName.CYAN->"Crisp modern clarity"
 }
 
 @Composable
@@ -1015,6 +1548,7 @@ private fun ThemeCard(
     val current=a.palette
     val ui=a.uiColors()
     val palette=theme.palette()
+    val haptic=rememberNmixHapticAction()
 
     val interaction=remember{
         MutableInteractionSource()
@@ -1024,11 +1558,7 @@ private fun ThemeCard(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue=
-            if(pressed)
-                .97f
-            else
-                1f,
+        if(pressed).97f else 1f,
         label="themePress"
     )
 
@@ -1036,17 +1566,16 @@ private fun ThemeCard(
         RoundedCornerShape(14.dp)
 
     val bg=
-        if(a.darkMode){
+        if(a.darkMode)
             Color.White.copy(alpha=.035f)
-        }else{
+        else
             Color(0xFFE8ECEA)
                 .copy(alpha=.86f)
-        }
 
     val outline=
-        if(selected){
+        if(selected)
             current.accent
-        }else{
+        else
             current.accent.copy(
                 alpha=
                     if(a.darkMode)
@@ -1054,7 +1583,6 @@ private fun ThemeCard(
                     else
                         .14f
             )
-        }
 
     val name=
         theme.name
@@ -1080,7 +1608,9 @@ private fun ThemeCard(
             .combinedClickable(
                 interactionSource=interaction,
                 indication=null,
-                onClick=onClick,
+                onClick={
+                    haptic(onClick)
+                },
                 onLongClick={}
             )
             .padding(6.dp)
@@ -1092,7 +1622,9 @@ private fun ThemeCard(
                 .clip(
                     RoundedCornerShape(10.dp)
                 )
-                .background(palette.accent),
+                .background(
+                    palette.accent
+                ),
             contentAlignment=
                 Alignment.Center
         ){
@@ -1101,8 +1633,7 @@ private fun ThemeCard(
                 color=Color.White,
                 fontSize=7.5.sp,
                 fontWeight=FontWeight.Bold,
-                fontFamily=a.fontFamily,
-                maxLines=1
+                fontFamily=a.fontFamily
             )
 
             if(selected){
@@ -1124,8 +1655,7 @@ private fun ThemeCard(
             color=ui.text,
             fontSize=10.sp,
             fontWeight=FontWeight.Bold,
-            fontFamily=a.fontFamily,
-            maxLines=1
+            fontFamily=a.fontFamily
         )
 
         Spacer(Modifier.height(2.dp))
@@ -1133,36 +1663,13 @@ private fun ThemeCard(
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(34.dp),
-            contentAlignment=
-                Alignment.TopStart
+                .height(34.dp)
         ){
             AnimatedContent(
                 targetState=detail,
                 transitionSpec={
-                    (
-                        fadeIn(tween(320))+
-                        slideInVertically(
-                            initialOffsetY={
-                                it/4
-                            },
-                            animationSpec=tween(
-                                320,
-                                easing=EaseOutCubic
-                            )
-                        )
-                    ) togetherWith (
-                        fadeOut(tween(220))+
-                        slideOutVertically(
-                            targetOffsetY={
-                                -it/4
-                            },
-                            animationSpec=tween(
-                                260,
-                                easing=EaseInCubic
-                            )
-                        )
-                    )
+                    fadeIn(tween(320)) togetherWith
+                        fadeOut(tween(220))
                 },
                 label="themeDetail"
             ){state->
@@ -1174,14 +1681,8 @@ private fun ThemeCard(
                     color=ui.muted,
                     fontSize=7.1.sp,
                     lineHeight=9.sp,
-                    fontWeight=
-                        if(state==0)
-                            FontWeight.SemiBold
-                        else
-                            FontWeight.Normal,
                     fontFamily=a.fontFamily,
-                    maxLines=3,
-                    textAlign=TextAlign.Start
+                    maxLines=3
                 )
             }
         }
@@ -1190,7 +1691,7 @@ private fun ThemeCard(
 
 /*
  * ==================================================
- * FONT
+ * FONTS
  * ==================================================
  */
 
@@ -1212,37 +1713,12 @@ private fun FontPill(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue=
-            if(pressed)
-                .97f
-            else
-                1f,
+        if(pressed).97f else 1f,
         label="fontPress"
     )
 
     val shape=
         RoundedCornerShape(50)
-
-    val bg=
-        if(a.darkMode){
-            Color.White.copy(alpha=.035f)
-        }else{
-            Color(0xFFE8ECEA)
-                .copy(alpha=.84f)
-        }
-
-    val outline=
-        if(selected){
-            p.accent
-        }else{
-            p.accent.copy(
-                alpha=
-                    if(a.darkMode)
-                        .08f
-                    else
-                        .14f
-            )
-        }
 
     Row(
         Modifier
@@ -1250,13 +1726,27 @@ private fun FontPill(
             .height(40.dp)
             .scale(scale)
             .clip(shape)
-            .background(bg)
+            .background(
+                if(a.darkMode)
+                    Color.White.copy(alpha=.035f)
+                else
+                    Color(0xFFE8ECEA)
+                        .copy(alpha=.84f)
+            )
             .border(
                 if(selected)
                     1.05.dp
                 else
                     .4.dp,
-                outline,
+                p.accent.copy(
+                    alpha=
+                        if(selected)
+                            .78f
+                        else if(a.darkMode)
+                            .08f
+                        else
+                            .14f
+                ),
                 shape
             )
             .combinedClickable(
@@ -1271,8 +1761,7 @@ private fun FontPill(
     ){
         Text(
             font.label(),
-            modifier=
-                Modifier.weight(1f),
+            Modifier.weight(1f),
             color=ui.text,
             fontSize=13.5.sp,
             fontWeight=FontWeight.Bold,
@@ -1289,12 +1778,6 @@ private fun FontPill(
     }
 }
 
-/*
- * ==================================================
- * APPEARANCE SWITCH
- * ==================================================
- */
-
 @Composable
 private fun NmixSwitch(
     on:Boolean,
@@ -1309,13 +1792,19 @@ private fun NmixSwitch(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue=
-            if(pressed)
-                .96f
-            else
-                1f,
+        if(pressed).96f else 1f,
         label="switchPress"
     )
+
+    val alignment by
+        animateFloatAsState(
+            if(on)1f else 0f,
+            tween(
+                220,
+                easing=EaseInOutCubic
+            ),
+            label="switchPosition"
+        )
 
     Box(
         Modifier
@@ -1330,23 +1819,20 @@ private fun NmixSwitch(
                     accent
                 else
                     Color(0xFF6F7773)
-                        .copy(alpha=.42f)
+                        .copy(alpha=.36f)
             )
-            .combinedClickable(
+            .clickable(
                 interactionSource=interaction,
                 indication=null,
-                onClick=onClick,
-                onLongClick={}
+                onClick=onClick
             )
-            .padding(4.dp),
-        contentAlignment=
-            if(on)
-                Alignment.CenterEnd
-            else
-                Alignment.CenterStart
+            .padding(4.dp)
     ){
         Box(
             Modifier
+                .offset(
+                    x=(21f*alignment).dp
+                )
                 .size(20.dp)
                 .clip(CircleShape)
                 .background(Color.White)
