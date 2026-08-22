@@ -30,6 +30,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -37,10 +38,11 @@ import androidx.compose.ui.unit.sp
 private fun nmixScreenColor():Color{
     val a=LocalNmixAppearance.current
 
-    return if(a.darkMode)
+    return if(a.darkMode){
         Color(0xFF151A18)
-    else
+    }else{
         Color(0xFFE9ECEA)
+    }
 }
 
 @Composable
@@ -60,10 +62,13 @@ private fun nmixScreenBorder():Color{
 private fun nmixDisplayText():Color{
     val a=LocalNmixAppearance.current
 
-    return if(a.darkMode)
+    return if(a.darkMode){
         Color.White.copy(alpha=.92f)
-    else
-        a.uiColors().text.copy(alpha=.88f)
+    }else{
+        a.uiColors()
+            .text
+            .copy(alpha=.88f)
+    }
 }
 
 @Composable
@@ -80,17 +85,23 @@ fun NmixToolSection(
     val ui=a.uiColors()
 
     val progress by animateFloatAsState(
-        if(open)1f else 0f,
-        tween(
+        targetValue=
+            if(open)1f else 0f,
+        animationSpec=tween(
             520,
             easing=EaseInOutCubic
         ),
         label="toolProgress"
     )
 
-    val outerRotation=180f*progress
-    val innerRotation=-180f*progress
-    val arrowRotation=180f*progress
+    val outerRotation=
+        180f*progress
+
+    val innerRotation=
+        -180f*progress
+
+    val arrowRotation=
+        180f*progress
 
     val outerSize=
         (42f-3f*progress).dp
@@ -170,15 +181,16 @@ fun NmixToolSection(
                 contentAlignment=
                     Alignment.Center
             ){
+                val outerShape=
+                    RoundedCornerShape(
+                        outerRadius
+                    )
+
                 Box(
                     Modifier
                         .size(outerSize)
                         .rotate(outerRotation)
-                        .clip(
-                            RoundedCornerShape(
-                                outerRadius
-                            )
-                        )
+                        .clip(outerShape)
                         .background(
                             p.accent.copy(
                                 alpha=.66f
@@ -189,9 +201,7 @@ fun NmixToolSection(
                             p.accentLight.copy(
                                 alpha=.60f
                             ),
-                            RoundedCornerShape(
-                                outerRadius
-                            )
+                            outerShape
                         )
                 )
 
@@ -259,7 +269,9 @@ fun NmixToolSection(
                 NmixIcon.CHEVRON_DOWN,
                 Modifier
                     .size(18.dp)
-                    .rotate(arrowRotation),
+                    .rotate(
+                        arrowRotation
+                    ),
                 ui.muted
             )
         }
@@ -274,16 +286,22 @@ fun NmixToolSection(
                     ),
                     expandFrom=Alignment.Top
                 )+
-                fadeIn(tween(210)),
+                fadeIn(
+                    tween(210)
+                ),
             exit=
                 shrinkVertically(
                     animationSpec=tween(
                         320,
-                        easing=EaseInOutCubic
+                        easing=
+                            EaseInOutCubic
                     ),
-                    shrinkTowards=Alignment.Top
+                    shrinkTowards=
+                        Alignment.Top
                 )+
-                fadeOut(tween(180))
+                fadeOut(
+                    tween(180)
+                )
         ){
             content()
         }
@@ -302,20 +320,17 @@ fun NmixOption(
     val p=a.palette
     val ui=a.uiColors()
 
-    val interaction=
-        remember{
-            MutableInteractionSource()
-        }
+    val interaction=remember{
+        MutableInteractionSource()
+    }
 
     val pressed by
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if(pressed)
-            .965f
-        else
-            1f,
-        spring(
+        targetValue=
+            if(pressed).965f else 1f,
+        animationSpec=spring(
             dampingRatio=.72f,
             stiffness=620f
         ),
@@ -331,9 +346,11 @@ fun NmixOption(
             .height(58.dp)
             .clip(shape)
             .background(
-                if(selected)
-                    p.accent.copy(alpha=.84f)
-                else
+                if(selected){
+                    p.accent.copy(
+                        alpha=.84f
+                    )
+                }else{
                     p.accent.copy(
                         alpha=
                             if(a.darkMode)
@@ -341,6 +358,7 @@ fun NmixOption(
                             else
                                 .08f
                     )
+                }
             )
             .border(
                 .45.dp,
@@ -354,11 +372,14 @@ fun NmixOption(
                 shape
             )
             .clickable(
-                interactionSource=interaction,
+                interactionSource=
+                    interaction,
                 indication=null,
                 onClick=onClick
             )
-            .padding(horizontal=13.dp),
+            .padding(
+                horizontal=13.dp
+            ),
         verticalAlignment=
             Alignment.CenterVertically
     ){
@@ -366,22 +387,24 @@ fun NmixOption(
             Modifier
                 .size(35.dp)
                 .clip(
-                    if(selected)
+                    if(selected){
                         CircleShape
-                    else
+                    }else{
                         RoundedCornerShape(
                             9.dp
                         )
+                    }
                 )
                 .background(
-                    if(selected)
+                    if(selected){
                         Color.White.copy(
                             alpha=.92f
                         )
-                    else
+                    }else{
                         p.accent.copy(
                             alpha=.15f
                         )
+                    }
                 ),
             contentAlignment=
                 Alignment.Center
@@ -423,13 +446,14 @@ fun NmixCircleButton(
         LocalNmixAppearance.current
 
     NmixPressBox(
-        modifier,
-        CircleShape,
-        color
-            ?:a.palette.accent.copy(
-                alpha=.80f
-            ),
-        onClick
+        modifier=modifier,
+        shape=CircleShape,
+        color=
+            color
+                ?:a.palette.accent.copy(
+                    alpha=.80f
+                ),
+        onClick=onClick
     ){
         NmixIcon(
             icon,
@@ -452,13 +476,20 @@ fun NmixSmallIconButton(
     val p=a.palette
 
     NmixPressBox(
-        modifier,
-        RoundedCornerShape(9.dp),
-        if(selected)
-            Color.White.copy(alpha=.17f)
-        else
-            p.accent.copy(alpha=.13f),
-        onClick
+        modifier=modifier,
+        shape=
+            RoundedCornerShape(9.dp),
+        color=
+            if(selected){
+                Color.White.copy(
+                    alpha=.17f
+                )
+            }else{
+                p.accent.copy(
+                    alpha=.13f
+                )
+            },
+        onClick=onClick
     ){
         NmixIcon(
             icon,
@@ -487,9 +518,11 @@ fun NmixTextButton(
         RoundedCornerShape(50)
 
     val bg=
-        if(accent)
-            p.accent.copy(alpha=.78f)
-        else
+        if(accent){
+            p.accent.copy(
+                alpha=.78f
+            )
+        }else{
             p.accent.copy(
                 alpha=
                     if(a.darkMode)
@@ -497,6 +530,7 @@ fun NmixTextButton(
                     else
                         .08f
             )
+        }
 
     Box(
         modifier
@@ -515,18 +549,20 @@ fun NmixTextButton(
             )
     ){
         NmixPressBox(
-            Modifier.fillMaxSize(),
-            shape,
-            Color.Transparent,
-            onClick
+            modifier=
+                Modifier.fillMaxSize(),
+            shape=shape,
+            color=Color.Transparent,
+            onClick=onClick
         ){
             Text(
                 text,
                 color=
-                    if(accent)
+                    if(accent){
                         Color.White
-                    else
-                        a.uiColors().text,
+                    }else{
+                        a.uiColors().text
+                    },
                 fontSize=12.sp,
                 fontWeight=
                     FontWeight.SemiBold,
@@ -550,33 +586,40 @@ fun NmixKey(
 
     val bg=when(type){
         1->
-            p.accent.copy(alpha=.86f)
+            p.accent.copy(
+                alpha=.86f
+            )
 
         2->
             Color(0xFFD83939)
                 .copy(alpha=.17f)
 
         else->
-            if(a.darkMode)
+            if(a.darkMode){
                 Color(0xFF090C0B)
                     .copy(alpha=.75f)
-            else
+            }else{
                 p.accent.copy(
                     alpha=.08f
                 )
+            }
     }
 
     val fg=when(type){
         1->Color.White
-        2->Color(0xFFE15A5A)
-        else->a.uiColors().text
+
+        2->
+            Color(0xFFE15A5A)
+
+        else->
+            a.uiColors().text
     }
 
     NmixPressBox(
-        modifier,
-        CircleShape,
-        bg,
-        onClick
+        modifier=modifier,
+        shape=CircleShape,
+        color=bg,
+        onClick=onClick
     ){
         Text(
             text,
@@ -609,13 +652,12 @@ fun NmixDisplay(
 
     val p=a.palette
 
-    val interaction=
-        remember{
-            MutableInteractionSource()
-        }
-
     val density=
         LocalDensity.current
+
+    val interaction=remember{
+        MutableInteractionSource()
+    }
 
     var displayHeightPx by remember{
         mutableIntStateOf(0)
@@ -626,10 +668,6 @@ fun NmixDisplay(
             displayHeightPx.toDp()
         }
 
-    /*
-     * At compact Display heights calculator fields
-     * move into the left-side vertical rail.
-     */
     val compactTarget=
         calcVisible &&
         displayHeightPx>0 &&
@@ -637,73 +675,45 @@ fun NmixDisplay(
 
     val calcProgress by
         animateFloatAsState(
-            if(calcVisible)
-                1f
-            else
-                0f,
-            tween(
+            targetValue=
+                if(calcVisible)
+                    1f
+                else
+                    0f,
+            animationSpec=tween(
                 380,
-                easing=EaseInOutCubic
+                easing=
+                    EaseInOutCubic
             ),
             label="calcDisplay"
         )
 
     val compactProgress by
         animateFloatAsState(
-            if(compactTarget)
-                1f
-            else
-                0f,
-            tween(
+            targetValue=
+                if(compactTarget)
+                    1f
+                else
+                    0f,
+            animationSpec=tween(
                 360,
-                easing=EaseInOutCubic
+                easing=
+                    EaseInOutCubic
             ),
             label="calcCompact"
         )
 
+    /*
+     * Shared persisted Animation setting.
+     */
     val motion=
-        rememberInfiniteTransition(
-            label="displayMotion"
+        rememberNmixMotion(
+            "displayMotion"
         )
 
-    val x by motion.animateFloat(
-        -1f,
-        1f,
-        infiniteRepeatable(
-            tween(
-                2600,
-                easing=EaseInOutSine
-            ),
-            RepeatMode.Reverse
-        ),
-        label="displayX"
-    )
-
-    val y by motion.animateFloat(
-        1f,
-        -1f,
-        infiniteRepeatable(
-            tween(
-                3300,
-                easing=EaseInOutSine
-            ),
-            RepeatMode.Reverse
-        ),
-        label="displayY"
-    )
-
-    val pulse by motion.animateFloat(
-        .88f,
-        1.15f,
-        infiniteRepeatable(
-            tween(
-                2900,
-                easing=EaseInOutSine
-            ),
-            RepeatMode.Reverse
-        ),
-        label="displayPulse"
-    )
+    val x=motion.x
+    val y=motion.y
+    val pulse=motion.pulse
 
     val shape=
         RoundedCornerShape(19.dp)
@@ -724,7 +734,8 @@ fun NmixDisplay(
                 shape
             )
             .clickable(
-                interactionSource=interaction,
+                interactionSource=
+                    interaction,
                 indication=null,
                 onClick=onClick
             )
@@ -740,40 +751,45 @@ fun NmixDisplay(
                     y=(-155).dp
                 )
                 .graphicsLayer{
-                    translationX=x*190f
-                    translationY=y*85f
+                    translationX=
+                        x*190f
+
+                    translationY=
+                        y*85f
+
                     scaleX=pulse
                     scaleY=pulse
                 }
                 .background(
                     Brush.radialGradient(
-                        colorStops=arrayOf(
-                            0f to
-                                p.accent.copy(
-                                    alpha=
-                                        if(a.darkMode)
-                                            .22f
-                                        else
-                                            .18f
-                                ),
+                        colorStops=
+                            arrayOf(
+                                0f to
+                                    p.accent.copy(
+                                        alpha=
+                                            if(a.darkMode)
+                                                .22f
+                                            else
+                                                .18f
+                                    ),
 
-                            .28f to
-                                p.accent.copy(
-                                    alpha=
-                                        if(a.darkMode)
-                                            .15f
-                                        else
-                                            .12f
-                                ),
+                                .28f to
+                                    p.accent.copy(
+                                        alpha=
+                                            if(a.darkMode)
+                                                .15f
+                                            else
+                                                .12f
+                                    ),
 
-                            .60f to
-                                p.accent.copy(
-                                    alpha=.055f
-                                ),
+                                .60f to
+                                    p.accent.copy(
+                                        alpha=.055f
+                                    ),
 
-                            1f to
-                                Color.Transparent
-                        )
+                                1f to
+                                    Color.Transparent
+                            )
                     ),
                     CircleShape
                 )
@@ -790,47 +806,50 @@ fun NmixDisplay(
                     y=135.dp
                 )
                 .graphicsLayer{
-                    translationX=-x*160f
-                    translationY=-y*75f
+                    translationX=
+                        -x*160f
+
+                    translationY=
+                        -y*75f
                 }
                 .background(
                     Brush.radialGradient(
-                        colorStops=arrayOf(
-                            0f to
-                                p.accentLight.copy(
-                                    alpha=
-                                        if(a.darkMode)
-                                            .16f
-                                        else
-                                            .15f
-                                ),
+                        colorStops=
+                            arrayOf(
+                                0f to
+                                    p.accentLight
+                                        .copy(
+                                            alpha=
+                                                if(a.darkMode)
+                                                    .16f
+                                                else
+                                                    .15f
+                                        ),
 
-                            .35f to
-                                p.accentLight.copy(
-                                    alpha=.09f
-                                ),
+                                .35f to
+                                    p.accentLight
+                                        .copy(
+                                            alpha=.09f
+                                        ),
 
-                            .68f to
-                                p.accentLight.copy(
-                                    alpha=.035f
-                                ),
+                                .68f to
+                                    p.accentLight
+                                        .copy(
+                                            alpha=.035f
+                                        ),
 
-                            1f to
-                                Color.Transparent
-                        )
+                                1f to
+                                    Color.Transparent
+                            )
                     ),
                     CircleShape
                 )
         )
 
         /*
-         * Tall mode:
-         *
-         * [ first ][ sign ][ second ]
-         *
-         * Only the outer top corners are rounded.
+         * Normal/tall calculator strip.
          */
-        if(calcProgress>0.01f){
+        if(calcProgress>.01f){
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -845,14 +864,22 @@ fun NmixDisplay(
                     .graphicsLayer{
                         alpha=
                             calcProgress*
-                            (1f-compactProgress)
+                            (
+                                1f-
+                                compactProgress
+                            )
 
                         translationY=
-                            (1f-calcProgress)*
+                            (
+                                1f-
+                                calcProgress
+                            )*
                             -18f
                     },
                 horizontalArrangement=
-                    Arrangement.spacedBy(0.dp)
+                    Arrangement.spacedBy(
+                        0.dp
+                    )
             ){
                 NmixCalcField(
                     text=
@@ -875,7 +902,9 @@ fun NmixDisplay(
                     modifier=
                         Modifier.width(58.dp),
                     shape=
-                        RoundedCornerShape(0.dp)
+                        RoundedCornerShape(
+                            0.dp
+                        )
                 )
 
                 NmixCalcField(
@@ -893,13 +922,7 @@ fun NmixDisplay(
             }
 
             /*
-             * Compact mode:
-             *
-             * first
-             * sign
-             * second
-             *
-             * Fixed rail at Display left.
+             * Compact calculator rail.
              */
             Column(
                 Modifier
@@ -914,11 +937,16 @@ fun NmixDisplay(
                             compactProgress
 
                         translationX=
-                            (1f-compactProgress)*
+                            (
+                                1f-
+                                compactProgress
+                            )*
                             -16f
                     },
                 verticalArrangement=
-                    Arrangement.spacedBy(0.dp)
+                    Arrangement.spacedBy(
+                        0.dp
+                    )
             ){
                 NmixCalcField(
                     text=
@@ -943,7 +971,9 @@ fun NmixDisplay(
                     modifier=
                         Modifier.fillMaxWidth(),
                     shape=
-                        RoundedCornerShape(0.dp),
+                        RoundedCornerShape(
+                            0.dp
+                        ),
                     height=40.dp
                 )
 
@@ -955,36 +985,45 @@ fun NmixDisplay(
                     modifier=
                         Modifier.fillMaxWidth(),
                     shape=
-                        RoundedCornerShape(0.dp),
+                        RoundedCornerShape(
+                            0.dp
+                        ),
                     height=40.dp
                 )
             }
         }
 
         val labelTop=
-            if(compactTarget)
+            if(compactTarget){
                 15.dp
-            else
+            }else{
                 (
                     17f+
-                    55f*calcProgress*
-                    (1f-compactProgress)
+                    55f*
+                    calcProgress*
+                    (
+                        1f-
+                        compactProgress
+                    )
                     ).dp
+            }
 
         Text(
             label,
-            Modifier
-                .align(
-                    Alignment.TopCenter
-                )
-                .padding(
-                    top=labelTop
-                ),
+            modifier=
+                Modifier
+                    .align(
+                        Alignment.TopCenter
+                    )
+                    .padding(
+                        top=labelTop
+                    ),
             color=
-                if(a.darkMode)
+                if(a.darkMode){
                     p.accentLight
-                else
-                    p.accentDark,
+                }else{
+                    p.accentDark
+                },
             fontSize=9.sp,
             fontWeight=
                 FontWeight.Bold,
@@ -994,29 +1033,37 @@ fun NmixDisplay(
 
         Text(
             value,
-            Modifier
-                .align(Alignment.Center)
-                .graphicsLayer{
-                    translationY=
-                        calcProgress*
-                        (1f-compactProgress)*
-                        18f
-                }
-                .padding(
-                    start=
-                        if(compactTarget)
-                            88.dp
-                        else if(timer)
-                            70.dp
-                        else
-                            16.dp,
+            modifier=
+                Modifier
+                    .align(
+                        Alignment.Center
+                    )
+                    .graphicsLayer{
+                        translationY=
+                            calcProgress*
+                            (
+                                1f-
+                                compactProgress
+                            )*
+                            18f
+                    }
+                    .padding(
+                        start=
+                            if(compactTarget){
+                                88.dp
+                            }else if(timer){
+                                70.dp
+                            }else{
+                                16.dp
+                            },
 
-                    end=
-                        if(timer)
-                            70.dp
-                        else
-                            16.dp
-                ),
+                        end=
+                            if(timer){
+                                70.dp
+                            }else{
+                                16.dp
+                            }
+                    ),
             color=
                 nmixDisplayText(),
             fontSize=
@@ -1032,28 +1079,30 @@ fun NmixDisplay(
 
         Text(
             status,
-            Modifier
-                .align(
-                    Alignment.BottomCenter
-                )
-                .padding(
-                    start=
-                        if(compactTarget)
-                            88.dp
-                        else
-                            18.dp,
-                    end=18.dp,
-                    bottom=12.dp
-                ),
+            modifier=
+                Modifier
+                    .align(
+                        Alignment.BottomCenter
+                    )
+                    .padding(
+                        start=
+                            if(compactTarget)
+                                88.dp
+                            else
+                                18.dp,
+                        end=18.dp,
+                        bottom=12.dp
+                    ),
             color=
-                if(a.darkMode)
+                if(a.darkMode){
                     p.accentLight.copy(
                         alpha=.78f
                     )
-                else
+                }else{
                     p.accentDark.copy(
                         alpha=.80f
-                    ),
+                    )
+                },
             fontSize=
                 if(compactTarget)
                     9.5.sp
@@ -1070,42 +1119,58 @@ fun NmixDisplay(
 
         AnimatedVisibility(
             visible=timer,
-            modifier=Modifier
-                .align(
-                    Alignment.CenterStart
-                )
-                .padding(start=13.dp),
+            modifier=
+                Modifier
+                    .align(
+                        Alignment.CenterStart
+                    )
+                    .padding(
+                        start=13.dp
+                    ),
             enter=
-                fadeIn(tween(230))+
+                fadeIn(
+                    tween(230)
+                )+
                 scaleIn(),
             exit=
-                fadeOut(tween(190))+
+                fadeOut(
+                    tween(190)
+                )+
                 scaleOut()
         ){
             NmixCircleButton(
-                NmixIcon.MINUS,
-                Modifier.size(47.dp),
+                icon=NmixIcon.MINUS,
+                modifier=
+                    Modifier.size(47.dp),
                 onClick=onMinus
             )
         }
 
         AnimatedVisibility(
             visible=timer,
-            modifier=Modifier
-                .align(
-                    Alignment.CenterEnd
-                )
-                .padding(end=13.dp),
+            modifier=
+                Modifier
+                    .align(
+                        Alignment.CenterEnd
+                    )
+                    .padding(
+                        end=13.dp
+                    ),
             enter=
-                fadeIn(tween(230))+
+                fadeIn(
+                    tween(230)
+                )+
                 scaleIn(),
             exit=
-                fadeOut(tween(190))+
+                fadeOut(
+                    tween(190)
+                )+
                 scaleOut()
         ){
             NmixCircleButton(
-                NmixIcon.PLUS,
-                Modifier.size(47.dp),
+                icon=NmixIcon.PLUS,
+                modifier=
+                    Modifier.size(47.dp),
                 onClick=onPlus
             )
         }
@@ -1116,8 +1181,9 @@ fun NmixDisplay(
 fun NmixCalcField(
     text:String,
     modifier:Modifier=Modifier,
-    shape:Shape=RoundedCornerShape(11.dp),
-    height:androidx.compose.ui.unit.Dp=46.dp
+    shape:Shape=
+        RoundedCornerShape(11.dp),
+    height:Dp=46.dp
 ){
     Box(
         modifier
@@ -1154,7 +1220,9 @@ fun NmixCalcField(
 fun NmixGlassBox(
     modifier:Modifier=Modifier,
     accentTint:Boolean=true,
-    content:@Composable BoxScope.()->Unit
+    content:
+        @Composable
+        BoxScope.()->Unit
 ){
     val a=
         LocalNmixAppearance.current
@@ -1168,18 +1236,19 @@ fun NmixGlassBox(
         modifier
             .clip(shape)
             .background(
-                if(a.darkMode)
+                if(a.darkMode){
                     p.accent.copy(
                         alpha=.065f
                     )
-                else if(accentTint)
+                }else if(accentTint){
                     Color.White.copy(
                         alpha=.73f
                     )
-                else
+                }else{
                     Color.White.copy(
                         alpha=.70f
                     )
+                }
             )
             .border(
                 .45.dp,
@@ -1204,20 +1273,20 @@ fun NmixPressBox(
     onClick:()->Unit,
     content:@Composable ()->Unit
 ){
-    val interaction=
-        remember{
-            MutableInteractionSource()
-        }
+    val interaction=remember{
+        MutableInteractionSource()
+    }
 
     val pressed by
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if(pressed)
-            .95f
-        else
-            1f,
-        spring(
+        targetValue=
+            if(pressed)
+                .95f
+            else
+                1f,
+        animationSpec=spring(
             dampingRatio=.72f,
             stiffness=620f
         ),
@@ -1230,7 +1299,8 @@ fun NmixPressBox(
             .clip(shape)
             .background(color)
             .clickable(
-                interactionSource=interaction,
+                interactionSource=
+                    interaction,
                 indication=null,
                 onClick=onClick
             ),
