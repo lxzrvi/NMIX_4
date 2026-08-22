@@ -165,8 +165,29 @@ private fun ModeRow(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if(pressed).965f else 1f,
+        targetValue=
+            if(pressed)
+                .965f
+            else
+                1f,
+        animationSpec=spring(
+            dampingRatio=.74f,
+            stiffness=620f
+        ),
         label="modePress"
+    )
+
+    val selectedProgress by animateFloatAsState(
+        targetValue=
+            if(selected)
+                1f
+            else
+                0f,
+        animationSpec=tween(
+            260,
+            easing=EaseInOutCubic
+        ),
+        label="modeSelected"
     )
 
     val shape=
@@ -179,25 +200,37 @@ private fun ModeRow(
             .scale(scale)
             .clip(shape)
             .background(
-                if(selected)
-                    p.accent.copy(alpha=.84f)
+                if(a.darkMode)
+                    Color(0xFF141917)
+                        .copy(alpha=.91f)
                 else
-                    p.accent.copy(
-                        alpha=
-                            if(a.darkMode)
-                                .085f
-                            else
-                                .08f
-                    )
+                    Color.White
+                        .copy(alpha=.91f)
             )
-            .border(
-                .45.dp,
+            .background(
                 p.accent.copy(
                     alpha=
                         if(a.darkMode)
-                            .12f
+                            .04f+
+                                selectedProgress*.055f
                         else
-                            .22f
+                            .025f+
+                                selectedProgress*.035f
+                )
+            )
+            .border(
+                (
+                    .45f+
+                        selectedProgress*.55f
+                ).dp,
+                p.accent.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .14f+
+                                selectedProgress*.34f
+                        else
+                            .22f+
+                                selectedProgress*.32f
                 ),
                 shape
             )
@@ -227,10 +260,13 @@ private fun ModeRow(
                         RoundedCornerShape(9.dp)
                 )
                 .background(
-                    if(selected)
-                        Color.White.copy(alpha=.92f)
-                    else
-                        p.accent.copy(alpha=.15f)
+                    p.accent.copy(
+                        alpha=
+                            if(selected)
+                                .20f
+                            else
+                                .12f
+                    )
                 ),
             contentAlignment=
                 Alignment.Center
@@ -242,17 +278,16 @@ private fun ModeRow(
             )
         }
 
-        Spacer(Modifier.width(12.dp))
+        Spacer(
+            Modifier.width(12.dp)
+        )
 
         Text(
             title,
-            color=
-                if(selected)
-                    Color.White
-                else
-                    ui.text,
+            color=ui.text,
             fontSize=13.sp,
-            fontWeight=FontWeight.SemiBold,
+            fontWeight=
+                FontWeight.SemiBold,
             fontFamily=a.fontFamily
         )
     }
@@ -324,7 +359,6 @@ private fun CounterButton(
     val a=LocalNmixAppearance.current
     val p=a.palette
     val ui=a.uiColors()
-    val haptic=rememberNmixHapticAction()
 
     val shape=
         RoundedCornerShape(12.dp)
@@ -334,12 +368,20 @@ private fun CounterButton(
             .height(64.dp)
             .clip(shape)
             .background(
+                if(a.darkMode)
+                    Color(0xFF141917)
+                        .copy(alpha=.91f)
+                else
+                    Color.White
+                        .copy(alpha=.91f)
+            )
+            .background(
                 p.accent.copy(
                     alpha=
                         if(a.darkMode)
-                            .085f
+                            .045f
                         else
-                            .08f
+                            .025f
                 )
             )
             .border(
@@ -347,7 +389,7 @@ private fun CounterButton(
                 p.accent.copy(
                     alpha=
                         if(a.darkMode)
-                            .12f
+                            .14f
                         else
                             .22f
                 ),
@@ -355,12 +397,11 @@ private fun CounterButton(
             )
     ){
         NmixPressBox(
-            Modifier.fillMaxSize(),
-            shape,
-            Color.Transparent,
-            {
-                haptic(onClick)
-            }
+            modifier=
+                Modifier.fillMaxSize(),
+            shape=shape,
+            color=Color.Transparent,
+            onClick=onClick
         ){
             Row(
                 verticalAlignment=
@@ -372,13 +413,16 @@ private fun CounterButton(
                     p.accent
                 )
 
-                Spacer(Modifier.width(8.dp))
+                Spacer(
+                    Modifier.width(8.dp)
+                )
 
                 Text(
                     title,
                     color=ui.text,
                     fontSize=12.sp,
-                    fontWeight=FontWeight.SemiBold,
+                    fontWeight=
+                        FontWeight.SemiBold,
                     fontFamily=a.fontFamily
                 )
             }
@@ -460,22 +504,34 @@ fun NmixInstructions(){
                     horizontalArrangement=
                         Arrangement.spacedBy(6.dp)
                 ){
-                    rowItems.forEach{item->
+                    rowItems.forEach{
+                        item->
+
                         HelpTitleBox(
-                            item,
-                            selected==item.title,
-                            Modifier.weight(1f)
+                            item=item,
+                            selected=
+                                selected==
+                                    item.title,
+                            modifier=
+                                Modifier.weight(1f)
                         ){
                             selected=
-                                if(selected==item.title)
+                                if(
+                                    selected==
+                                    item.title
+                                )
                                     null
                                 else
                                     item.title
                         }
                     }
 
-                    repeat(5-rowItems.size){
-                        Spacer(Modifier.weight(1f))
+                    repeat(
+                        5-rowItems.size
+                    ){
+                        Spacer(
+                            Modifier.weight(1f)
+                        )
                     }
                 }
             }
@@ -486,22 +542,27 @@ fun NmixInstructions(){
                 (
                     fadeIn(
                         tween(
-                            320,
+                            300,
                             easing=EaseOutCubic
                         )
                     )+
                     slideInVertically(
-                        initialOffsetY={it/8},
+                        initialOffsetY={
+                            it/8
+                        },
                         animationSpec=tween(
-                            340,
+                            320,
                             easing=EaseOutCubic
                         )
                     )
                 ) togetherWith (
-                    fadeOut(tween(190))+
+                    fadeOut(tween(180))+
                     slideOutVertically(
-                        targetOffsetY={-it/10},
-                        animationSpec=tween(240)
+                        targetOffsetY={
+                            -it/10
+                        },
+                        animationSpec=
+                            tween(230)
                     )
                 )
             },
@@ -514,7 +575,9 @@ fun NmixInstructions(){
                     }
                 )
             }else{
-                Spacer(Modifier.height(0.dp))
+                Spacer(
+                    Modifier.height(0.dp)
+                )
             }
         }
     }
@@ -540,13 +603,28 @@ private fun HelpTitleBox(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if(pressed).95f else 1f,
-        spring(
+        targetValue=
+            if(pressed)
+                .95f
+            else
+                1f,
+        animationSpec=spring(
             dampingRatio=.74f,
             stiffness=650f
         ),
         label="helpPress"
     )
+
+    val selectedProgress by
+        animateFloatAsState(
+            targetValue=
+                if(selected)
+                    1f
+                else
+                    0f,
+            animationSpec=tween(250),
+            label="helpSelected"
+        )
 
     val shape=
         RoundedCornerShape(11.dp)
@@ -557,26 +635,37 @@ private fun HelpTitleBox(
             .scale(scale)
             .clip(shape)
             .background(
+                if(a.darkMode)
+                    Color(0xFF141917)
+                        .copy(alpha=.91f)
+                else
+                    Color.White
+                        .copy(alpha=.92f)
+            )
+            .background(
                 p.accent.copy(
                     alpha=
-                        if(selected)
-                            .17f
-                        else if(a.darkMode)
-                            .075f
+                        if(a.darkMode)
+                            .035f+
+                                selectedProgress*.06f
                         else
-                            .08f
+                            .02f+
+                                selectedProgress*.04f
                 )
             )
             .border(
-                if(selected)1.dp else .45.dp,
+                (
+                    .45f+
+                        selectedProgress*.55f
+                ).dp,
                 p.accent.copy(
                     alpha=
-                        if(selected)
-                            .72f
-                        else if(a.darkMode)
-                            .13f
+                        if(a.darkMode)
+                            .14f+
+                                selectedProgress*.34f
                         else
-                            .23f
+                            .22f+
+                                selectedProgress*.34f
                 ),
                 shape
             )
@@ -623,12 +712,20 @@ private fun HelpDetailBox(
             .fillMaxWidth()
             .clip(shape)
             .background(
+                if(a.darkMode)
+                    Color(0xFF141917)
+                        .copy(alpha=.91f)
+                else
+                    Color.White
+                        .copy(alpha=.92f)
+            )
+            .background(
                 p.accent.copy(
                     alpha=
                         if(a.darkMode)
-                            .065f
+                            .04f
                         else
-                            .07f
+                            .025f
                 )
             )
             .border(
@@ -636,7 +733,7 @@ private fun HelpDetailBox(
                 p.accent.copy(
                     alpha=
                         if(a.darkMode)
-                            .14f
+                            .15f
                         else
                             .24f
                 ),
@@ -653,7 +750,9 @@ private fun HelpDetailBox(
             fontFamily=a.fontFamily
         )
 
-        Spacer(Modifier.height(5.dp))
+        Spacer(
+            Modifier.height(5.dp)
+        )
 
         Text(
             item.detail,
@@ -688,14 +787,22 @@ fun NmixSettings(
         mutableIntStateOf(0)
     }
 
-    var iconNotice by remember{
-        mutableStateOf(false)
+    var iconCountdown by remember{
+        mutableIntStateOf(0)
     }
 
     LaunchedEffect(Unit){
         while(true){
             delay(3200)
             detail=(detail+1)%2
+        }
+    }
+
+    LaunchedEffect(iconCountdown){
+        if(iconCountdown>0){
+            delay(1000)
+
+            iconCountdown--
         }
     }
 
@@ -707,7 +814,7 @@ fun NmixSettings(
             )
 
         if(success){
-            iconNotice=true
+            iconCountdown=3
         }
     }
 
@@ -738,7 +845,7 @@ fun NmixSettings(
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(10.dp)
+                .height(15.dp)
                 .background(
                     Brush.verticalGradient(
                         listOf(
@@ -746,8 +853,8 @@ fun NmixSettings(
                                 Color(0xFF151917)
                                     .copy(alpha=.26f)
                             else
-                                Color(0xFFF0F4F2)
-                                    .copy(alpha=.30f),
+                                Color(0xFFF4F6F5)
+                                    .copy(alpha=.34f),
                             Color.Transparent
                         )
                     )
@@ -759,7 +866,10 @@ fun NmixSettings(
                 .fillMaxWidth()
                 .weight(1f)
                 .verticalScroll(scroll)
-                .padding(bottom=24.dp)
+                .padding(
+                    top=9.dp,
+                    bottom=24.dp
+                )
         ){
             SettingsToggleRow(
                 title="Appearance",
@@ -775,7 +885,9 @@ fun NmixSettings(
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(
+                Modifier.height(14.dp)
+            )
 
             SettingsToggleRow(
                 title="Colors",
@@ -813,13 +925,16 @@ fun NmixSettings(
                     fadeOut(tween(160))
             ){
                 Column{
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(
+                        Modifier.height(12.dp)
+                    )
 
                     Text(
                         "Color Theme",
                         color=ui.text,
                         fontSize=12.sp,
-                        fontWeight=FontWeight.SemiBold,
+                        fontWeight=
+                            FontWeight.SemiBold,
                         fontFamily=a.fontFamily
                     )
 
@@ -830,11 +945,15 @@ fun NmixSettings(
                         fontFamily=a.fontFamily
                     )
 
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(
+                        Modifier.height(10.dp)
+                    )
 
                     ThemeGrid(detail)
 
-                    Spacer(Modifier.height(9.dp))
+                    Spacer(
+                        Modifier.height(9.dp)
+                    )
 
                     NmixCustomThemeButton(
                         onClick=onCustomColor
@@ -842,7 +961,9 @@ fun NmixSettings(
                 }
             }
 
-            Spacer(Modifier.height(17.dp))
+            Spacer(
+                Modifier.height(17.dp)
+            )
 
             SettingsToggleRow(
                 title="Animation",
@@ -880,12 +1001,17 @@ fun NmixSettings(
                     fadeOut(tween(170))
             ){
                 Column{
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(
+                        Modifier.height(12.dp)
+                    )
+
                     NmixAnimationSettings()
                 }
             }
 
-            Spacer(Modifier.height(17.dp))
+            Spacer(
+                Modifier.height(17.dp)
+            )
 
             SettingsToggleRow(
                 title="Fonts",
@@ -923,7 +1049,9 @@ fun NmixSettings(
                     fadeOut(tween(160))
             ){
                 Column{
-                    Spacer(Modifier.height(11.dp))
+                    Spacer(
+                        Modifier.height(11.dp)
+                    )
 
                     Text(
                         "Preview your interface typeface",
@@ -932,7 +1060,9 @@ fun NmixSettings(
                         fontFamily=a.fontFamily
                     )
 
-                    Spacer(Modifier.height(9.dp))
+                    Spacer(
+                        Modifier.height(9.dp)
+                    )
 
                     Column(
                         Modifier.fillMaxWidth(),
@@ -953,7 +1083,9 @@ fun NmixSettings(
                             }
                     }
 
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(
+                        Modifier.height(8.dp)
+                    )
 
                     Text(
                         "NMIX logo uses Cinzel Decorative.",
@@ -964,33 +1096,31 @@ fun NmixSettings(
                 }
             }
 
-            Spacer(Modifier.height(17.dp))
+            Spacer(
+                Modifier.height(17.dp)
+            )
 
             SettingsToggleRow(
                 title="Vibration",
-                detail="Soft interface haptics",
+                detail="Strong tactile interface feedback",
                 enabled=a.hapticsEnabled
             ){
-                /*
-                 * Perform old-state haptic first so
-                 * enabling gives immediate feedback.
-                 */
-                a.setHapticsEnabled(
+                val enable=
                     !a.hapticsEnabled
-                )
 
-                if(a.hapticsEnabled){
+                a.setHapticsEnabled(enable)
+
+                if(enable){
                     haptic{}
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(
+                Modifier.height(20.dp)
+            )
 
             AppIconSettings(
-                iconNotice=iconNotice,
-                onDismissNotice={
-                    iconNotice=false
-                },
+                iconCountdown=iconCountdown,
                 applyIcon={
                     haptic{
                         applyIcon()
@@ -1023,9 +1153,9 @@ private fun SettingsToggleRow(
             .background(
                 if(a.darkMode)
                     Color(0xFF151A18)
-                        .copy(alpha=.78f)
+                        .copy(alpha=.82f)
                 else
-                    Color(0xFFE8ECEA)
+                    Color.White
                         .copy(alpha=.88f)
             )
             .background(
@@ -1034,7 +1164,7 @@ private fun SettingsToggleRow(
                         if(a.darkMode)
                             .035f
                         else
-                            .025f
+                            .022f
                 )
             )
             .border(
@@ -1049,9 +1179,10 @@ private fun SettingsToggleRow(
                 shape
             )
             .clickable(
-                interactionSource=remember{
-                    MutableInteractionSource()
-                },
+                interactionSource=
+                    remember{
+                        MutableInteractionSource()
+                    },
                 indication=null,
                 onClick=onToggle
             )
@@ -1066,7 +1197,8 @@ private fun SettingsToggleRow(
                 title,
                 color=ui.text,
                 fontSize=11.sp,
-                fontWeight=FontWeight.SemiBold,
+                fontWeight=
+                    FontWeight.SemiBold,
                 fontFamily=a.fontFamily
             )
 
@@ -1094,8 +1226,7 @@ private fun SettingsToggleRow(
 
 @Composable
 private fun AppIconSettings(
-    iconNotice:Boolean,
-    onDismissNotice:()->Unit,
+    iconCountdown:Int,
     applyIcon:()->Unit
 ){
     val a=LocalNmixAppearance.current
@@ -1112,10 +1243,19 @@ private fun AppIconSettings(
             .background(
                 if(a.darkMode)
                     Color(0xFF151A18)
-                        .copy(alpha=.80f)
+                        .copy(alpha=.82f)
                 else
-                    Color(0xFFE8ECEA)
+                    Color.White
                         .copy(alpha=.89f)
+            )
+            .background(
+                p.accent.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .028f
+                        else
+                            .018f
+                )
             )
             .border(
                 .45.dp,
@@ -1139,7 +1279,9 @@ private fun AppIconSettings(
             fontFamily=a.fontFamily
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(
+            Modifier.height(8.dp)
+        )
 
         SettingsToggleRow(
             title="Set App Icon",
@@ -1158,32 +1300,21 @@ private fun AppIconSettings(
         }
 
         AnimatedVisibility(
-            visible=a.appIconEnabled,
-            enter=
-                expandVertically(
-                    tween(
-                        330,
-                        easing=EaseOutCubic
-                    )
-                )+
-                fadeIn(tween(220)),
-            exit=
-                shrinkVertically(
-                    tween(
-                        280,
-                        easing=EaseInOutCubic
-                    )
-                )+
-                fadeOut(tween(160))
+            visible=a.appIconEnabled
         ){
             Column{
-                Spacer(Modifier.height(9.dp))
+                Spacer(
+                    Modifier.height(9.dp)
+                )
 
                 SettingsToggleRow(
                     title="Follow Theme",
                     detail=
                         if(a.iconFollowTheme)
-                            "Preset theme controls icon"
+                            if(a.usingCustomColor)
+                                "Custom uses selected icon fallback"
+                            else
+                                "Theme controls icon color"
                         else
                             "Choose icon color manually",
                     enabled=a.iconFollowTheme
@@ -1195,17 +1326,22 @@ private fun AppIconSettings(
                     applyIcon()
                 }
 
-                Spacer(Modifier.height(10.dp))
+                Spacer(
+                    Modifier.height(10.dp)
+                )
 
                 Text(
                     "Icon Color",
                     color=ui.text,
                     fontSize=10.sp,
-                    fontWeight=FontWeight.SemiBold,
+                    fontWeight=
+                        FontWeight.SemiBold,
                     fontFamily=a.fontFamily
                 )
 
-                Spacer(Modifier.height(7.dp))
+                Spacer(
+                    Modifier.height(7.dp)
+                )
 
                 Row(
                     Modifier.fillMaxWidth(),
@@ -1217,7 +1353,8 @@ private fun AppIconSettings(
                             IconColorChoice(
                                 theme=theme,
                                 selected=
-                                    a.iconTheme==theme,
+                                    a.iconTheme==
+                                        theme,
                                 enabled=
                                     !a.iconFollowTheme,
                                 modifier=
@@ -1229,17 +1366,22 @@ private fun AppIconSettings(
                         }
                 }
 
-                Spacer(Modifier.height(10.dp))
+                Spacer(
+                    Modifier.height(10.dp)
+                )
 
                 Text(
                     "Icon Style",
                     color=ui.text,
                     fontSize=10.sp,
-                    fontWeight=FontWeight.SemiBold,
+                    fontWeight=
+                        FontWeight.SemiBold,
                     fontFamily=a.fontFamily
                 )
 
-                Spacer(Modifier.height(7.dp))
+                Spacer(
+                    Modifier.height(7.dp)
+                )
 
                 Row(
                     Modifier.fillMaxWidth(),
@@ -1251,7 +1393,8 @@ private fun AppIconSettings(
                         selected=
                             a.iconStyle==
                                 NmixIconStyle.ADAPTIVE,
-                        modifier=Modifier.weight(1f)
+                        modifier=
+                            Modifier.weight(1f)
                     ){
                         a.setIconStyle(
                             NmixIconStyle.ADAPTIVE
@@ -1265,7 +1408,8 @@ private fun AppIconSettings(
                         selected=
                             a.iconStyle==
                                 NmixIconStyle.ROUND,
-                        modifier=Modifier.weight(1f)
+                        modifier=
+                            Modifier.weight(1f)
                     ){
                         a.setIconStyle(
                             NmixIconStyle.ROUND
@@ -1274,58 +1418,85 @@ private fun AppIconSettings(
                         applyIcon()
                     }
                 }
-            }
-        }
 
-        AnimatedVisibility(
-            visible=iconNotice
-        ){
-            Column{
-                Spacer(Modifier.height(10.dp))
-
-                val noticeShape=
-                    RoundedCornerShape(11.dp)
-
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(noticeShape)
-                        .background(
-                            p.accent.copy(alpha=.08f)
-                        )
-                        .border(
-                            .4.dp,
-                            p.accent.copy(alpha=.18f),
-                            noticeShape
-                        )
-                        .padding(9.dp),
-                    verticalAlignment=
-                        Alignment.CenterVertically
+                AnimatedVisibility(
+                    visible=
+                        iconCountdown>0,
+                    enter=
+                        expandVertically(
+                            tween(220)
+                        )+
+                        fadeIn(tween(180)),
+                    exit=
+                        shrinkVertically(
+                            tween(200)
+                        )+
+                        fadeOut(tween(150))
                 ){
-                    Text(
-                        "Icon updated. Launcher may need a moment to refresh.",
-                        modifier=Modifier.weight(1f),
-                        color=ui.muted,
-                        fontSize=7.5.sp,
-                        lineHeight=10.sp,
-                        fontFamily=a.fontFamily
-                    )
+                    Column(
+                        Modifier.fillMaxWidth()
+                    ){
+                        Spacer(
+                            Modifier.height(10.dp)
+                        )
 
-                    Text(
-                        "OK",
-                        color=p.accent,
-                        fontSize=8.sp,
-                        fontWeight=FontWeight.Bold,
-                        fontFamily=a.fontFamily,
-                        modifier=
-                            Modifier.clickable(
-                                interactionSource=remember{
-                                    MutableInteractionSource()
-                                },
-                                indication=null,
-                                onClick=onDismissNotice
+                        val noticeShape=
+                            RoundedCornerShape(11.dp)
+
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(noticeShape)
+                                .background(
+                                    p.accent.copy(
+                                        alpha=.06f
+                                    )
+                                )
+                                .border(
+                                    .4.dp,
+                                    p.accent.copy(
+                                        alpha=.18f
+                                    ),
+                                    noticeShape
+                                )
+                                .padding(
+                                    horizontal=10.dp,
+                                    vertical=8.dp
+                                ),
+                            verticalAlignment=
+                                Alignment.CenterVertically
+                        ){
+                            Column(
+                                Modifier.weight(1f)
+                            ){
+                                Text(
+                                    "Launcher icon updating",
+                                    color=ui.text,
+                                    fontSize=8.sp,
+                                    fontWeight=
+                                        FontWeight.SemiBold,
+                                    fontFamily=a.fontFamily
+                                )
+
+                                Text(
+                                    "Launcher may refresh the app entry.",
+                                    color=ui.muted,
+                                    fontSize=7.sp,
+                                    fontFamily=a.fontFamily
+                                )
+                            }
+
+                            Text(
+                                "$iconCountdown",
+                                color=
+                                    Color(0xFFE34E55),
+                                fontSize=18.sp,
+                                fontWeight=
+                                    FontWeight.Bold,
+                                fontFamily=a.fontFamily
                             )
-                    )
+                        }
+                    }
                 }
             }
         }
@@ -1341,10 +1512,10 @@ private fun IconColorChoice(
     onClick:()->Unit
 ){
     val a=LocalNmixAppearance.current
-    val color=theme.palette().accent
+    val color=
+        theme.palette().accent
 
-    val shape=
-        CircleShape
+    val shape=CircleShape
 
     Box(
         modifier
@@ -1375,9 +1546,10 @@ private fun IconColorChoice(
             )
             .clickable(
                 enabled=enabled,
-                interactionSource=remember{
-                    MutableInteractionSource()
-                },
+                interactionSource=
+                    remember{
+                        MutableInteractionSource()
+                    },
                 indication=null,
                 onClick=onClick
             )
@@ -1403,12 +1575,20 @@ private fun IconStyleChoice(
             .height(38.dp)
             .clip(shape)
             .background(
+                if(a.darkMode)
+                    Color(0xFF121715)
+                        .copy(alpha=.88f)
+                else
+                    Color.White
+                        .copy(alpha=.88f)
+            )
+            .background(
                 p.accent.copy(
                     alpha=
                         if(selected)
-                            .15f
+                            .08f
                         else
-                            .055f
+                            .02f
                 )
             )
             .border(
@@ -1419,20 +1599,22 @@ private fun IconStyleChoice(
                 p.accent.copy(
                     alpha=
                         if(selected)
-                            .72f
+                            .60f
                         else
                             .16f
                 ),
                 shape
             )
             .clickable(
-                interactionSource=remember{
-                    MutableInteractionSource()
-                },
+                interactionSource=
+                    remember{
+                        MutableInteractionSource()
+                    },
                 indication=null,
                 onClick=onClick
             ),
-        contentAlignment=Alignment.Center
+        contentAlignment=
+            Alignment.Center
     ){
         Text(
             text,
@@ -1442,7 +1624,8 @@ private fun IconStyleChoice(
                 else
                     ui.text,
             fontSize=9.sp,
-            fontWeight=FontWeight.SemiBold,
+            fontWeight=
+                FontWeight.SemiBold,
             fontFamily=a.fontFamily
         )
     }
@@ -1559,7 +1742,11 @@ private fun ThemeCard(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if(pressed).97f else 1f,
+        targetValue=
+            if(pressed)
+                .97f
+            else
+                1f,
         label="themePress"
     )
 
@@ -1568,9 +1755,10 @@ private fun ThemeCard(
 
     val bg=
         if(a.darkMode)
-            Color.White.copy(alpha=.035f)
+            Color(0xFF151A18)
+                .copy(alpha=.78f)
         else
-            Color(0xFFE8ECEA)
+            Color.White
                 .copy(alpha=.86f)
 
     val outline=
@@ -1580,9 +1768,9 @@ private fun ThemeCard(
             current.accent.copy(
                 alpha=
                     if(a.darkMode)
-                        .08f
+                        .10f
                     else
-                        .14f
+                        .16f
             )
 
     val name=
@@ -1641,7 +1829,9 @@ private fun ThemeCard(
                 NmixIcon(
                     NmixIcon.CHECK,
                     Modifier
-                        .align(Alignment.TopEnd)
+                        .align(
+                            Alignment.TopEnd
+                        )
                         .padding(6.dp)
                         .size(13.dp),
                     Color.White
@@ -1649,7 +1839,9 @@ private fun ThemeCard(
             }
         }
 
-        Spacer(Modifier.height(6.dp))
+        Spacer(
+            Modifier.height(6.dp)
+        )
 
         Text(
             name,
@@ -1659,7 +1851,9 @@ private fun ThemeCard(
             fontFamily=a.fontFamily
         )
 
-        Spacer(Modifier.height(2.dp))
+        Spacer(
+            Modifier.height(2.dp)
+        )
 
         Box(
             Modifier
@@ -1714,7 +1908,11 @@ private fun FontPill(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if(pressed).97f else 1f,
+        targetValue=
+            if(pressed)
+                .97f
+            else
+                1f,
         label="fontPress"
     )
 
@@ -1729,10 +1927,11 @@ private fun FontPill(
             .clip(shape)
             .background(
                 if(a.darkMode)
-                    Color.White.copy(alpha=.035f)
+                    Color(0xFF151A18)
+                        .copy(alpha=.78f)
                 else
-                    Color(0xFFE8ECEA)
-                        .copy(alpha=.84f)
+                    Color.White
+                        .copy(alpha=.86f)
             )
             .border(
                 if(selected)
@@ -1742,11 +1941,11 @@ private fun FontPill(
                 p.accent.copy(
                     alpha=
                         if(selected)
-                            .78f
+                            .66f
                         else if(a.darkMode)
-                            .08f
+                            .10f
                         else
-                            .14f
+                            .16f
                 ),
                 shape
             )
@@ -1793,14 +1992,22 @@ private fun NmixSwitch(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if(pressed).96f else 1f,
+        targetValue=
+            if(pressed)
+                .96f
+            else
+                1f,
         label="switchPress"
     )
 
     val alignment by
         animateFloatAsState(
-            if(on)1f else 0f,
-            tween(
+            targetValue=
+                if(on)
+                    1f
+                else
+                    0f,
+            animationSpec=tween(
                 220,
                 easing=EaseInOutCubic
             ),
