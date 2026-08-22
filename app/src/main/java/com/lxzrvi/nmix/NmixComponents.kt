@@ -1692,64 +1692,1145 @@ private fun MorphFieldVisual(
                 RoundedCornerShape(
                     topStart=
                         outerRadius,
-                    bottomStart=
-                        nmixMix(
-                            3f,
-                            18f,
-                            mini*
-                                radiusProgress
-                        ).dp,
-                    topEnd=
-                        nmixMix(
-                            3f,
-                            6f,
-                            mini
-                        ).dp,
-                    bottomEnd=
-                        nmixMix(
-                            3f,
-                            6f,
-                            mini
-                        ).dp
+@Composable
+fun NmixDisplay(
+    label:String,
+    value:String,
+    status:String,
+    timer:Boolean,
+    calcVisible:Boolean,
+    calcFirst:String,
+    calcOperator:String,
+    calcSecond:String,
+    onMinus:()->Unit,
+    onPlus:()->Unit,
+    onClick:()->Unit,
+    modifier:Modifier=Modifier
+){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+    val density=LocalDensity.current
+
+    val interaction=remember{
+        MutableInteractionSource()
+    }
+
+    var heightPx by remember{
+        mutableIntStateOf(0)
+    }
+
+    val heightDp=
+        with(density){
+            heightPx.toDp().value
+        }
+
+    val maximumDisplayHeight=305f
+    val minimumDisplayHeight=82f
+
+    /*
+     * 1 = FULL
+     * 0 = minimum SMALL
+     */
+    val displayPercent=
+        if(heightPx<=0){
+            1f
+        }else{
+            (
+                (
+                    heightDp-
+                        minimumDisplayHeight
+                )/
+                (
+                    maximumDisplayHeight-
+                        minimumDisplayHeight
+                )
+            ).coerceIn(0f,1f)
+        }
+
+    /*
+     * Only three meaningful states:
+     *
+     * FULL  : 100 -> 72
+     * HALF  : 58  -> 24
+     * SMALL : 10  -> 0
+     *
+     * Between them the same boxes physically
+     * travel. There is no extra middle state.
+     */
+    val fullToHalf=
+        (
+            (0.72f-displayPercent)/
+                .14f
+        ).coerceIn(0f,1f)
+
+    /*
+     * HALF gets the longest resize range.
+     */
+    val halfShrink=
+        (
+            (0.58f-displayPercent)/
+                .34f
+        ).coerceIn(0f,1f)
+
+    val halfToSmall=
+        (
+            (0.24f-displayPercent)/
+                .14f
+        ).coerceIn(0f,1f)
+
+    val smallShrink=
+        (
+            (0.10f-displayPercent)/
+                .10f
+        ).coerceIn(0f,1f)
+
+    /*
+     * Display becomes pill-like only towards
+     * SMALL.
+     */
+    val radiusProgress=
+        (
+            (
+                halfToSmall-.40f
+            )/
+            .60f
+        )
+            .coerceIn(0f,1f)
+            .coerceAtLeast(
+                smallShrink
+            )
+
+    val displayRadius=
+        nmixMix(
+            19f,
+            54f,
+            radiusProgress
+        ).dp
+
+    val displayShape=
+        RoundedCornerShape(
+            displayRadius
+        )
+
+    val calcProgress by
+        animateFloatAsState(
+            targetValue=
+                if(calcVisible)
+                    1f
+                else
+                    0f,
+            animationSpec=tween(
+                300,
+                easing=EaseInOutCubic
+            ),
+            label="calculatorVisibility"
+        )
+
+    val motion=
+        rememberNmixMotion(
+            "displayMotion"
+        )
+
+    Box(
+        modifier
+            .onSizeChanged{
+                heightPx=it.height
+            }
+            .clip(displayShape)
+            .background(
+                nmixScreenColor()
+            )
+            .border(
+                .55.dp,
+                nmixScreenBorder(),
+                displayShape
+            )
+            .clickable(
+                interactionSource=interaction,
+                indication=null,
+                onClick=onClick
+            )
+    ){
+        DisplayMotionLayer(
+            motion=motion
+        )
+
+        if(calcVisible){
+            NmixCalculatorMorphFields(
+                first=
+                    calcFirst.ifEmpty{
+                        "_"
+                    },
+                operator=
+                    calcOperator.ifEmpty{
+                        "sign"
+                    },
+                second=
+                    calcSecond.ifEmpty{
+                        "_"
+                    },
+                fullToHalf=
+                    fullToHalf,
+                halfShrink=
+                    halfShrink,
+                halfToSmall=
+                    halfToSmall,
+                smallShrink=
+                    smallShrink,
+                radiusProgress=
+                    radiusProgress,
+                modifier=
+                    Modifier
+                        .fillMaxSize()
+                        .graphicsLayer{
+                            alpha=calcProgress
+                        }
+            )
+        }
+
+        /*
+         * Content width follows the field group
+         * continuously.
+         */
+        val fieldFraction=
+            when{
+                !calcVisible->
+                    0f
+
+                halfToSmall>0f->
+                    nmixMix(
+                        .30f,
+                        .48f,
+                        halfToSmall
+                    )
+
+                fullToHalf>0f->
+                    .30f*
+                        fullToHalf
+
+                else->
+                    0f
+            }
+
+        val rightShift=
+            when{
+                !calcVisible->
+                    0f
+
+                halfToSmall>0f->
+                    1f
+
+                else->
+                    fullToHalf
+            }
+
+        /*
+         * FULL content.
+         */
+        if(displayPercent>.58f){
+            Text(
+                label,
+                Modifier
+                    .align(
+                        Alignment.TopCenter
+                    )
+                    .padding(
+                        top=
+                            if(calcVisible)
+                                71.dp
+                            else
+                                17.dp
+                    )
+                    .graphicsLayer{
+                        translationX=
+                            43f*
+                                rightShift
+
+                        translationY=
+                            4f*
+                                rightShift
+                    },
+                color=
+                    if(a.darkMode)
+                        p.accentLight
+                    else
+                        p.accentDark,
+                fontSize=
+                    nmixMix(
+                        9f,
+                        8.3f,
+                        rightShift
+                    ).sp,
+                fontWeight=
+                    FontWeight.Bold,
+                letterSpacing=2.sp,
+                fontFamily=a.fontFamily,
+                maxLines=1
+            )
+
+            Text(
+                value,
+                Modifier
+                    .align(
+                        Alignment.Center
+                    )
+                    .graphicsLayer{
+                        translationX=
+                            56f*
+                                rightShift
+
+                        translationY=
+                            if(calcVisible)
+                                nmixMix(
+                                    18f,
+                                    7f,
+                                    rightShift
+                                )
+                            else
+                                0f
+                    }
+                    .padding(
+                        horizontal=
+                            if(timer)
+                                70.dp
+                            else
+                                16.dp
+                    ),
+                color=
+                    nmixDisplayText(),
+                fontSize=
+                    nmixMix(
+                        40f,
+                        35f,
+                        rightShift
+                    ).sp,
+                fontWeight=
+                    FontWeight.SemiBold,
+                fontFamily=a.fontFamily,
+                maxLines=1
+            )
+
+            Text(
+                status,
+                Modifier
+                    .align(
+                        Alignment.BottomCenter
+                    )
+                    .padding(
+                        horizontal=18.dp,
+                        vertical=15.dp
+                    )
+                    .graphicsLayer{
+                        translationX=
+                            42f*
+                                rightShift
+                    },
+                color=
+                    if(a.darkMode)
+                        p.accentLight.copy(
+                            alpha=.78f
+                        )
+                    else
+                        p.accentDark.copy(
+                            alpha=.80f
+                        ),
+                fontSize=
+                    nmixMix(
+                        11f,
+                        9.5f,
+                        rightShift
+                    ).sp,
+                lineHeight=15.sp,
+                fontWeight=
+                    FontWeight.Medium,
+                fontFamily=a.fontFamily,
+                textAlign=
+                    TextAlign.Center,
+                maxLines=2
+            )
+        }else{
+            /*
+             * HALF + SMALL content.
+             */
+            val contentWidth=
+                if(calcVisible)
+                    (
+                        1f-
+                            fieldFraction
+                    ).coerceIn(
+                        .49f,
+                        .70f
+                    )
+                else
+                    .84f
+
+            val detailsAlpha=
+                (
+                    1f-
+                        halfToSmall*.82f-
+                        smallShrink*.18f
+                ).coerceIn(0f,1f)
+
+            Column(
+                Modifier
+                    .fillMaxWidth(
+                        contentWidth
+                    )
+                    .align(
+                        if(calcVisible)
+                            Alignment.CenterEnd
+                        else
+                            Alignment.Center
+                    )
+                    .padding(
+                        start=
+                            if(calcVisible)
+                                8.dp
+                            else
+                                5.dp,
+                        end=10.dp
+                    ),
+                horizontalAlignment=
+                    Alignment.CenterHorizontally,
+                verticalArrangement=
+                    Arrangement.Center
+            ){
+                if(detailsAlpha>.05f){
+                    Text(
+                        label,
+                        Modifier.graphicsLayer{
+                            alpha=
+                                detailsAlpha
+                        },
+                        color=
+                            if(a.darkMode)
+                                p.accentLight
+                            else
+                                p.accentDark,
+                        fontSize=
+                            (
+                                8f-
+                                    halfShrink*.8f-
+                                    halfToSmall*.45f
+                            )
+                                .coerceAtLeast(
+                                    6.6f
+                                ).sp,
+                        fontWeight=
+                            FontWeight.Bold,
+                        letterSpacing=1.2.sp,
+                        fontFamily=a.fontFamily,
+                        maxLines=1
+                    )
+
+                    Spacer(
+                        Modifier.height(
+                            nmixMix(
+                                3f,
+                                1f,
+                                halfShrink
+                            ).dp
+                        )
+                    )
+                }
+
+                Text(
+                    value,
+                    color=
+                        nmixDisplayText(),
+                    fontSize=
+                        (
+                            34f-
+                                halfShrink*6f-
+                                halfToSmall*4f-
+                                smallShrink*2f
+                        )
+                            .coerceAtLeast(
+                                21f
+                            ).sp,
+                    fontWeight=
+                        FontWeight.SemiBold,
+                    fontFamily=a.fontFamily,
+                    maxLines=1,
+                    textAlign=
+                        TextAlign.Center
                 )
 
-            1->
-                RoundedCornerShape(
+                if(detailsAlpha>.15f){
+                    Spacer(
+                        Modifier.height(
+                            nmixMix(
+                                3f,
+                                1f,
+                                halfShrink
+                            ).dp
+                        )
+                    )
+
+                    Text(
+                        status,
+                        Modifier.graphicsLayer{
+                            alpha=
+                                detailsAlpha
+                        },
+                        color=
+                            if(a.darkMode)
+                                p.accentLight.copy(
+                                    alpha=.76f
+                                )
+                            else
+                                p.accentDark.copy(
+                                    alpha=.78f
+                                ),
+                        fontSize=
+                            (
+                                8.5f-
+                                    halfShrink*.9f-
+                                    halfToSmall*.4f
+                            )
+                                .coerceAtLeast(
+                                    6.7f
+                                ).sp,
+                        lineHeight=10.sp,
+                        fontWeight=
+                            FontWeight.Medium,
+                        fontFamily=a.fontFamily,
+                        textAlign=
+                            TextAlign.Center,
+                        maxLines=2
+                    )
+                }
+            }
+        }
+
+        val timerSize=
+            (
+                47f-
+                    halfShrink*8f-
+                    halfToSmall*5f-
+                    smallShrink*3f
+            )
+                .coerceAtLeast(
+                    31f
+                ).dp
+
+        AnimatedVisibility(
+            visible=timer,
+            modifier=
+                Modifier
+                    .align(
+                        Alignment.CenterStart
+                    )
+                    .padding(
+                        start=
+                            if(displayPercent<.18f)
+                                8.dp
+                            else
+                                13.dp
+                    ),
+            enter=
+                fadeIn(tween(230))+
+                scaleIn(),
+            exit=
+                fadeOut(tween(190))+
+                scaleOut()
+        ){
+            NmixCircleButton(
+                NmixIcon.MINUS,
+                Modifier.size(timerSize),
+                onClick=onMinus
+            )
+        }
+
+        AnimatedVisibility(
+            visible=timer,
+            modifier=
+                Modifier
+                    .align(
+                        Alignment.CenterEnd
+                    )
+                    .padding(
+                        end=
+                            if(displayPercent<.18f)
+                                8.dp
+                            else
+                                13.dp
+                    ),
+            enter=
+                fadeIn(tween(230))+
+                scaleIn(),
+            exit=
+                fadeOut(tween(190))+
+                scaleOut()
+        ){
+            NmixCircleButton(
+                NmixIcon.PLUS,
+                Modifier.size(timerSize),
+                onClick=onPlus
+            )
+        }
+    }
+}
+
+@Composable
+private fun NmixCalculatorMorphFields(
+    first:String,
+    operator:String,
+    second:String,
+    fullToHalf:Float,
+    halfShrink:Float,
+    halfToSmall:Float,
+    smallShrink:Float,
+    radiusProgress:Float,
+    modifier:Modifier=Modifier
+){
+    val density=
+        LocalDensity.current
+
+    fun dataScale(
+        text:String
+    ):Float{
+        return when{
+            text.length>=15->.55f
+            text.length>=12->.63f
+            text.length>=9->.71f
+            text.length>=7->.79f
+            text.length>=5->.88f
+            else->1f
+        }
+    }
+
+    val baseText=
+        (
+            14f-
+                halfShrink*3f-
+                halfToSmall*1.3f-
+                smallShrink*1.2f
+        ).coerceAtLeast(7.8f)
+
+    Layout(
+        modifier=modifier,
+        content={
+            MorphFieldVisual(
+                text=first,
+                textSize=
+                    (
+                        baseText*
+                            dataScale(first)
+                    )
+                        .coerceAtLeast(6.8f)
+                        .sp,
+                kind=0,
+                fullToHalf=fullToHalf,
+                halfToSmall=halfToSmall,
+                radiusProgress=
+                    radiusProgress
+            )
+
+            MorphFieldVisual(
+                text=operator,
+                textSize=
+                    (
+                        baseText*.78f
+                    )
+                        .coerceAtLeast(6.3f)
+                        .sp,
+                kind=1,
+                fullToHalf=fullToHalf,
+                halfToSmall=halfToSmall,
+                radiusProgress=
+                    radiusProgress
+            )
+
+            MorphFieldVisual(
+                text=second,
+                textSize=
+                    (
+                        baseText*
+                            dataScale(second)
+                    )
+                        .coerceAtLeast(6.8f)
+                        .sp,
+                kind=2,
+                fullToHalf=fullToHalf,
+                halfToSmall=halfToSmall,
+                radiusProgress=
+                    radiusProgress
+            )
+        }
+    ){measurables,constraints->
+        val width=constraints.maxWidth
+        val height=constraints.maxHeight
+
+        fun px(value:Float):Float{
+            return with(density){
+                value.dp.toPx()
+            }
+        }
+
+        /*
+         * FULL
+         */
+        val fullOuter=px(12f)
+        val fullGap=px(7f)
+        val fullTop=px(12f)
+        val fullHeight=px(46f)
+        val fullSignWidth=px(58f)
+
+        val fullNumberWidth=
+            (
+                width-
+                    fullOuter*2-
+                    fullGap*2-
+                    fullSignWidth
+            )/2f
+
+        val fullX=floatArrayOf(
+            fullOuter,
+            fullOuter+
+                fullNumberWidth+
+                fullGap,
+            fullOuter+
+                fullNumberWidth+
+                fullGap+
+                fullSignWidth+
+                fullGap
+        )
+
+        val fullY=floatArrayOf(
+            fullTop,
+            fullTop,
+            fullTop
+        )
+
+        val fullW=floatArrayOf(
+            fullNumberWidth,
+            fullSignWidth,
+            fullNumberWidth
+        )
+
+        val fullH=floatArrayOf(
+            fullHeight,
+            fullHeight,
+            fullHeight
+        )
+
+        /*
+         * HALF
+         *
+         * top/bottom outer gaps equal.
+         * both inner gaps equal + smaller.
+         */
+        val halfWidth=
+            width*
+                nmixMix(
+                    .31f,
+                    .27f,
+                    halfShrink
+                )
+
+        val halfLeft=
+            nmixMix(
+                px(7f),
+                px(5f),
+                halfShrink
+            )
+
+        val outerGap=
+            maxOf(
+                nmixMix(
+                    height*.065f,
+                    height*.040f,
+                    halfShrink
+                ),
+                px(2.5f)
+            )
+
+        val innerGap=
+            nmixMix(
+                px(5f),
+                px(2f),
+                halfShrink
+            )
+
+        val availableHeight=
+            (
+                height-
+                    outerGap*2-
+                    innerGap*2
+            ).coerceAtLeast(
+                px(48f)
+            )
+
+        val ratio=2.78f
+
+        val numberHeight=
+            availableHeight/
+                ratio
+
+        val signHeight=
+            numberHeight*.78f
+
+        val halfX=floatArrayOf(
+            halfLeft,
+            halfLeft,
+            halfLeft
+        )
+
+        val halfY=floatArrayOf(
+            outerGap,
+
+            outerGap+
+                numberHeight+
+                innerGap,
+
+            outerGap+
+                numberHeight+
+                innerGap+
+                signHeight+
+                innerGap
+        )
+
+        val halfW=floatArrayOf(
+            halfWidth,
+            halfWidth,
+            halfWidth
+        )
+
+        val halfH=floatArrayOf(
+            numberHeight,
+            signHeight,
+            numberHeight
+        )
+
+        /*
+         * SMALL
+         */
+        val smallLeft=
+            nmixMix(
+                px(7f),
+                px(4f),
+                smallShrink
+            )
+
+        val smallTotalWidth=
+            width*
+                nmixMix(
+                    .45f,
+                    .48f,
+                    smallShrink
+                )
+
+        val smallGap=
+            nmixMix(
+                px(4f),
+                px(2f),
+                smallShrink
+            )
+
+        val smallSignWidth=
+            smallTotalWidth*.24f
+
+        val smallNumberWidth=
+            (
+                smallTotalWidth-
+                    smallSignWidth-
+                    smallGap*2
+            )/2f
+
+        val smallOuterY=
+            nmixMix(
+                px(7f),
+                px(3f),
+                smallShrink
+            )
+
+        val smallHeight=
+            (
+                height-
+                    smallOuterY*2
+            ).coerceAtLeast(
+                px(24f)
+            )
+
+        val smallY=
+            (
+                height-
+                    smallHeight
+            )/2f
+
+        val smallX=floatArrayOf(
+            smallLeft,
+
+            smallLeft+
+                smallNumberWidth+
+                smallGap,
+
+            smallLeft+
+                smallNumberWidth+
+                smallGap+
+                smallSignWidth+
+                smallGap
+        )
+
+        val smallYs=floatArrayOf(
+            smallY,
+            smallY,
+            smallY
+        )
+
+        val smallW=floatArrayOf(
+            smallNumberWidth,
+            smallSignWidth,
+            smallNumberWidth
+        )
+
+        val smallH=floatArrayOf(
+            smallHeight,
+            smallHeight,
+            smallHeight
+        )
+
+        /*
+         * Direct FULL -> HALF interpolation.
+         */
+        val halfStageX=FloatArray(3)
+        val halfStageY=FloatArray(3)
+        val halfStageW=FloatArray(3)
+        val halfStageH=FloatArray(3)
+
+        repeat(3){i->
+            halfStageX[i]=
+                nmixMix(
+                    fullX[i],
+                    halfX[i],
+                    fullToHalf
+                )
+
+            halfStageY[i]=
+                nmixMix(
+                    fullY[i],
+                    halfY[i],
+                    fullToHalf
+                )
+
+            halfStageW[i]=
+                nmixMix(
+                    fullW[i],
+                    halfW[i],
+                    fullToHalf
+                )
+
+            halfStageH[i]=
+                nmixMix(
+                    fullH[i],
+                    halfH[i],
+                    fullToHalf
+                )
+        }
+
+        /*
+         * Direct HALF -> SMALL interpolation.
+         */
+        val finalX=FloatArray(3)
+        val finalY=FloatArray(3)
+        val finalW=FloatArray(3)
+        val finalH=FloatArray(3)
+
+        repeat(3){i->
+            finalX[i]=
+                nmixMix(
+                    halfStageX[i],
+                    smallX[i],
+                    halfToSmall
+                )
+
+            finalY[i]=
+                nmixMix(
+                    halfStageY[i],
+                    smallYs[i],
+                    halfToSmall
+                )
+
+            finalW[i]=
+                nmixMix(
+                    halfStageW[i],
+                    smallW[i],
+                    halfToSmall
+                )
+
+            finalH[i]=
+                nmixMix(
+                    halfStageH[i],
+                    smallH[i],
+                    halfToSmall
+                )
+        }
+
+        val placeables=
+            measurables.mapIndexed{
+                index,
+                measurable->
+
+                measurable.measure(
+                    androidx.compose.ui.unit
+                        .Constraints.fixed(
+                            finalW[index]
+                                .toInt()
+                                .coerceIn(
+                                    1,
+                                    width.coerceAtLeast(1)
+                                ),
+
+                            finalH[index]
+                                .toInt()
+                                .coerceIn(
+                                    1,
+                                    height.coerceAtLeast(1)
+                                )
+                        )
+                )
+            }
+
+        layout(width,height){
+            placeables.forEachIndexed{
+                index,
+                placeable->
+
+                placeable.placeRelative(
+                    x=
+                        finalX[index]
+                            .toInt()
+                            .coerceIn(
+                                0,
+                                (
+                                    width-
+                                        placeable.width
+                                ).coerceAtLeast(0)
+                            ),
+
+                    y=
+                        finalY[index]
+                            .toInt()
+                            .coerceIn(
+                                0,
+                                (
+                                    height-
+                                        placeable.height
+                                ).coerceAtLeast(0)
+                            )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MorphFieldVisual(
+    text:String,
+    textSize:TextUnit,
+    kind:Int,
+    fullToHalf:Float,
+    halfToSmall:Float,
+    radiusProgress:Float
+){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+
+    val full=
+        1f-
+            fullToHalf
+
+    val small=
+        halfToSmall
+
+    /*
+     * FULL:
+     * 1    = top-left only
+     * sign = square
+     * 2    = top-right only
+     *
+     * HALF:
+     * 1    = top-left only
+     * sign = square
+     * 2    = bottom-left only
+     *
+     * SMALL:
+     * 1    = top-left + bottom-left
+     * sign = square
+     * 2    = square
+     */
+
+    val normalRadius=11f
+
+    val pillRadius=
+        nmixMix(
+            11f,
+            34f,
+            radiusProgress
+        )
+
+    val shape=
+        when(kind){
+            0->{
+                val topLeft=
+                    nmixMix(
+                        normalRadius,
+                        pillRadius,
+                        small
+                    )
+
+                val bottomLeft=
                     nmixMix(
                         0f,
-                        4f,
-                        mini
-                    ).dp
-                )
+                        pillRadius,
+                        small
+                    )
 
-            else->
                 RoundedCornerShape(
                     topStart=
-                        nmixMix(
-                            3f,
-                            5f,
-                            mini
-                        ).dp,
+                        topLeft.dp,
+                    topEnd=0.dp,
+                    bottomEnd=0.dp,
                     bottomStart=
-                        if(mini<.5f)
-                            outerRadius
-                        else
-                            5.dp,
-                    topEnd=
-                        nmixMix(
-                            3f,
-                            18f,
-                            mini*
-                                radiusProgress
-                        ).dp,
-                    bottomEnd=
-                        nmixMix(
-                            3f,
-                            18f,
-                            mini*
-                                radiusProgress
-                        ).dp
+                        bottomLeft.dp
                 )
+            }
+
+            1->
+                RoundedCornerShape(0.dp)
+
+            else->{
+                /*
+                 * FULL top-right fades away as
+                 * box moves to HALF.
+                 */
+                val topRight=
+                    normalRadius*
+                        full
+
+                /*
+                 * HALF bottom-left grows during
+                 * Full -> Half, then disappears
+                 * again during Half -> Small.
+                 */
+                val bottomLeft=
+                    normalRadius*
+                        fullToHalf*
+                        (
+                            1f-
+                                small
+                        )
+
+                RoundedCornerShape(
+                    topStart=0.dp,
+                    topEnd=
+                        topRight.dp,
+                    bottomEnd=0.dp,
+                    bottomStart=
+                        bottomLeft.dp
+                )
+            }
         }
 
     Box(
@@ -1783,8 +2864,7 @@ private fun MorphFieldVisual(
     ){
         Text(
             text,
-            color=
-                nmixDisplayText(),
+            color=nmixDisplayText(),
             fontSize=textSize,
             fontWeight=
                 FontWeight.SemiBold,
