@@ -15,20 +15,8 @@ enum class NmixFontName{
     INTER,NUNITO,OUTFIT,POPPINS,QUICKSAND
 }
 
-/*
- * Shared, persisted NMIX background motion style.
- *
- * Individual screens can interpret these styles
- * using their own size while keeping one global
- * appearance preference.
- */
 enum class NmixAnimationName{
-    DRIFT,
-    ORBIT,
-    FLOW,
-    FLOAT,
-    PULSE,
-    CROSS
+    DRIFT,ORBIT,FLOW,FLOAT,PULSE,CROSS
 }
 
 fun NmixAnimationName.label():String=when(this){
@@ -111,6 +99,63 @@ fun NmixThemeName.palette():NmixPalette=when(this){
     NmixThemeName.ORANGE->OrangePalette
     NmixThemeName.ROSE->RosePalette
     NmixThemeName.CYAN->CyanPalette
+}
+
+private fun mixColor(
+    first:Color,
+    second:Color,
+    amount:Float
+):Color{
+    val t=amount.coerceIn(0f,1f)
+
+    return Color(
+        red=
+            first.red+
+            (second.red-first.red)*t,
+        green=
+            first.green+
+            (second.green-first.green)*t,
+        blue=
+            first.blue+
+            (second.blue-first.blue)*t,
+        alpha=1f
+    )
+}
+
+private fun customPalette(
+    color:Color
+):NmixPalette{
+    val dark=
+        Color(0xFF07100D)
+
+    return NmixPalette(
+        name=NmixThemeName.GREEN,
+        accent=color,
+        accentDark=
+            mixColor(
+                color,
+                Color.Black,
+                .31f
+            ),
+        accentLight=
+            mixColor(
+                color,
+                Color.White,
+                .32f
+            ),
+        topDark=
+            mixColor(
+                color,
+                dark,
+                .61f
+            ),
+        topEnd=
+            mixColor(
+                color,
+                Color(0xFF0B1511),
+                .70f
+            )
+    )
 }
 
 val NmixInter=FontFamily(
@@ -197,6 +242,8 @@ class NmixAppearanceState internal constructor(
     initialDark:Boolean,
     initialFont:NmixFontName,
     initialAnimation:NmixAnimationName,
+    initialAnimationSpeed:Float,
+    initialCustomColor:Color?,
     private val context:Context
 ){
     private var themeState by
@@ -211,6 +258,14 @@ class NmixAppearanceState internal constructor(
     private var animationState by
         mutableStateOf(initialAnimation)
 
+    private var animationSpeedState by
+        mutableFloatStateOf(
+            initialAnimationSpeed
+        )
+
+    private var customColorState by
+        mutableStateOf(initialCustomColor)
+
     val theme:NmixThemeName
         get()=themeState
 
@@ -223,16 +278,29 @@ class NmixAppearanceState internal constructor(
     val animation:NmixAnimationName
         get()=animationState
 
+    val animationSpeed:Float
+        get()=animationSpeedState
+
+    val customColor:Color?
+        get()=customColorState
+
+    val usingCustomColor:Boolean
+        get()=customColorState!=null
+
     val fontFamily:FontFamily
         get()=fontState.family()
 
     val palette:NmixPalette
-        get()=themeState.palette()
+        get()=
+            customColorState
+                ?.let(::customPalette)
+                ?:themeState.palette()
 
-    fun setTheme(value:NmixThemeName){
-        if(themeState==value)return
-
+    fun setTheme(
+        value:NmixThemeName
+    ){
         themeState=value
+        customColorState=null
 
         context
             .getSharedPreferences(
@@ -244,10 +312,36 @@ class NmixAppearanceState internal constructor(
                 KEY_THEME,
                 value.name
             )
+            .remove(
+                KEY_CUSTOM_COLOR
+            )
             .apply()
     }
 
-    fun setDarkMode(value:Boolean){
+    fun setCustomColor(
+        value:Color
+    ){
+        val opaque=
+            value.copy(alpha=1f)
+
+        customColorState=opaque
+
+        context
+            .getSharedPreferences(
+                PREFS,
+                Context.MODE_PRIVATE
+            )
+            .edit()
+            .putLong(
+                KEY_CUSTOM_COLOR,
+                opaque.toArgbLong()
+            )
+            .apply()
+    }
+
+    fun setDarkMode(
+        value:Boolean
+    ){
         if(darkModeState==value)return
 
         darkModeState=value
@@ -271,7 +365,9 @@ class NmixAppearanceState internal constructor(
         )
     }
 
-    fun setFont(value:NmixFontName){
+    fun setFont(
+        value:NmixFontName
+    ){
         if(fontState==value)return
 
         fontState=value
@@ -309,6 +405,30 @@ class NmixAppearanceState internal constructor(
             .apply()
     }
 
+    fun setAnimationSpeed(
+        value:Float
+    ){
+        val safe=
+            value.coerceIn(
+                .55f,
+                1.80f
+            )
+
+        animationSpeedState=safe
+
+        context
+            .getSharedPreferences(
+                PREFS,
+                Context.MODE_PRIVATE
+            )
+            .edit()
+            .putFloat(
+                KEY_ANIMATION_SPEED,
+                safe
+            )
+            .apply()
+    }
+
     companion object{
         const val PREFS=
             "nmix_appearance"
@@ -324,7 +444,69 @@ class NmixAppearanceState internal constructor(
 
         const val KEY_ANIMATION=
             "animation_v1"
+
+        const val KEY_ANIMATION_SPEED=
+            "animation_speed_v1"
+
+        const val KEY_CUSTOM_COLOR=
+            "custom_color_v1"
     }
+}
+
+private fun Color.toArgbLong():Long{
+    val a=
+        (alpha*255f)
+            .toInt()
+            .coerceIn(0,255)
+
+    val r=
+        (red*255f)
+            .toInt()
+            .coerceIn(0,255)
+
+    val g=
+        (green*255f)
+            .toInt()
+            .coerceIn(0,255)
+
+    val b=
+        (blue*255f)
+            .toInt()
+            .coerceIn(0,255)
+
+    return (
+        (a.toLong() shl 24) or
+        (r.toLong() shl 16) or
+        (g.toLong() shl 8) or
+        b.toLong()
+    )
+}
+
+private fun colorFromArgbLong(
+    value:Long
+):Color{
+    val a=
+        ((value shr 24) and 0xFF)
+            .toInt()
+
+    val r=
+        ((value shr 16) and 0xFF)
+            .toInt()
+
+    val g=
+        ((value shr 8) and 0xFF)
+            .toInt()
+
+    val b=
+        (value and 0xFF)
+            .toInt()
+
+    return Color(
+        red=r,
+        green=g,
+        blue=b,
+        alpha=a
+    )
 }
 
 @Composable
@@ -348,7 +530,8 @@ fun rememberNmixAppearance(
                     prefs.getString(
                         NmixAppearanceState.KEY_THEME,
                         NmixThemeName.GREEN.name
-                    )?:NmixThemeName.GREEN.name
+                    )
+                        ?:NmixThemeName.GREEN.name
                 )
             }.getOrDefault(
                 NmixThemeName.GREEN
@@ -360,7 +543,8 @@ fun rememberNmixAppearance(
                     prefs.getString(
                         NmixAppearanceState.KEY_FONT,
                         NmixFontName.INTER.name
-                    )?:NmixFontName.INTER.name
+                    )
+                        ?:NmixFontName.INTER.name
                 )
             }.getOrDefault(
                 NmixFontName.INTER
@@ -372,10 +556,20 @@ fun rememberNmixAppearance(
                     prefs.getString(
                         NmixAppearanceState.KEY_ANIMATION,
                         NmixAnimationName.DRIFT.name
-                    )?:NmixAnimationName.DRIFT.name
+                    )
+                        ?:NmixAnimationName.DRIFT.name
                 )
             }.getOrDefault(
                 NmixAnimationName.DRIFT
+            )
+
+        val savedSpeed=
+            prefs.getFloat(
+                NmixAppearanceState.KEY_ANIMATION_SPEED,
+                1f
+            ).coerceIn(
+                .55f,
+                1.80f
             )
 
         val savedDark=
@@ -384,11 +578,29 @@ fun rememberNmixAppearance(
                 false
             )
 
+        val custom=
+            if(
+                prefs.contains(
+                    NmixAppearanceState.KEY_CUSTOM_COLOR
+                )
+            ){
+                colorFromArgbLong(
+                    prefs.getLong(
+                        NmixAppearanceState.KEY_CUSTOM_COLOR,
+                        0L
+                    )
+                )
+            }else{
+                null
+            }
+
         NmixAppearanceState(
             initialTheme=savedTheme,
             initialDark=savedDark,
             initialFont=savedFont,
             initialAnimation=savedAnimation,
+            initialAnimationSpeed=savedSpeed,
+            initialCustomColor=custom,
             context=appContext
         )
     }
