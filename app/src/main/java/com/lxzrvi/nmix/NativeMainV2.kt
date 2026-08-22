@@ -31,6 +31,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.random.Random
+import androidx.compose.ui.draw.blur
+import androidx.compose.foundation.border
 
 @Composable
 fun NativeMainPageV2(
@@ -65,6 +67,10 @@ fun NativeMainPageV2(
 
     var fullscreen by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    var customColorOpen by remember{
+    mutableStateOf(false)
     }
 
     var mode by remember {
@@ -602,8 +608,15 @@ fun NativeMainPageV2(
             .background(ui.page)
     ) {
         LazyColumn(
-            Modifier.fillMaxSize(),
-            contentPadding =
+            Modifier
+                .fillMaxSize()
+                .blur(
+                    if(settings || customColorOpen)
+                        3.dp
+                    else
+                        0.dp
+                ),
+            contentPadding=
                 PaddingValues(
                     top = listTop,
                     bottom = 22.dp
@@ -1344,27 +1357,26 @@ fun NativeMainPageV2(
             }
         }
 
-        AnimatedVisibility(
-            visible =
-                fullscreen,
-            modifier =
-                Modifier.fillMaxSize(),
-            enter =
-                fadeIn(
-                    tween(420)
-                ),
-            exit =
-                fadeOut(
-                    tween(340)
+                NmixCustomColorPicker(
+                    visible=customColorOpen,
+                    onClose={
+                        customColorOpen=false
+                    }
                 )
-        ) {
-            NmixFullscreenClock(
-                time = timeText(),
-                date = dateText(),
-                onExit = {
-                    fullscreen = false
+        
+                AnimatedVisibility(
+                    visible=fullscreen,
+                    modifier=Modifier.fillMaxSize(),
+                    enter=fadeIn(tween(420)),
+                    exit=fadeOut(tween(340))
+                ){
+                    NmixFullscreenClock(
+                        time=timeText(),
+                        date=dateText(),
+                        onExit={
+                            fullscreen=false
+                        }
+                    )
                 }
-            )
+            }
         }
-    }
-}
