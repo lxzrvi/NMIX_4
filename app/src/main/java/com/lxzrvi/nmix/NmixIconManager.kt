@@ -6,10 +6,6 @@ import android.content.pm.PackageManager
 
 object NmixIconManager{
 
-    /*
-     * Alias names that will be declared in
-     * AndroidManifest.xml in the next step.
-     */
     private fun aliasName(
         theme:NmixThemeName,
         style:NmixIconStyle
@@ -67,10 +63,6 @@ object NmixIconManager{
                 else
                     null
 
-            /*
-             * First enable target alias so there is
-             * always a launcher entry during swap.
-             */
             if(target!=null){
                 manager.setComponentEnabledSetting(
                     ComponentName(
@@ -99,17 +91,10 @@ object NmixIconManager{
                 }
             }
 
-            /*
-             * Original MainActivity launcher entry
-             * remains the fallback when custom icon
-             * switching is disabled.
-             */
             manager.setComponentEnabledSetting(
                 ComponentName(
                     appContext,
-                    "${
-                        appContext.packageName
-                    }.MainActivity"
+                    "${appContext.packageName}.MainActivity"
                 ),
                 if(enabled)
                     PackageManager
@@ -128,21 +113,17 @@ object NmixIconManager{
         context:Context,
         appearance:NmixAppearanceState
     ):Boolean{
-        val iconTheme=
-            if(
-                appearance.iconFollowTheme &&
-                !appearance.usingCustomColor
-            ){
-                appearance.theme
-            }else{
-                appearance.iconTheme
-            }
-
+        /*
+         * Custom arbitrary HEX cannot map to a static
+         * launcher alias, so iconTheme is intentionally
+         * the persisted six-color launcher choice.
+         */
         return apply(
             context=context,
             enabled=
                 appearance.appIconEnabled,
-            theme=iconTheme,
+            theme=
+                appearance.iconTheme,
             style=
                 appearance.iconStyle
         )
