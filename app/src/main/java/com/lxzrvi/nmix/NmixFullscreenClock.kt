@@ -1232,35 +1232,343 @@ private fun BoxScope.FullscreenMotionLayer(){
                     }
 
                     NmixAnimationName.CROSS->{
-                        val path=
+@Composable
+private fun BoxScope.FullscreenMotionLayer(){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+
+    if(!a.animationEnabled){
+        return
+    }
+
+    val motion=
+        rememberNmixMotion(
+            "fullscreenSharedMotion"
+        )
+
+    val soft=
+        a.animation in listOf(
+            NmixAnimationName.DRIFT,
+            NmixAnimationName.ORBIT,
+            NmixAnimationName.FLOW
+        )
+
+    val homes=
+        listOf(
+            Offset(-.38f,-.31f),
+            Offset(.38f,.30f),
+            Offset(.36f,-.30f),
+            Offset(-.36f,.31f),
+            Offset(.01f,.02f)
+        )
+
+    repeat(
+        a.animationQuantity.coerceIn(1,5)
+    ){index->
+
+        val home=homes[index]
+
+        val mx=when(index){
+            0->motion.x
+            1->motion.z
+            2->-motion.y
+            3->-motion.x
+            else->motion.y
+        }
+
+        val my=when(index){
+            0->motion.y
+            1->-motion.x
+            2->motion.z
+            3->-motion.z
+            else->-motion.x
+        }
+
+        val direction=
+            if(index%2==0)
+                1f
+            else
+                -1f
+
+        if(soft){
+            val shape=
+                when(a.animation){
+                    NmixAnimationName.DRIFT->
+                        CircleShape
+
+                    NmixAnimationName.ORBIT->
+                        RoundedCornerShape(90.dp)
+
+                    NmixAnimationName.FLOW->
+                        RoundedCornerShape(48.dp)
+
+                    else->
+                        CircleShape
+                }
+
+            val elementSize=
+                when(index){
+                    0->880f
+                    1->710f
+                    2->620f
+                    3->680f
+                    else->540f
+                }
+
+            Box(
+                Modifier
+                    .size(elementSize.dp)
+                    .align(Alignment.Center)
+                    .offset(
+                        x=(home.x*470f).dp,
+                        y=(home.y*430f).dp
+                    )
+                    .graphicsLayer{
+                        translationX=
+                            mx*
+                                (
+                                    270f+
+                                        index*20f
+                                )
+
+                        translationY=
+                            my*
+                                (
+                                    195f+
+                                        index*16f
+                                )
+
+                        scaleX=motion.pulse
+                        scaleY=motion.pulse
+
+                        rotationZ=
+                            if(
+                                a.animation==
+                                NmixAnimationName.ORBIT
+                            ){
+                                motion.z*
+                                    16f*
+                                    direction
+                            }else{
+                                0f
+                            }
+                    }
+                    .background(
+                        Brush.radialGradient(
+                            colorStops=arrayOf(
+                                0f to
+                                    (
+                                        if(index%2==0)
+                                            p.accent
+                                        else
+                                            p.accentLight
+                                    ).copy(
+                                        alpha=
+                                            if(a.darkMode)
+                                                .34f
+                                            else
+                                                .25f
+                                    ),
+
+                                .32f to
+                                    p.accent.copy(
+                                        alpha=.19f
+                                    ),
+
+                                .60f to
+                                    p.accent.copy(
+                                        alpha=.085f
+                                    ),
+
+                                .82f to
+                                    p.accent.copy(
+                                        alpha=.026f
+                                    ),
+
+                                1f to
+                                    Color.Transparent
+                            )
+                        ),
+                        shape
+                    )
+            )
+        }else{
+            val elementSize=
+                when(index){
+                    0->270f
+                    1->220f
+                    2->185f
+                    3->205f
+                    else->165f
+                }
+
+            Canvas(
+                Modifier
+                    .size(elementSize.dp)
+                    .align(Alignment.Center)
+                    .offset(
+                        x=(home.x*500f).dp,
+                        y=(home.y*440f).dp
+                    )
+                    .graphicsLayer{
+                        translationX=
+                            mx*
+                                (
+                                    300f+
+                                        index*17f
+                                )
+
+                        translationY=
+                            my*
+                                (
+                                    210f+
+                                        index*13f
+                                )
+
+                        rotationZ=
+                            motion.z*
+                                18f*
+                                direction
+
+                        if(
+                            a.animation==
+                            NmixAnimationName.PULSE
+                        ){
+                            scaleX=motion.pulse
+                            scaleY=motion.pulse
+                        }
+                    }
+            ){
+                /*
+                 * Local names deliberately avoid
+                 * collision with Modifier.size /
+                 * width / height APIs.
+                 */
+                val canvasWidth=
+                    this.size.width
+
+                val canvasHeight=
+                    this.size.height
+
+                val elementColor=
+                    if(index%2==0)
+                        p.accent
+                    else
+                        p.accentLight
+
+                val elementAlpha=
+                    if(a.darkMode)
+                        .15f
+                    else
+                        .12f
+
+                when(a.animation){
+                    NmixAnimationName.FLOAT->{
+                        drawRoundRect(
+                            color=
+                                elementColor.copy(
+                                    alpha=.035f
+                                ),
+                            cornerRadius=
+                                CornerRadius(
+                                    30.dp.toPx()
+                                )
+                        )
+
+                        val inset=
+                            8.dp.toPx()
+
+                        drawRoundRect(
+                            color=
+                                elementColor.copy(
+                                    alpha=elementAlpha
+                                ),
+                            topLeft=
+                                Offset(
+                                    inset,
+                                    inset
+                                ),
+                            size=
+                                androidx.compose.ui.geometry.Size(
+                                    (
+                                        canvasWidth-
+                                            inset*2f
+                                    ).coerceAtLeast(
+                                        0f
+                                    ),
+                                    (
+                                        canvasHeight-
+                                            inset*2f
+                                    ).coerceAtLeast(
+                                        0f
+                                    )
+                                ),
+                            cornerRadius=
+                                CornerRadius(
+                                    24.dp.toPx()
+                                )
+                        )
+                    }
+
+                    NmixAnimationName.PULSE->{
+                        val triangle=
                             Path().apply{
                                 moveTo(
-                                    size.width*.5f,
-                                    size.height*.04f
+                                    canvasWidth*.50f,
+                                    canvasHeight*.06f
                                 )
 
                                 lineTo(
-                                    size.width*.96f,
-                                    size.height*.5f
+                                    canvasWidth*.94f,
+                                    canvasHeight*.90f
                                 )
 
                                 lineTo(
-                                    size.width*.5f,
-                                    size.height*.96f
-                                )
-
-                                lineTo(
-                                    size.width*.04f,
-                                    size.height*.5f
+                                    canvasWidth*.06f,
+                                    canvasHeight*.90f
                                 )
 
                                 close()
                             }
 
                         drawPath(
-                            path,
-                            color.copy(
-                                alpha=alpha
+                            triangle,
+                            elementColor.copy(
+                                alpha=elementAlpha
+                            )
+                        )
+                    }
+
+                    NmixAnimationName.CROSS->{
+                        val diamond=
+                            Path().apply{
+                                moveTo(
+                                    canvasWidth*.50f,
+                                    canvasHeight*.04f
+                                )
+
+                                lineTo(
+                                    canvasWidth*.96f,
+                                    canvasHeight*.50f
+                                )
+
+                                lineTo(
+                                    canvasWidth*.50f,
+                                    canvasHeight*.96f
+                                )
+
+                                lineTo(
+                                    canvasWidth*.04f,
+                                    canvasHeight*.50f
+                                )
+
+                                close()
+                            }
+
+                        drawPath(
+                            diamond,
+                            elementColor.copy(
+                                alpha=elementAlpha
                             )
                         )
                     }
