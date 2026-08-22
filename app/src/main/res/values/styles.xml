@@ -6,32 +6,23 @@
         parent="android:style/Theme.Material.NoActionBar">
 
         <item name="android:fontFamily">sans</item>
-
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowNoTitle">true</item>
 
-        <!--
-            Neutral dark launch surface prevents the
-            system Light theme from producing a white
-            startup frame before Compose is ready.
-        -->
-        <item name="android:windowBackground">#0D1110</item>
-        <item name="android:colorBackground">#0D1110</item>
+        <!-- Match NMIX default launch accent instead of black/white -->
+        <item name="android:windowBackground">#216E56</item>
+        <item name="android:colorBackground">#216E56</item>
 
-        <item name="android:statusBarColor">#0D1110</item>
-        <item name="android:navigationBarColor">#0D1110</item>
+        <item name="android:statusBarColor">#216E56</item>
+        <item name="android:navigationBarColor">#216E56</item>
 
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
 
-        <!-- Keep launch preview opaque. -->
         <item name="android:windowDisablePreview">false</item>
-
-        <!-- Prevent translucent activity frames. -->
         <item name="android:windowIsTranslucent">false</item>
         <item name="android:windowIsFloating">false</item>
 
-        <!-- No platform window transition flash. -->
         <item name="android:windowAnimationStyle">@null</item>
 
     </style>
