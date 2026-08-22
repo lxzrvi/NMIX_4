@@ -515,7 +515,7 @@ fun NativeMainPageV2(
      * and the header while the top is visible.
      */
     val minimumHeaderHeight =
-        245.dp
+        190.dp
 
     val maximumHeaderHeight =
         (
@@ -1074,11 +1074,11 @@ fun NativeMainPageV2(
                         .align(
                             Alignment.BottomEnd
                         )
-                        .width(52.dp)
-                        .height(24.dp)
+                        .width(46.dp)
+                        .height(20.dp)
                         .offset(
-                            x = (-1).dp,
-                            y = 6.dp
+                            x=(-4).dp,
+                            y=5.dp
                         )
                         .pointerInput(
                             minimumHeaderHeight,
@@ -1126,8 +1126,8 @@ fun NativeMainPageV2(
                     Text(
                         text = "••••",
                         color =
-                            Color.White.copy(
-                                alpha = .64f
+                            color=p.accentLight.copy(
+                                alpha=.90f
                             ),
                         fontSize = 8.sp,
                         letterSpacing = .7.sp,
