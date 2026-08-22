@@ -5,6 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
@@ -16,14 +17,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 
 @Composable
 fun NmixAnimationSettings(){
@@ -42,14 +47,20 @@ fun NmixAnimationSettings(){
         )
 
         Text(
-            "Choose how NMIX backgrounds move",
+            "Choose motion and speed",
             color=ui.muted,
             fontSize=9.sp,
             fontFamily=a.fontFamily
         )
 
         Spacer(
-            Modifier.height(11.dp)
+            Modifier.height(10.dp)
+        )
+
+        AnimationSpeedSlider()
+
+        Spacer(
+            Modifier.height(13.dp)
         )
 
         MotionGroupTitle(
@@ -66,21 +77,27 @@ fun NmixAnimationSettings(){
             horizontalArrangement=
                 Arrangement.spacedBy(7.dp)
         ){
-            SoftMotionCard(
+            MotionCard(
                 animation=NmixAnimationName.DRIFT,
-                detail="Slow floating glow",
+                detail="Soft orb drift",
+                soft=true,
+                shape=MotionShape.ORB,
                 modifier=Modifier.weight(1f)
             )
 
-            SoftMotionCard(
+            MotionCard(
                 animation=NmixAnimationName.ORBIT,
-                detail="Circular calm motion",
+                detail="Blurred square orbit",
+                soft=true,
+                shape=MotionShape.SQUARE,
                 modifier=Modifier.weight(1f)
             )
 
-            SoftMotionCard(
+            MotionCard(
                 animation=NmixAnimationName.FLOW,
-                detail="Smooth directional flow",
+                detail="Soft triangle flow",
+                soft=true,
+                shape=MotionShape.TRIANGLE,
                 modifier=Modifier.weight(1f)
             )
         }
@@ -103,28 +120,261 @@ fun NmixAnimationSettings(){
             horizontalArrangement=
                 Arrangement.spacedBy(7.dp)
         ){
-            HardMotionCard(
+            MotionCard(
                 animation=NmixAnimationName.FLOAT,
-                detail="Floating square",
-                shape=HardShape.SQUARE,
+                detail="Sharp square float",
+                soft=false,
+                shape=MotionShape.SQUARE,
                 modifier=Modifier.weight(1f)
             )
 
-            HardMotionCard(
+            MotionCard(
                 animation=NmixAnimationName.PULSE,
-                detail="Breathing triangle",
-                shape=HardShape.TRIANGLE,
+                detail="Triangle pulse",
+                soft=false,
+                shape=MotionShape.TRIANGLE,
                 modifier=Modifier.weight(1f)
             )
 
-            HardMotionCard(
+            MotionCard(
                 animation=NmixAnimationName.CROSS,
-                detail="Crossing geometry",
-                shape=HardShape.DIAMOND,
+                detail="Crossing diamonds",
+                soft=false,
+                shape=MotionShape.DIAMOND,
                 modifier=Modifier.weight(1f)
             )
         }
     }
+}
+
+@Composable
+private fun AnimationSpeedSlider(){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+    val ui=a.uiColors()
+
+    var widthPx by remember{
+        mutableIntStateOf(1)
+    }
+
+    val min=.55f
+    val max=1.80f
+
+    fun update(
+        x:Float
+    ){
+        val progress=
+            (
+                x/
+                widthPx
+                    .toFloat()
+                )
+                .coerceIn(
+                    0f,
+                    1f
+                )
+
+        a.setAnimationSpeed(
+            min+
+                (
+                    max-min
+                )*
+                progress
+        )
+    }
+
+    val progress=
+        (
+            (
+                a.animationSpeed-
+                min
+            )/
+            (
+                max-min
+            )
+            )
+            .coerceIn(
+                0f,
+                1f
+            )
+
+    val label=
+        when{
+            a.animationSpeed<.82f->
+                "Slow"
+
+            a.animationSpeed<1.22f->
+                "Normal"
+
+            a.animationSpeed<1.52f->
+                "Fast"
+
+            else->
+                "Rapid"
+        }
+
+    val shape=
+        RoundedCornerShape(50)
+
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(
+                if(a.darkMode){
+                    Color.White.copy(
+                        alpha=.04f
+                    )
+                }else{
+                    Color.White.copy(
+                        alpha=.68f
+                    )
+                }
+            )
+            .border(
+                .45.dp,
+                p.accent.copy(
+                    alpha=
+                        if(a.darkMode)
+                            .13f
+                        else
+                            .21f
+                ),
+                shape
+            )
+            .padding(
+                horizontal=12.dp,
+                vertical=9.dp
+            )
+    ){
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment=
+                Alignment.CenterVertically
+        ){
+            Text(
+                "Animation Speed",
+                modifier=
+                    Modifier.weight(1f),
+                color=ui.text,
+                fontSize=9.5.sp,
+                fontWeight=
+                    FontWeight.SemiBold,
+                fontFamily=a.fontFamily
+            )
+
+            Text(
+                label,
+                color=p.accent,
+                fontSize=8.sp,
+                fontWeight=
+                    FontWeight.Bold,
+                fontFamily=a.fontFamily
+            )
+        }
+
+        Spacer(
+            Modifier.height(8.dp)
+        )
+
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(22.dp)
+                .onSizeChanged{
+                    widthPx=
+                        it.width
+                            .coerceAtLeast(1)
+                }
+                .pointerInput(
+                    widthPx
+                ){
+                    detectHorizontalDragGestures(
+                        onDragStart={
+                            update(it.x)
+                        },
+                        onHorizontalDrag={
+                            change,
+                            _->
+
+                            change.consume()
+
+                            update(
+                                change.position.x
+                            )
+                        }
+                    )
+                },
+            contentAlignment=
+                Alignment.CenterStart
+        ){
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(
+                        RoundedCornerShape(50)
+                    )
+                    .background(
+                        ui.muted.copy(
+                            alpha=.20f
+                        )
+                    )
+            )
+
+            Box(
+                Modifier
+                    .fillMaxWidth(
+                        progress
+                    )
+                    .height(4.dp)
+                    .clip(
+                        RoundedCornerShape(50)
+                    )
+                    .background(
+                        p.accent
+                    )
+            )
+
+            Box(
+                Modifier
+                    .offset(
+                        x=
+                            (
+                                (
+                                    widthPx*
+                                    progress
+                                )/
+                                androidx.compose.ui.platform
+                                    .LocalDensity
+                                    .current
+                                    .density
+                            ).dp-
+                            7.dp
+                    )
+                    .size(14.dp)
+                    .clip(CircleShape)
+                    .background(
+                        p.accent
+                    )
+                    .border(
+                        2.dp,
+                        if(a.darkMode)
+                            Color(0xFF151A18)
+                        else
+                            Color.White,
+                        CircleShape
+                    )
+            )
+        }
+    }
+}
+
+private enum class MotionShape{
+    ORB,
+    SQUARE,
+    TRIANGLE,
+    DIAMOND
 }
 
 @Composable
@@ -164,53 +414,12 @@ private fun MotionGroupTitle(
 }
 
 @Composable
-private fun SoftMotionCard(
+private fun MotionCard(
     animation:NmixAnimationName,
     detail:String,
+    soft:Boolean,
+    shape:MotionShape,
     modifier:Modifier
-){
-    MotionCardShell(
-        animation=animation,
-        detail=detail,
-        modifier=modifier
-    ){
-        SoftPreview(
-            animation
-        )
-    }
-}
-
-private enum class HardShape{
-    SQUARE,
-    TRIANGLE,
-    DIAMOND
-}
-
-@Composable
-private fun HardMotionCard(
-    animation:NmixAnimationName,
-    detail:String,
-    shape:HardShape,
-    modifier:Modifier
-){
-    MotionCardShell(
-        animation=animation,
-        detail=detail,
-        modifier=modifier
-    ){
-        HardPreview(
-            animation,
-            shape
-        )
-    }
-}
-
-@Composable
-private fun MotionCardShell(
-    animation:NmixAnimationName,
-    detail:String,
-    modifier:Modifier,
-    preview:@Composable ()->Unit
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
@@ -227,10 +436,7 @@ private fun MotionCardShell(
         interaction.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        if(pressed)
-            .97f
-        else
-            1f,
+        if(pressed).97f else 1f,
         spring(
             dampingRatio=.74f,
             stiffness=620f
@@ -238,26 +444,25 @@ private fun MotionCardShell(
         label="motionCardPress"
     )
 
-    val shape=
+    val cardShape=
         RoundedCornerShape(14.dp)
-
-    val background=
-        if(a.darkMode){
-            Color.White.copy(
-                alpha=.035f
-            )
-        }else{
-            Color.White.copy(
-                alpha=.70f
-            )
-        }
 
     Column(
         modifier
             .height(132.dp)
             .scale(scale)
-            .clip(shape)
-            .background(background)
+            .clip(cardShape)
+            .background(
+                if(a.darkMode){
+                    Color.White.copy(
+                        alpha=.035f
+                    )
+                }else{
+                    Color.White.copy(
+                        alpha=.70f
+                    )
+                }
+            )
             .border(
                 if(selected)
                     1.1.dp
@@ -274,10 +479,11 @@ private fun MotionCardShell(
                                 .14f
                     )
                 },
-                shape
+                cardShape
             )
             .clickable(
-                interactionSource=interaction,
+                interactionSource=
+                    interaction,
                 indication=null
             ){
                 a.setAnimation(
@@ -299,11 +505,15 @@ private fun MotionCardShell(
                     if(a.darkMode){
                         Color(0xFF101513)
                     }else{
-                        Color(0xFFE2E7E4)
+                        Color(0xFFE1E7E4)
                     }
                 )
         ){
-            preview()
+            MotionPreview(
+                animation=animation,
+                soft=soft,
+                shape=shape
+            )
 
             if(selected){
                 NmixIcon(
@@ -317,7 +527,7 @@ private fun MotionCardShell(
                     if(a.darkMode)
                         Color.White
                     else
-                        Color(0xFF1E2924)
+                        Color(0xFF202824)
                 )
             }
         }
@@ -351,166 +561,37 @@ private fun MotionCardShell(
 }
 
 @Composable
-private fun SoftPreview(
-    animation:NmixAnimationName
-){
-    val a=LocalNmixAppearance.current
-    val p=a.palette
-
-    val motion=
-        rememberInfiniteTransition(
-            label="softPreview${animation.name}"
-        )
-
-    val x by motion.animateFloat(
-        -1f,
-        1f,
-        infiniteRepeatable(
-            tween(
-                when(animation){
-                    NmixAnimationName.DRIFT->
-                        2600
-
-                    NmixAnimationName.ORBIT->
-                        2200
-
-                    else->
-                        2000
-                },
-                easing=EaseInOutSine
-            ),
-            RepeatMode.Reverse
-        ),
-        label="softX"
-    )
-
-    val y by motion.animateFloat(
-        1f,
-        -1f,
-        infiniteRepeatable(
-            tween(
-                3100,
-                easing=EaseInOutSine
-            ),
-            RepeatMode.Reverse
-        ),
-        label="softY"
-    )
-
-    val firstX:Float
-    val firstY:Float
-    val secondX:Float
-    val secondY:Float
-
-    when(animation){
-        NmixAnimationName.DRIFT->{
-            firstX=x*25f
-            firstY=y*8f
-            secondX=-x*21f
-            secondY=-y*9f
-        }
-
-        NmixAnimationName.ORBIT->{
-            firstX=x*22f
-            firstY=y*15f
-            secondX=-y*22f
-            secondY=x*15f
-        }
-
-        else->{
-            firstX=x*31f
-            firstY=x*7f
-            secondX=x*25f
-            secondY=-x*8f
-        }
-    }
-
-    Box(
-        Modifier.fillMaxSize()
-    ){
-        SoftOrb(
-            color=p.accent,
-            modifier=Modifier
-                .align(
-                    Alignment.CenterStart
-                )
-                .offset(
-                    x=(-17).dp
-                )
-                .graphicsLayer{
-                    translationX=firstX
-                    translationY=firstY
-                }
-        )
-
-        SoftOrb(
-            color=p.accentLight,
-            modifier=Modifier
-                .align(
-                    Alignment.CenterEnd
-                )
-                .offset(
-                    x=17.dp
-                )
-                .graphicsLayer{
-                    translationX=secondX
-                    translationY=secondY
-                }
-        )
-    }
-}
-
-@Composable
-private fun SoftOrb(
-    color:Color,
-    modifier:Modifier
-){
-    Box(
-        modifier
-            .size(78.dp)
-            .background(
-                Brush.radialGradient(
-                    colorStops=arrayOf(
-                        0f to
-                            color.copy(
-                                alpha=.62f
-                            ),
-
-                        .28f to
-                            color.copy(
-                                alpha=.38f
-                            ),
-
-                        .60f to
-                            color.copy(
-                                alpha=.12f
-                            ),
-
-                        .84f to
-                            color.copy(
-                                alpha=.035f
-                            ),
-
-                        1f to
-                            Color.Transparent
-                    )
-                ),
-                CircleShape
-            )
-    )
-}
-
-@Composable
-private fun HardPreview(
+private fun MotionPreview(
     animation:NmixAnimationName,
-    shape:HardShape
+    soft:Boolean,
+    shape:MotionShape
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
 
+    val speed=
+        a.animationSpeed
+            .coerceIn(
+                .55f,
+                1.80f
+            )
+
+    val duration=
+        (
+            if(soft)
+                2500/speed
+            else
+                1800/speed
+            )
+            .roundToInt()
+            .coerceAtLeast(
+                650
+            )
+
     val motion=
         rememberInfiniteTransition(
-            label="hardPreview${animation.name}"
+            label=
+                "motionPreview${animation.name}"
         )
 
     val x by motion.animateFloat(
@@ -518,12 +599,12 @@ private fun HardPreview(
         1f,
         infiniteRepeatable(
             tween(
-                1750,
+                duration,
                 easing=EaseInOutSine
             ),
             RepeatMode.Reverse
         ),
-        label="hardX"
+        label="previewX"
     )
 
     val y by motion.animateFloat(
@@ -531,32 +612,52 @@ private fun HardPreview(
         -1f,
         infiniteRepeatable(
             tween(
-                2250,
+                duration+570,
                 easing=EaseInOutSine
             ),
             RepeatMode.Reverse
         ),
-        label="hardY"
+        label="previewY"
     )
 
     val pulse=
         .78f+
-            ((x+1f)/2f)*.38f
+            ((x+1f)/2f)*
+            .38f
 
     Box(
         Modifier.fillMaxSize()
     ){
-        Canvas(
-            Modifier
-                .size(42.dp)
+        PreviewShape(
+            shape=shape,
+            color=p.accent,
+            soft=soft,
+            modifier=Modifier
                 .align(
                     Alignment.Center
                 )
                 .graphicsLayer{
                     when(animation){
-                        NmixAnimationName.FLOAT->{
+                        NmixAnimationName.DRIFT->{
+                            translationX=x*25f
+                            translationY=y*8f
+                        }
+
+                        NmixAnimationName.ORBIT->{
                             translationX=x*23f
-                            translationY=y*11f
+                            translationY=y*15f
+                            rotationZ=x*16f
+                        }
+
+                        NmixAnimationName.FLOW->{
+                            translationX=x*31f
+                            translationY=x*7f
+                        }
+
+                        NmixAnimationName.FLOAT->{
+                            translationX=x*24f
+                            translationY=y*12f
+                            rotationZ=x*12f
                         }
 
                         NmixAnimationName.PULSE->{
@@ -569,112 +670,181 @@ private fun HardPreview(
                         NmixAnimationName.CROSS->{
                             translationX=x*29f
                             translationY=y*8f
+                            rotationZ=x*18f
                         }
-
-                        else->{}
                     }
                 }
-        ){
-            when(shape){
-                HardShape.SQUARE->{
-                    drawRoundRect(
-                        color=
-                            p.accent.copy(
-                                alpha=.74f
-                            ),
-                        cornerRadius=
-                            androidx.compose.ui.geometry.CornerRadius(
-                                7.dp.toPx()
-                            )
-                    )
-                }
-
-                HardShape.TRIANGLE->{
-                    val path=Path().apply{
-                        moveTo(
-                            size.width*.5f,
-                            size.height*.10f
-                        )
-
-                        lineTo(
-                            size.width*.90f,
-                            size.height*.86f
-                        )
-
-                        lineTo(
-                            size.width*.10f,
-                            size.height*.86f
-                        )
-
-                        close()
-                    }
-
-                    drawPath(
-                        path,
-                        p.accent.copy(
-                            alpha=.76f
-                        )
-                    )
-                }
-
-                HardShape.DIAMOND->{
-                    val path=Path().apply{
-                        moveTo(
-                            size.width*.5f,
-                            size.height*.06f
-                        )
-
-                        lineTo(
-                            size.width*.94f,
-                            size.height*.5f
-                        )
-
-                        lineTo(
-                            size.width*.5f,
-                            size.height*.94f
-                        )
-
-                        lineTo(
-                            size.width*.06f,
-                            size.height*.5f
-                        )
-
-                        close()
-                    }
-
-                    drawPath(
-                        path,
-                        p.accent.copy(
-                            alpha=.76f
-                        )
-                    )
-                }
-            }
-        }
+        )
 
         if(
             animation==
-            NmixAnimationName.CROSS
+                NmixAnimationName.CROSS
         ){
-            Canvas(
-                Modifier
-                    .size(31.dp)
+            PreviewShape(
+                shape=MotionShape.DIAMOND,
+                color=p.accentLight,
+                soft=false,
+                modifier=Modifier
                     .align(
                         Alignment.Center
                     )
                     .graphicsLayer{
                         translationX=
-                            -x*27f
+                            -x*28f
 
                         translationY=
                             -y*7f
+
+                        rotationZ=
+                            -x*18f
                     }
-            ){
+            )
+        }
+    }
+}
+
+@Composable
+private fun PreviewShape(
+    shape:MotionShape,
+    color:Color,
+    soft:Boolean,
+    modifier:Modifier
+){
+    Canvas(
+        modifier.size(
+            if(soft)
+                58.dp
+            else
+                38.dp
+        )
+    ){
+        val alpha=
+            if(soft)
+                .43f
+            else
+                .78f
+
+        when(shape){
+            MotionShape.ORB->{
                 drawCircle(
-                    color=
-                        p.accentLight.copy(
-                            alpha=.66f
+                    brush=
+                        Brush.radialGradient(
+                            colorStops=
+                                arrayOf(
+                                    0f to
+                                        color.copy(
+                                            alpha=.60f
+                                        ),
+
+                                    .42f to
+                                        color.copy(
+                                            alpha=.28f
+                                        ),
+
+                                    1f to
+                                        Color.Transparent
+                                )
                         )
+                )
+            }
+
+            MotionShape.SQUARE->{
+                if(soft){
+                    drawRoundRect(
+                        brush=
+                            Brush.radialGradient(
+                                listOf(
+                                    color.copy(
+                                        alpha=.52f
+                                    ),
+                                    color.copy(
+                                        alpha=.18f
+                                    ),
+                                    Color.Transparent
+                                )
+                            ),
+                        cornerRadius=
+                            CornerRadius(
+                                10.dp.toPx()
+                            )
+                    )
+                }else{
+                    drawRoundRect(
+                        color=
+                            color.copy(
+                                alpha=alpha
+                            ),
+                        cornerRadius=
+                            CornerRadius(
+                                6.dp.toPx()
+                            )
+                    )
+                }
+            }
+
+            MotionShape.TRIANGLE->{
+                val path=Path().apply{
+                    moveTo(
+                        size.width*.5f,
+                        size.height*.08f
+                    )
+
+                    lineTo(
+                        size.width*.92f,
+                        size.height*.88f
+                    )
+
+                    lineTo(
+                        size.width*.08f,
+                        size.height*.88f
+                    )
+
+                    close()
+                }
+
+                drawPath(
+                    path=path,
+                    color=
+                        color.copy(
+                            alpha=
+                                if(soft)
+                                    .40f
+                                else
+                                    .80f
+                        )
+                )
+            }
+
+            MotionShape.DIAMOND->{
+                val path=Path().apply{
+                    moveTo(
+                        size.width*.5f,
+                        size.height*.04f
+                    )
+
+                    lineTo(
+                        size.width*.96f,
+                        size.height*.5f
+                    )
+
+                    lineTo(
+                        size.width*.5f,
+                        size.height*.96f
+                    )
+
+                    lineTo(
+                        size.width*.04f,
+                        size.height*.5f
+                    )
+
+                    close()
+                }
+
+                drawPath(
+                    path,
+                    color.copy(
+                        alpha=alpha
+                    )
                 )
             }
         }
