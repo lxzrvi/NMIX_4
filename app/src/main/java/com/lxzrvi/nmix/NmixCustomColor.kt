@@ -21,9 +21,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,86 +40,92 @@ fun NmixCustomColorPicker(
     visible:Boolean,
     onClose:()->Unit
 ){
-    val a=
-        LocalNmixAppearance.current
-
+    val a=LocalNmixAppearance.current
     val ui=a.uiColors()
 
-    var hue by remember(
-        visible
-    ){
+    var hue by remember(visible){
         mutableFloatStateOf(
-            colorHue(
+            hueOf(a.palette.accent)
+        )
+    }
+
+    var saturation by remember(visible){
+        mutableFloatStateOf(
+            saturationOf(
                 a.palette.accent
             )
         )
     }
 
-    var saturation by remember(
-        visible
-    ){
+    var brightness by remember(visible){
         mutableFloatStateOf(
-            .76f
+            brightnessOf(
+                a.palette.accent
+            )
         )
     }
 
-    var value by remember(
-        visible
-    ){
-        mutableFloatStateOf(
-            .88f
-        )
-    }
-
-    var hex by remember(
-        visible
-    ){
+    var hex by remember(visible){
         mutableStateOf(
-            colorHex(
+            toHex(
                 a.palette.accent
             )
         )
     }
 
-    val selected=
-        hsvColor(
+    var editingHex by remember{
+        mutableStateOf(false)
+    }
+
+    val selectedColor=
+        hsvToComposeColor(
             hue,
             saturation,
-            value
+            brightness
         )
 
+    /*
+     * Keep the HEX field synchronized with
+     * wheel movement, but do not overwrite
+     * the user's text while they are typing.
+     */
     LaunchedEffect(
         hue,
         saturation,
-        value
+        brightness,
+        editingHex
     ){
-        hex=
-            colorHex(
-                selected
-            )
+        if(!editingHex){
+            hex=
+                toHex(
+                    selectedColor
+                )
+        }
     }
 
     AnimatedVisibility(
         visible=visible,
         enter=
             fadeIn(
-                tween(240)
+                animationSpec=
+                    tween(230)
             )+
             scaleIn(
                 initialScale=.96f,
                 animationSpec=tween(
-                    300,
+                    290,
                     easing=EaseOutCubic
                 )
             ),
         exit=
             fadeOut(
-                tween(180)
+                animationSpec=
+                    tween(180)
             )+
             scaleOut(
                 targetScale=.97f,
                 animationSpec=
-                    tween(220)
+                    tween(210)
             )
     ){
         Box(
@@ -126,48 +133,44 @@ fun NmixCustomColorPicker(
                 .fillMaxSize()
                 .background(
                     Color.Black.copy(
-                        alpha=.22f
+                        alpha=.24f
                     )
                 )
                 .clickable(
-                    interactionSource=
-                        remember{
-                            MutableInteractionSource()
-                        },
+                    interactionSource=remember{
+                        MutableInteractionSource()
+                    },
                     indication=null,
                     onClick=onClose
                 ),
             contentAlignment=
                 Alignment.Center
         ){
-            val shape=
-                RoundedCornerShape(
-                    24.dp
-                )
+            val panelShape=
+                RoundedCornerShape(24.dp)
 
             Column(
                 Modifier
-                    .width(290.dp)
-                    .clip(shape)
+                    .width(292.dp)
+                    .clip(panelShape)
                     .background(
-                        if(a.darkMode)
+                        if(a.darkMode){
                             Color(0xFF151A18)
-                        else
+                        }else{
                             Color(0xFFF2F5F3)
+                        }
                     )
                     .border(
                         .7.dp,
-                        a.palette.accent
-                            .copy(
-                                alpha=.42f
-                            ),
-                        shape
+                        a.palette.accent.copy(
+                            alpha=.42f
+                        ),
+                        panelShape
                     )
                     .clickable(
-                        interactionSource=
-                            remember{
-                                MutableInteractionSource()
-                            },
+                        interactionSource=remember{
+                            MutableInteractionSource()
+                        },
                         indication=null
                     ){}
                     .padding(18.dp),
@@ -181,144 +184,151 @@ fun NmixCustomColorPicker(
                     fontWeight=
                         FontWeight.Bold,
                     letterSpacing=1.sp,
-                    fontFamily=
-                        a.fontFamily
+                    fontFamily=a.fontFamily
                 )
 
                 Spacer(
-                    Modifier.height(
-                        15.dp
-                    )
+                    Modifier.height(4.dp)
                 )
 
-                ColorWheel(
+                Text(
+                    "Choose any NMIX accent",
+                    color=ui.muted,
+                    fontSize=8.sp,
+                    fontFamily=a.fontFamily
+                )
+
+                Spacer(
+                    Modifier.height(15.dp)
+                )
+
+                NmixHueWheel(
                     hue=hue,
                     saturation=saturation,
-                    value=value,
+                    brightness=brightness,
                     onChange={
-                        newHue,
-                        newSat->
+                        newHue:Float,
+                        newSaturation:Float->
 
+                        editingHex=false
                         hue=newHue
-                        saturation=newSat
+                        saturation=
+                            newSaturation
                     }
                 )
 
                 Spacer(
-                    Modifier.height(
-                        14.dp
-                    )
+                    Modifier.height(14.dp)
                 )
 
-                Box(
-                    Modifier
-                        .size(38.dp)
-                        .clip(
-                            CircleShape
-                        )
-                        .background(
-                            selected
-                        )
-                        .border(
-                            2.dp,
-                            Color.White.copy(
-                                alpha=.65f
-                            ),
-                            CircleShape
-                        )
+                /*
+                 * Brightness strip makes the
+                 * circular selector useful for
+                 * both vivid and dark/light colors.
+                 */
+                BrightnessControl(
+                    brightness=brightness,
+                    hue=hue,
+                    saturation=saturation,
+                    onChange={
+                        newValue:Float->
+
+                        editingHex=false
+                        brightness=
+                            newValue
+                    }
                 )
 
                 Spacer(
-                    Modifier.height(
-                        13.dp
-                    )
+                    Modifier.height(14.dp)
                 )
 
-                val fieldShape=
-                    RoundedCornerShape(
-                        12.dp
+                Row(
+                    verticalAlignment=
+                        Alignment.CenterVertically
+                ){
+                    Box(
+                        Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(
+                                selectedColor
+                            )
+                            .border(
+                                1.5.dp,
+                                ui.text.copy(
+                                    alpha=.30f
+                                ),
+                                CircleShape
+                            )
                     )
 
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(46.dp)
-                        .clip(fieldShape)
-                        .background(
-                            a.palette.accent
-                                .copy(
-                                    alpha=.07f
-                                )
-                        )
-                        .border(
-                            .5.dp,
-                            a.palette.accent
-                                .copy(
-                                    alpha=.24f
-                                ),
-                            fieldShape
-                        )
-                        .padding(
-                            horizontal=12.dp
-                        ),
-                    contentAlignment=
-                        Alignment.Center
-                ){
-                    BasicTextField(
+                    Spacer(
+                        Modifier.width(10.dp)
+                    )
+
+                    HexField(
                         value=hex,
                         onValueChange={
-                            valueText->
+                            input:String->
 
-                            val cleaned=
-                                valueText
+                            editingHex=true
+
+                            var cleaned=
+                                input
                                     .uppercase()
-                                    .take(7)
+                                    .filter{
+                                        char->
+                                        char=='#' ||
+                                        char in
+                                            '0'..'9' ||
+                                        char in
+                                            'A'..'F'
+                                    }
+
+                            if(
+                                cleaned.isNotEmpty() &&
+                                !cleaned.startsWith(
+                                    "#"
+                                )
+                            ){
+                                cleaned=
+                                    "#$cleaned"
+                            }
+
+                            cleaned=
+                                cleaned.take(7)
 
                             hex=cleaned
 
-                            parseHex(
+                            parseHexColor(
                                 cleaned
                             )?.let{
-                                color->
+                                parsed:Color->
 
                                 hue=
-                                    colorHue(
-                                        color
+                                    hueOf(
+                                        parsed
                                     )
 
                                 saturation=
-                                    colorSaturation(
-                                        color
+                                    saturationOf(
+                                        parsed
                                     )
 
-                                value=
-                                    colorValue(
-                                        color
+                                brightness=
+                                    brightnessOf(
+                                        parsed
                                     )
                             }
                         },
                         modifier=
-                            Modifier
-                                .fillMaxWidth(),
-                        textStyle=
-                            androidx.compose.ui.text.TextStyle(
-                                color=ui.text,
-                                fontSize=13.sp,
-                                fontWeight=
-                                    FontWeight.Bold,
-                                textAlign=
-                                    TextAlign.Center,
-                                fontFamily=
-                                    a.fontFamily
-                            ),
-                        singleLine=true
+                            Modifier.weight(1f)
                     )
                 }
 
                 Spacer(
-                    Modifier.height(
-                        14.dp
-                    )
+                    Modifier.height(15.dp)
                 )
 
                 Row(
@@ -328,28 +338,31 @@ fun NmixCustomColorPicker(
                             9.dp
                         )
                 ){
-                    PickerButton(
+                    CustomPickerButton(
                         text="Cancel",
+                        accent=false,
                         modifier=
                             Modifier.weight(1f),
-                        accent=false,
                         onClick=onClose
                     )
 
-                    PickerButton(
+                    CustomPickerButton(
                         text="Apply",
+                        accent=true,
                         modifier=
-                            Modifier.weight(1f),
-                        accent=true
+                            Modifier.weight(1f)
                     ){
-                        val finalColor=
-                            parseHex(hex)
-                                ?:selected
+                        val applied=
+                            parseHexColor(
+                                hex
+                            )
+                                ?:selectedColor
 
                         a.setCustomColor(
-                            finalColor
+                            applied
                         )
 
+                        editingHex=false
                         onClose()
                     }
                 }
@@ -359,41 +372,40 @@ fun NmixCustomColorPicker(
 }
 
 @Composable
-private fun ColorWheel(
+private fun NmixHueWheel(
     hue:Float,
     saturation:Float,
-    value:Float,
+    brightness:Float,
     onChange:(Float,Float)->Unit
 ){
-    val density=
-        LocalDensity.current
-
     Canvas(
         Modifier
-            .size(190.dp)
+            .size(188.dp)
             .pointerInput(Unit){
                 detectDragGestures(
                     onDragStart={
-                        point->
+                        point:Offset->
 
-                        wheelPoint(
-                            point.x,
-                            point.y,
-                            size.width,
-                            size.height,
-                            onChange
+                        updateWheelFromPoint(
+                            x=point.x,
+                            y=point.y,
+                            width=size.width,
+                            height=size.height,
+                            onChange=onChange
                         )
                     },
                     onDrag={
                         change,
                         _->
 
-                        wheelPoint(
-                            change.position.x,
-                            change.position.y,
-                            size.width,
-                            size.height,
-                            onChange
+                        change.consume()
+
+                        updateWheelFromPoint(
+                            x=change.position.x,
+                            y=change.position.y,
+                            width=size.width,
+                            height=size.height,
+                            onChange=onChange
                         )
                     }
                 )
@@ -411,66 +423,92 @@ private fun ColorWheel(
                 size.height/2f
             )
 
-        for(angle in 0 until 360 step 3){
+        /*
+         * Draw hue slices.
+         */
+        var angle=0
+
+        while(angle<360){
             val start=
                 Math.toRadians(
                     angle.toDouble()
                 )
 
-            val end=
+            val finish=
                 Math.toRadians(
-                    (angle+4).toDouble()
+                    (
+                        angle+4
+                    ).toDouble()
                 )
 
             val path=
-                androidx.compose.ui.graphics.Path()
-                    .apply{
-                        moveTo(
-                            center.x,
-                            center.y
-                        )
+                Path().apply{
+                    moveTo(
+                        center.x,
+                        center.y
+                    )
 
-                        lineTo(
-                            center.x+
-                                cos(start)
-                                    .toFloat()*
-                                radius,
-                            center.y+
-                                sin(start)
-                                    .toFloat()*
-                                radius
-                        )
+                    lineTo(
+                        center.x+
+                            cos(start)
+                                .toFloat()*
+                            radius,
+                        center.y+
+                            sin(start)
+                                .toFloat()*
+                            radius
+                    )
 
-                        lineTo(
-                            center.x+
-                                cos(end)
-                                    .toFloat()*
-                                radius,
-                            center.y+
-                                sin(end)
-                                    .toFloat()*
-                                radius
-                        )
+                    lineTo(
+                        center.x+
+                            cos(finish)
+                                .toFloat()*
+                            radius,
+                        center.y+
+                            sin(finish)
+                                .toFloat()*
+                            radius
+                    )
 
-                        close()
-                    }
+                    close()
+                }
 
             drawPath(
-                path,
-                hsvColor(
-                    angle.toFloat(),
-                    1f,
-                    value
-                )
+                path=path,
+                color=
+                    hsvToComposeColor(
+                        angle.toFloat(),
+                        1f,
+                        brightness
+                    )
             )
+
+            angle+=3
         }
 
+        /*
+         * White centre smoothly reduces
+         * saturation toward the middle.
+         */
         drawCircle(
             brush=
                 Brush.radialGradient(
-                    colors=listOf(
-                        Color.White,
-                        Color.Transparent
+                    colorStops=arrayOf(
+                        0f to
+                            Color.White,
+
+                        .12f to
+                            Color.White.copy(
+                                alpha=.94f
+                            ),
+
+                        .48f to
+                            Color.White.copy(
+                                alpha=.50f
+                            ),
+
+                        1f to
+                            Color.Transparent
                     ),
                     center=center,
                     radius=radius
@@ -479,11 +517,15 @@ private fun ColorWheel(
             center=center
         )
 
-        val r=
-            saturation*
+        val markerRadius=
+            saturation
+                .coerceIn(
+                    0f,
+                    1f
+                )*
                 radius
 
-        val rad=
+        val radians=
             Math.toRadians(
                 hue.toDouble()
             )
@@ -491,53 +533,67 @@ private fun ColorWheel(
         val marker=
             Offset(
                 center.x+
-                    cos(rad)
+                    cos(radians)
                         .toFloat()*
-                    r,
-                center.y+
-                    sin(rad)
-                        .toFloat()*
-                    r
-            )
+                    markerRadius,
 
-        drawCircle(
-            color=Color.White,
-            radius=7.dp.toPx(),
-            center=marker,
-            style=Stroke(
-                width=2.dp.toPx()
+                center.y+
+                    sin(radians)
+                        .toFloat()*
+                    markerRadius
             )
-        )
 
         drawCircle(
             color=
                 Color.Black.copy(
-                    alpha=.36f
+                    alpha=.38f
                 ),
-            radius=9.dp.toPx(),
+            radius=
+                10.dp.toPx(),
             center=marker,
             style=Stroke(
-                width=1.dp.toPx()
+                width=
+                    2.dp.toPx()
+            )
+        )
+
+        drawCircle(
+            color=Color.White,
+            radius=
+                8.dp.toPx(),
+            center=marker,
+            style=Stroke(
+                width=
+                    2.dp.toPx()
             )
         )
     }
 }
 
-private fun wheelPoint(
+private fun updateWheelFromPoint(
     x:Float,
     y:Float,
     width:Float,
     height:Float,
     onChange:(Float,Float)->Unit
 ){
-    val cx=width/2f
-    val cy=height/2f
+    val cx=
+        width/2f
 
-    val dx=x-cx
-    val dy=y-cy
+    val cy=
+        height/2f
+
+    val dx=
+        x-cx
+
+    val dy=
+        y-cy
 
     val radius=
-        min(width,height)/2f
+        min(
+            width,
+            height
+        )/2f
 
     var angle=
         Math.toDegrees(
@@ -551,12 +607,15 @@ private fun wheelPoint(
         angle+=360f
     }
 
+    val distance=
+        sqrt(
+            dx*dx+
+            dy*dy
+        )
+
     val saturation=
         (
-            sqrt(
-                dx*dx+
-                dy*dy
-            )/
+            distance/
             radius
             )
             .coerceIn(
@@ -571,10 +630,189 @@ private fun wheelPoint(
 }
 
 @Composable
-private fun PickerButton(
+private fun BrightnessControl(
+    brightness:Float,
+    hue:Float,
+    saturation:Float,
+    onChange:(Float)->Unit
+){
+    var widthPx by remember{
+        mutableIntStateOf(1)
+    }
+
+    val color=
+        hsvToComposeColor(
+            hue,
+            saturation,
+            1f
+        )
+
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(24.dp)
+            .pointerInput(
+                widthPx
+            ){
+                detectDragGestures(
+                    onDragStart={
+                        point:Offset->
+
+                        onChange(
+                            (
+                                point.x/
+                                widthPx.toFloat()
+                            ).coerceIn(
+                                0.12f,
+                                1f
+                            )
+                        )
+                    },
+                    onDrag={
+                        change,
+                        _->
+
+                        change.consume()
+
+                        onChange(
+                            (
+                                change.position.x/
+                                widthPx.toFloat()
+                            ).coerceIn(
+                                .12f,
+                                1f
+                            )
+                        )
+                    }
+                )
+            }
+            .then(
+                Modifier
+            )
+    ){
+        Canvas(
+            Modifier
+                .fillMaxSize()
+        ){
+            widthPx=
+                size.width
+                    .toInt()
+                    .coerceAtLeast(1)
+
+            drawRoundRect(
+                brush=
+                    Brush.horizontalGradient(
+                        listOf(
+                            Color.Black,
+                            color
+                        )
+                    ),
+                cornerRadius=
+                    androidx.compose.ui.geometry
+                        .CornerRadius(
+                            12.dp.toPx()
+                        )
+            )
+
+            val x=
+                size.width*
+                brightness.coerceIn(
+                    .12f,
+                    1f
+                )
+
+            drawCircle(
+                color=Color.White,
+                radius=7.dp.toPx(),
+                center=
+                    Offset(
+                        x,
+                        size.height/2f
+                    )
+            )
+
+            drawCircle(
+                color=
+                    Color.Black.copy(
+                        alpha=.35f
+                    ),
+                radius=9.dp.toPx(),
+                center=
+                    Offset(
+                        x,
+                        size.height/2f
+                    ),
+                style=Stroke(
+                    width=1.dp.toPx()
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun HexField(
+    value:String,
+    onValueChange:(String)->Unit,
+    modifier:Modifier
+){
+    val a=
+        LocalNmixAppearance.current
+
+    val p=a.palette
+    val ui=a.uiColors()
+
+    val shape=
+        RoundedCornerShape(12.dp)
+
+    Box(
+        modifier
+            .height(44.dp)
+            .clip(shape)
+            .background(
+                p.accent.copy(
+                    alpha=.07f
+                )
+            )
+            .border(
+                .5.dp,
+                p.accent.copy(
+                    alpha=.24f
+                ),
+                shape
+            )
+            .padding(
+                horizontal=10.dp
+            ),
+        contentAlignment=
+            Alignment.Center
+    ){
+        BasicTextField(
+            value=value,
+            onValueChange=onValueChange,
+            modifier=
+                Modifier.fillMaxWidth(),
+            textStyle=
+                TextStyle(
+                    color=ui.text,
+                    fontSize=12.sp,
+                    fontWeight=
+                        FontWeight.Bold,
+                    textAlign=
+                        TextAlign.Center,
+                    fontFamily=
+                        a.fontFamily
+                ),
+            singleLine=true
+        )
+    }
+}
+
+@Composable
+private fun CustomPickerButton(
     text:String,
-    modifier:Modifier,
     accent:Boolean,
+    modifier:Modifier,
     onClick:()->Unit
 ){
     val a=
@@ -591,14 +829,15 @@ private fun PickerButton(
             .height(42.dp)
             .clip(shape)
             .background(
-                if(accent)
+                if(accent){
                     p.accent.copy(
                         alpha=.82f
                     )
-                else
+                }else{
                     p.accent.copy(
                         alpha=.08f
                     )
+                }
             )
             .border(
                 .5.dp,
@@ -612,10 +851,9 @@ private fun PickerButton(
                 shape
             )
             .clickable(
-                interactionSource=
-                    remember{
-                        MutableInteractionSource()
-                    },
+                interactionSource=remember{
+                    MutableInteractionSource()
+                },
                 indication=null,
                 onClick=onClick
             ),
@@ -632,104 +870,242 @@ private fun PickerButton(
             fontSize=10.sp,
             fontWeight=
                 FontWeight.SemiBold,
-            fontFamily=
-                a.fontFamily
+            fontFamily=a.fontFamily
         )
     }
 }
 
-private fun hsvColor(
+/*
+ * ------------------------------------------------
+ * COLOR HELPERS
+ * ------------------------------------------------
+ */
+
+private fun hsvToComposeColor(
     hue:Float,
     saturation:Float,
-    value:Float
+    brightness:Float
 ):Color{
-    val argb=
-        AndroidColor.HSVToColor(
-            floatArrayOf(
-                hue.coerceIn(
-                    0f,
-                    360f
-                ),
-                saturation.coerceIn(
-                    0f,
-                    1f
-                ),
-                value.coerceIn(
-                    0f,
-                    1f
-                )
+    val h=
+        hue
+            .coerceIn(
+                0f,
+                360f
+            )
+
+    val s=
+        saturation
+            .coerceIn(
+                0f,
+                1f
+            )
+
+    val v=
+        brightness
+            .coerceIn(
+                0f,
+                1f
+            )
+
+    val c=
+        v*s
+
+    val hh=
+        h/60f
+
+    val x=
+        c*
+        (
+            1f-
+            kotlin.math.abs(
+                (
+                    hh%2f
+                )-
+                1f
             )
         )
 
+    val triple=
+        when{
+            hh<1f->
+                Triple(c,x,0f)
+
+            hh<2f->
+                Triple(x,c,0f)
+
+            hh<3f->
+                Triple(0f,c,x)
+
+            hh<4f->
+                Triple(0f,x,c)
+
+            hh<5f->
+                Triple(x,0f,c)
+
+            else->
+                Triple(c,0f,x)
+        }
+
+    val m=
+        v-c
+
     return Color(
         red=
-            AndroidColor.red(argb)
-                .toFloat()/255f,
+            (
+                triple.first+m
+            ).coerceIn(
+                0f,
+                1f
+            ),
+
         green=
-            AndroidColor.green(argb)
-                .toFloat()/255f,
+            (
+                triple.second+m
+            ).coerceIn(
+                0f,
+                1f
+            ),
+
         blue=
-            AndroidColor.blue(argb)
-                .toFloat()/255f,
-        alpha=
-            AndroidColor.alpha(argb)
-                .toFloat()/255f
+            (
+                triple.third+m
+            ).coerceIn(
+                0f,
+                1f
+            ),
+
+        alpha=1f
     )
 }
 
-private fun colorHue(
+private fun rgbToHsv(
+    color:Color
+):FloatArray{
+    val r=
+        color.red
+            .coerceIn(
+                0f,
+                1f
+            )
+
+    val g=
+        color.green
+            .coerceIn(
+                0f,
+                1f
+            )
+
+    val b=
+        color.blue
+            .coerceIn(
+                0f,
+                1f
+            )
+
+    val max=
+        maxOf(
+            r,
+            g,
+            b
+        )
+
+    val min=
+        minOf(
+            r,
+            g,
+            b
+        )
+
+    val delta=
+        max-min
+
+    var hue=
+        when{
+            delta==0f->
+                0f
+
+            max==r->
+                60f*
+                (
+                    (
+                        (
+                            g-b
+                        )/
+                        delta
+                    )%
+                    6f
+                )
+
+            max==g->
+                60f*
+                (
+                    (
+                        b-r
+                    )/
+                    delta+
+                    2f
+                )
+
+            else->
+                60f*
+                (
+                    (
+                        r-g
+                    )/
+                    delta+
+                    4f
+                )
+        }
+
+    if(hue<0f){
+        hue+=360f
+    }
+
+    val saturation=
+        if(max==0f)
+            0f
+        else
+            delta/max
+
+    return floatArrayOf(
+        hue,
+        saturation,
+        max
+    )
+}
+
+private fun hueOf(
     color:Color
 ):Float{
-    val hsv=
-        FloatArray(3)
-
-    AndroidColor.RGBToHSV(
-        color.red*255f,
-        color.green*255f,
-        color.blue*255f,
-        hsv
-    )
-
-    return hsv[0]
+    return rgbToHsv(
+        color
+    )[0]
 }
 
-private fun colorSaturation(
+private fun saturationOf(
     color:Color
 ):Float{
-    val hsv=
-        FloatArray(3)
-
-    AndroidColor.RGBToHSV(
-        color.red*255f,
-        color.green*255f,
-        color.blue*255f,
-        hsv
-    )
-
-    return hsv[1]
+    return rgbToHsv(
+        color
+    )[1]
 }
 
-private fun colorValue(
+private fun brightnessOf(
     color:Color
 ):Float{
-    val hsv=
-        FloatArray(3)
-
-    AndroidColor.RGBToHSV(
-        color.red*255f,
-        color.green*255f,
-        color.blue*255f,
-        hsv
-    )
-
-    return hsv[2]
+    return rgbToHsv(
+        color
+    )[2]
 }
 
-private fun colorHex(
+private fun toHex(
     color:Color
 ):String{
     val r=
-        (color.red*255f)
+        (
+            color.red*
+            255f
+        )
             .toInt()
             .coerceIn(
                 0,
@@ -737,7 +1113,10 @@ private fun colorHex(
             )
 
     val g=
-        (color.green*255f)
+        (
+            color.green*
+            255f
+        )
             .toInt()
             .coerceIn(
                 0,
@@ -745,25 +1124,29 @@ private fun colorHex(
             )
 
     val b=
-        (color.blue*255f)
+        (
+            color.blue*
+            255f
+        )
             .toInt()
             .coerceIn(
                 0,
                 255
             )
 
-    return "#%02X%02X%02X".format(
+    return String.format(
+        "#%02X%02X%02X",
         r,
         g,
         b
     )
 }
 
-private fun parseHex(
-    value:String
+private fun parseHexColor(
+    input:String
 ):Color?{
     val clean=
-        value.trim()
+        input.trim()
 
     if(
         !clean.matches(
@@ -776,84 +1159,38 @@ private fun parseHex(
     }
 
     return runCatching{
-        val argb=
-            AndroidColor.parseColor(
-                clean
-            )
+        val value=
+            clean
+                .substring(1)
+                .toLong(16)
+
+        val r=
+            (
+                (
+                    value shr 16
+                ) and
+                0xFF
+            ).toFloat()/255f
+
+        val g=
+            (
+                (
+                    value shr 8
+                ) and
+                0xFF
+            ).toFloat()/255f
+
+        val b=
+            (
+                value and
+                0xFF
+            ).toFloat()/255f
 
         Color(
-            red=
-                AndroidColor.red(argb)
-                    .toFloat()/255f,
-            green=
-                AndroidColor.green(argb)
-                    .toFloat()/255f,
-            blue=
-                AndroidColor.blue(argb)
-                    .toFloat()/255f,
+            red=r,
+            green=g,
+            blue=b,
             alpha=1f
-        )
-    }.getOrNull()
-}
-    return hsv[2]
-}
-
-private fun colorHex(
-    color:Color
-):String{
-    val r=
-        (color.red*255)
-            .toInt()
-            .coerceIn(0,255)
-
-    val g=
-        (color.green*255)
-            .toInt()
-            .coerceIn(0,255)
-
-    val b=
-        (color.blue*255)
-            .toInt()
-            .coerceIn(0,255)
-
-    return "#%02X%02X%02X".format(
-        r,
-        g,
-        b
-    )
-}
-
-private fun parseHex(
-    value:String
-):Color?{
-    val clean=value.trim()
-
-    if(
-        !clean.matches(
-            Regex("^#[0-9A-Fa-f]{6}$")
-        )
-    ){
-        return null
-    }
-
-    return runCatching{
-        val argb=
-            AndroidColor.parseColor(clean)
-
-        Color(
-            (
-                AndroidColor.red(argb)/
-                255f
-            ),
-            (
-                AndroidColor.green(argb)/
-                255f
-            ),
-            (
-                AndroidColor.blue(argb)/
-                255f
-            ),
-            1f
         )
     }.getOrNull()
 }
