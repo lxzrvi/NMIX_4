@@ -86,9 +86,7 @@ fun NativeMainPageV2(
     }
 
     var status by remember{
-        mutableStateOf(
-            "Choose a tool below."
-        )
+        mutableStateOf("Choose a tool below.")
     }
 
     var n1 by remember{
@@ -391,17 +389,15 @@ fun NativeMainPageV2(
 
             "±"->{
                 if(second){
-                    n2.toDoubleOrNull()
-                        ?.let{
-                            n2=fmt(-it)
-                            display=n2
-                        }
+                    n2.toDoubleOrNull()?.let{
+                        n2=fmt(-it)
+                        display=n2
+                    }
                 }else{
-                    n1.toDoubleOrNull()
-                        ?.let{
-                            n1=fmt(-it)
-                            display=n1
-                        }
+                    n1.toDoubleOrNull()?.let{
+                        n1=fmt(-it)
+                        display=n1
+                    }
                 }
             }
 
@@ -477,8 +473,7 @@ fun NativeMainPageV2(
         (
             configuration
                 .screenHeightDp
-                .dp*
-                .50f
+                .dp*.50f
         ).coerceAtLeast(
             minimumHeaderHeight
         )
@@ -539,7 +534,112 @@ fun NativeMainPageV2(
             openHeaderHeight+16.dp
         else
             animatedListTop
-        Box(
+
+    /*
+     * Outer accent shell becomes rounder as the
+     * user drags towards minimum height.
+     */
+    val resizeRange=
+        (
+            maximumHeaderHeight.value-
+                minimumHeaderHeight.value
+        ).coerceAtLeast(1f)
+
+    val headerShrink=
+        (
+            (
+                maximumHeaderHeight.value-
+                    openHeaderHeight.value
+            )/
+                resizeRange
+        ).coerceIn(0f,1f)
+
+    val headerPillProgress=
+        (
+            (
+                headerShrink-.68f
+            )/.32f
+        ).coerceIn(0f,1f)
+
+    val headerRadius=
+        (
+            23f+
+                35f*
+                headerPillProgress
+        ).dp
+
+    val headerShape=
+        RoundedCornerShape(
+            bottomStart=headerRadius,
+            bottomEnd=headerRadius
+        )
+
+    /*
+     * Smooth control colors.
+     */
+    val arrowSurface by
+        animateColorAsState(
+            targetValue=
+                if(a.darkMode)
+                    Color(0xFF171C1A)
+                else
+                    Color(0xFFE7EBE9),
+            animationSpec=tween(
+                260,
+                easing=EaseInOutCubic
+            ),
+            label="arrowSurface"
+        )
+
+    val menuBackground by
+        animateColorAsState(
+            targetValue=
+                if(settings)
+                    p.accent
+                else if(a.darkMode)
+                    Color(0xFF171C1A)
+                else
+                    Color(0xFFE7EBE9),
+            animationSpec=tween(
+                300,
+                easing=EaseInOutCubic
+            ),
+            label="menuBackground"
+        )
+
+    val menuIconColor by
+        animateColorAsState(
+            targetValue=
+                if(settings)
+                    Color.White
+                else
+                    p.accent,
+            animationSpec=tween(
+                260,
+                easing=EaseInOutCubic
+            ),
+            label="menuIconColor"
+        )
+
+    /*
+     * Instead of directly blurring only the tiny
+     * arrow icon, soften the whole control gently.
+     */
+    val arrowSoftAlpha by
+        animateFloatAsState(
+            targetValue=
+                if(settings)
+                    .46f
+                else
+                    1f,
+            animationSpec=tween(
+                260,
+                easing=EaseInOutCubic
+            ),
+            label="arrowSoftAlpha"
+        )
+
+    Box(
         Modifier
             .fillMaxSize()
             .background(ui.page)
@@ -568,8 +668,7 @@ fun NativeMainPageV2(
                 NmixToolSection(
                     icon=NmixIcon.CALCULATOR,
                     title="Calculator",
-                    subtitle=
-                        "Numbers and operations",
+                    subtitle="Numbers and operations",
                     open=calcOpen,
                     onClick={
                         open("calculator")
@@ -592,12 +691,10 @@ fun NativeMainPageV2(
                     onClick={
                         open("clock")
                         stop()
-
                         mode="clock"
                         label="LIVE CLOCK"
                         display=timeText()
-                        status=
-                            "Live clock is active."
+                        status="Live clock is active."
                     }
                 ){
                     NmixClockTools(
@@ -611,8 +708,7 @@ fun NativeMainPageV2(
                                 status=
                                     "Add five seconds before starting."
                             }else{
-                                timerRun=
-                                    !timerRun
+                                timerRun=!timerRun
 
                                 status=
                                     if(timerRun)
@@ -626,9 +722,7 @@ fun NativeMainPageV2(
                             timerRun=false
                             timer=0
                             mode="timer"
-
-                            status=
-                                "Timer reset to zero."
+                            status="Timer reset to zero."
                         },
 
                         onClock={
@@ -636,9 +730,7 @@ fun NativeMainPageV2(
                             mode="clock"
                             label="LIVE CLOCK"
                             display=timeText()
-
-                            status=
-                                "Live clock is active."
+                            status="Live clock is active."
                         },
 
                         onFullscreen={
@@ -664,9 +756,7 @@ fun NativeMainPageV2(
                             swRun=false
                             sw=0
                             mode="stopwatch"
-
-                            status=
-                                "Stopwatch reset."
+                            status="Stopwatch reset."
                         }
                     )
                 }
@@ -676,13 +766,11 @@ fun NativeMainPageV2(
                 NmixToolSection(
                     icon=NmixIcon.COUNTER,
                     title="Counters",
-                    subtitle=
-                        "Count and generate",
+                    subtitle="Count and generate",
                     open=section=="counter",
                     onClick={
                         open("counter")
                         stop()
-
                         mode="counter"
                         display=count.toString()
                         label="COUNTER"
@@ -693,17 +781,13 @@ fun NativeMainPageV2(
                         add={
                             count++
                             mode="counter"
-
-                            status=
-                                "Counter increased."
+                            status="Counter increased."
                         },
 
                         reset={
                             count=0
                             mode="counter"
-
-                            status=
-                                "Counter reset to zero."
+                            status="Counter reset to zero."
                         },
 
                         random={
@@ -714,9 +798,7 @@ fun NativeMainPageV2(
                                 )
 
                             mode="counter"
-
-                            status=
-                                "Random number generated."
+                            status="Random number generated."
                         },
 
                         minus={
@@ -725,9 +807,7 @@ fun NativeMainPageV2(
                                     .coerceAtLeast(0)
 
                             mode="counter"
-
-                            status=
-                                "Counter decreased."
+                            status="Counter decreased."
                         }
                     )
                 }
@@ -737,19 +817,15 @@ fun NativeMainPageV2(
                 NmixToolSection(
                     icon=NmixIcon.HELP,
                     title="How to use NMIX",
-                    subtitle=
-                        "Instructions and controls",
+                    subtitle="Instructions and controls",
                     open=section=="help",
                     onClick={
                         open("help")
                         stop()
-
                         mode="idle"
                         label="NMIX LIVE"
                         display="Ready"
-
-                        status=
-                            "NMIX instructions."
+                        status="NMIX instructions."
                     }
                 ){
                     NmixInstructions()
@@ -799,12 +875,6 @@ fun NativeMainPageV2(
             }
         }
 
-        /*
-         * ==================================================
-         * TOP ACCENT HEADER + DISPLAY
-         * ==================================================
-         */
-
         AnimatedVisibility(
             visible=top,
             modifier=
@@ -836,12 +906,7 @@ fun NativeMainPageV2(
                 Modifier
                     .fillMaxWidth()
                     .height(headerHeight)
-                    .clip(
-                        RoundedCornerShape(
-                            bottomStart=23.dp,
-                            bottomEnd=23.dp
-                        )
-                    )
+                    .clip(headerShape)
                     .background(
                         Brush.linearGradient(
                             listOf(
@@ -854,16 +919,15 @@ fun NativeMainPageV2(
                     .windowInsetsPadding(
                         WindowInsets.statusBars
                     )
+                    /*
+                     * Larger bottom strip leaves the
+                     * grip clearly below Display.
+                     */
                     .padding(
                         start=12.dp,
                         end=12.dp,
                         top=7.dp,
-                        /*
-                         * Accent strip remains visible
-                         * underneath the Display for
-                         * the resize handle.
-                         */
-                        bottom=13.dp
+                        bottom=16.dp
                     )
             ){
                 Column(
@@ -897,8 +961,7 @@ fun NativeMainPageV2(
                                 "NMIX",
                                 color=Color.White,
                                 fontSize=27.sp,
-                                fontWeight=
-                                    FontWeight.Bold,
+                                fontWeight=FontWeight.Bold,
                                 letterSpacing=2.2.sp,
                                 fontFamily=NmixLogoFont
                             )
@@ -909,9 +972,7 @@ fun NativeMainPageV2(
                         label=label,
                         value=display,
                         status=status,
-                        timer=
-                            mode=="timer",
-
+                        timer=mode=="timer",
                         calcVisible=calcOpen,
                         calcFirst=n1,
                         calcOperator=op,
@@ -926,15 +987,12 @@ fun NativeMainPageV2(
                                 timerRun=false
                             }
 
-                            status=
-                                "Five seconds removed."
+                            status="Five seconds removed."
                         },
 
                         onPlus={
                             timer+=5
-
-                            status=
-                                "Five seconds added."
+                            status="Five seconds added."
                         },
 
                         onClick={
@@ -956,26 +1014,17 @@ fun NativeMainPageV2(
                 }
 
                 /*
-                 * ==================================================
-                 * RESIZE GRIP
-                 * ==================================================
-                 *
-                 * Grip belongs to the accent strip,
-                 * not the Display surface.
-                 *
-                 * Invisible touch target is larger
-                 * than the visible four dots.
+                 * Grip sits on the exposed accent
+                 * strip below Display.
                  */
                 Box(
                     Modifier
-                        .align(
-                            Alignment.BottomEnd
-                        )
-                        .width(66.dp)
-                        .height(30.dp)
+                        .align(Alignment.BottomEnd)
+                        .width(78.dp)
+                        .height(28.dp)
                         .padding(
-                            end=10.dp,
-                            bottom=2.dp
+                            end=18.dp,
+                            bottom=0.dp
                         )
                         .pointerInput(
                             minimumHeaderHeight,
@@ -997,11 +1046,10 @@ fun NativeMainPageV2(
                                         (
                                             openHeaderHeight+
                                                 deltaDp
+                                        ).coerceIn(
+                                            minimumHeaderHeight,
+                                            maximumHeaderHeight
                                         )
-                                            .coerceIn(
-                                                minimumHeaderHeight,
-                                                maximumHeaderHeight
-                                            )
                                 },
 
                                 onDragEnd={
@@ -1020,9 +1068,7 @@ fun NativeMainPageV2(
                 ){
                     Row(
                         horizontalArrangement=
-                            Arrangement.spacedBy(
-                                3.dp
-                            ),
+                            Arrangement.spacedBy(3.dp),
                         verticalAlignment=
                             Alignment.CenterVertically
                     ){
@@ -1032,9 +1078,14 @@ fun NativeMainPageV2(
                                     .size(4.dp)
                                     .clip(CircleShape)
                                     .background(
-                                        Color.White.copy(
-                                            alpha=.90f
-                                        )
+                                        if(a.darkMode)
+                                            Color.Black.copy(
+                                                alpha=.88f
+                                            )
+                                        else
+                                            Color.White.copy(
+                                                alpha=.95f
+                                            )
                                     )
                             )
                         }
@@ -1042,12 +1093,6 @@ fun NativeMainPageV2(
                 }
             }
         }
-
-        /*
-         * ==================================================
-         * SETTINGS OUTSIDE SCRIM
-         * ==================================================
-         */
 
         if(settings){
             Box(
@@ -1074,23 +1119,11 @@ fun NativeMainPageV2(
             )
         }
 
-        /*
-         * ==================================================
-         * SETTINGS DRAWER
-         * ==================================================
-         */
-
         AnimatedVisibility(
             visible=settings,
             modifier=
                 Modifier
-                    .align(
-                        Alignment.CenterEnd
-                    )
-                    /*
-                     * Custom picker sits above the
-                     * drawer. Drawer blurs behind it.
-                     */
+                    .align(Alignment.CenterEnd)
                     .blur(
                         if(customColorOpen)
                             4.dp
@@ -1099,30 +1132,22 @@ fun NativeMainPageV2(
                     ),
             enter=
                 slideInHorizontally(
-                    initialOffsetX={
-                        it
-                    },
+                    initialOffsetX={it},
                     animationSpec=tween(
                         460,
                         easing=EaseOutCubic
                     )
                 )+
-                fadeIn(
-                    tween(250)
-                ),
+                fadeIn(tween(250)),
             exit=
                 slideOutHorizontally(
-                    targetOffsetX={
-                        it
-                    },
+                    targetOffsetX={it},
                     animationSpec=tween(
                         420,
                         easing=EaseInOutCubic
                     )
                 )+
-                fadeOut(
-                    tween(220)
-                )
+                fadeOut(tween(220))
         ){
             val drawerShape=
                 RoundedCornerShape(
@@ -1167,9 +1192,7 @@ fun NativeMainPageV2(
                         .windowInsetsPadding(
                             WindowInsets.statusBars
                         )
-                        .padding(
-                            top=10.dp
-                        )
+                        .padding(top=10.dp)
                 ){
                     NmixSettings(
                         onCustomColor={
@@ -1179,95 +1202,10 @@ fun NativeMainPageV2(
                 }
             }
         }
-                /*
-         * ==================================================
-         * TOP CONTROLS
-         * ==================================================
-         */
 
         /*
-         * Arrow blurs whenever Settings is open.
-         * Custom picker increases the same blur.
+         * Top controls.
          */
-        val arrowBlur by animateDpAsState(
-            targetValue=
-                when{
-                    customColorOpen->
-                        5.dp
-
-                    settings->
-                        3.dp
-
-                    else->
-                        0.dp
-                },
-            animationSpec=tween(
-                260,
-                easing=EaseInOutCubic
-            ),
-            label="arrowBlur"
-        )
-
-        /*
-         * Hamburger background:
-         *
-         * closed = theme-aware neutral surface
-         * open   = accent
-         *
-         * animateColorAsState gives a smooth
-         * surface transition instead of a snap.
-         */
-        val menuBackground by
-            animateColorAsState(
-                targetValue=
-                    if(settings){
-                        p.accent
-                    }else if(a.darkMode){
-                        Color(0xFF171C1A)
-                    }else{
-                        Color(0xFFE7EBE9)
-                    },
-                animationSpec=tween(
-                    300,
-                    easing=EaseInOutCubic
-                ),
-                label="menuBackground"
-            )
-
-        /*
-         * Closed menu icon = accent.
-         * Open X = readable color over accent.
-         */
-        val menuIconColor by
-            animateColorAsState(
-                targetValue=
-                    if(settings){
-                        Color.White
-                    }else{
-                        p.accent
-                    },
-                animationSpec=tween(
-                    260,
-                    easing=EaseInOutCubic
-                ),
-                label="menuIconColor"
-            )
-
-        val arrowSurface by
-            animateColorAsState(
-                targetValue=
-                    if(a.darkMode){
-                        Color(0xFF171C1A)
-                    }else{
-                        Color(0xFFE7EBE9)
-                    },
-                animationSpec=tween(
-                    260,
-                    easing=EaseInOutCubic
-                ),
-                label="arrowSurface"
-            )
-
         Row(
             Modifier
                 .fillMaxWidth()
@@ -1284,20 +1222,19 @@ fun NativeMainPageV2(
                 Alignment.CenterVertically
         ){
             /*
-             * LEFT ARROW
+             * Arrow:
+             * theme surface, no border,
+             * accent icon.
              *
-             * No border.
-             * No glass wrapper.
-             * Theme surface + accent icon.
+             * A translucent overlay provides the
+             * softened Settings-open look without
+             * the ugly isolated blur halo.
              */
             Box(
                 Modifier
                     .size(48.dp)
-                    .blur(arrowBlur)
                     .clip(CircleShape)
-                    .background(
-                        arrowSurface
-                    )
+                    .background(arrowSurface)
             ){
                 NmixPressBox(
                     modifier=
@@ -1318,14 +1255,25 @@ fun NativeMainPageV2(
                         else
                             NmixIcon.ARROW_DOWN,
                         Modifier.size(21.dp),
-                        p.accent
+                        p.accent.copy(
+                            alpha=arrowSoftAlpha
+                        )
+                    )
+                }
+
+                if(settings){
+                    Box(
+                        Modifier
+                            .matchParentSize()
+                            .background(
+                                ui.page.copy(
+                                    alpha=.38f
+                                )
+                            )
                     )
                 }
             }
 
-            /*
-             * RIGHT MENU / X
-             */
             val menuShape=
                 RoundedCornerShape(
                     topStart=25.dp,
@@ -1337,9 +1285,7 @@ fun NativeMainPageV2(
                     .width(66.dp)
                     .height(48.dp)
                     .clip(menuShape)
-                    .background(
-                        menuBackground
-                    )
+                    .background(menuBackground)
                     .clickable(
                         interactionSource=
                             remember{
@@ -1357,7 +1303,7 @@ fun NativeMainPageV2(
                     transitionSpec={
                         (
                             fadeIn(
-                                animationSpec=tween(
+                                tween(
                                     190,
                                     easing=EaseOutCubic
                                 )
@@ -1371,7 +1317,7 @@ fun NativeMainPageV2(
                             )
                         ) togetherWith (
                             fadeOut(
-                                animationSpec=tween(
+                                tween(
                                     150,
                                     easing=EaseInCubic
                                 )
@@ -1399,12 +1345,6 @@ fun NativeMainPageV2(
             }
         }
 
-        /*
-         * ==================================================
-         * CUSTOM COLOR PICKER
-         * ==================================================
-         */
-
         NmixCustomColorPicker(
             visible=customColorOpen,
             onClose={
@@ -1412,24 +1352,14 @@ fun NativeMainPageV2(
             }
         )
 
-        /*
-         * ==================================================
-         * FULLSCREEN CLOCK
-         * ==================================================
-         */
-
         AnimatedVisibility(
             visible=fullscreen,
             modifier=
                 Modifier.fillMaxSize(),
             enter=
-                fadeIn(
-                    tween(420)
-                ),
+                fadeIn(tween(420)),
             exit=
-                fadeOut(
-                    tween(340)
-                )
+                fadeOut(tween(340))
         ){
             NmixFullscreenClock(
                 time=timeText(),
