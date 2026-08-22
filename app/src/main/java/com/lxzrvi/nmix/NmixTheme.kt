@@ -19,14 +19,15 @@ enum class NmixAnimationName{
     DRIFT,ORBIT,FLOW,FLOAT,PULSE,CROSS
 }
 
-fun NmixAnimationName.label():String=when(this){
-    NmixAnimationName.DRIFT->"Drift"
-    NmixAnimationName.ORBIT->"Orbit"
-    NmixAnimationName.FLOW->"Flow"
-    NmixAnimationName.FLOAT->"Float"
-    NmixAnimationName.PULSE->"Pulse"
-    NmixAnimationName.CROSS->"Cross"
-}
+fun NmixAnimationName.label():String=
+    when(this){
+        NmixAnimationName.DRIFT->"Drift"
+        NmixAnimationName.ORBIT->"Orbit"
+        NmixAnimationName.FLOW->"Flow"
+        NmixAnimationName.FLOAT->"Float"
+        NmixAnimationName.PULSE->"Pulse"
+        NmixAnimationName.CROSS->"Cross"
+    }
 
 @Stable
 data class NmixPalette(
@@ -38,68 +39,86 @@ data class NmixPalette(
     val topEnd:Color
 )
 
-private val GreenPalette=NmixPalette(
-    NmixThemeName.GREEN,
-    Color(0xFF319B79),
-    Color(0xFF216E56),
-    Color(0xFF69D6B2),
-    Color(0xFF19493A),
-    Color(0xFF173E33)
-)
+private val GreenPalette=
+    NmixPalette(
+        NmixThemeName.GREEN,
+        Color(0xFF319B79),
+        Color(0xFF216E56),
+        Color(0xFF69D6B2),
+        Color(0xFF19493A),
+        Color(0xFF173E33)
+    )
 
-private val BluePalette=NmixPalette(
-    NmixThemeName.BLUE,
-    Color(0xFF348BB8),
-    Color(0xFF225E7D),
-    Color(0xFF75C8EF),
-    Color(0xFF143A50),
-    Color(0xFF102C3E)
-)
+private val BluePalette=
+    NmixPalette(
+        NmixThemeName.BLUE,
+        Color(0xFF348BB8),
+        Color(0xFF225E7D),
+        Color(0xFF75C8EF),
+        Color(0xFF143A50),
+        Color(0xFF102C3E)
+    )
 
-private val PurplePalette=NmixPalette(
-    NmixThemeName.PURPLE,
-    Color(0xFF8A62C8),
-    Color(0xFF60428F),
-    Color(0xFFC2A1EF),
-    Color(0xFF33224D),
-    Color(0xFF241B37)
-)
+private val PurplePalette=
+    NmixPalette(
+        NmixThemeName.PURPLE,
+        Color(0xFF8A62C8),
+        Color(0xFF60428F),
+        Color(0xFFC2A1EF),
+        Color(0xFF33224D),
+        Color(0xFF241B37)
+    )
 
-private val OrangePalette=NmixPalette(
-    NmixThemeName.ORANGE,
-    Color(0xFFD57D35),
-    Color(0xFF92531F),
-    Color(0xFFEFAD73),
-    Color(0xFF563116),
-    Color(0xFF392313)
-)
+private val OrangePalette=
+    NmixPalette(
+        NmixThemeName.ORANGE,
+        Color(0xFFD57D35),
+        Color(0xFF92531F),
+        Color(0xFFEFAD73),
+        Color(0xFF563116),
+        Color(0xFF392313)
+    )
 
-private val RosePalette=NmixPalette(
-    NmixThemeName.ROSE,
-    Color(0xFFC85878),
-    Color(0xFF893950),
-    Color(0xFFEF91AD),
-    Color(0xFF542338),
-    Color(0xFF351722)
-)
+private val RosePalette=
+    NmixPalette(
+        NmixThemeName.ROSE,
+        Color(0xFFC85878),
+        Color(0xFF893950),
+        Color(0xFFEF91AD),
+        Color(0xFF542338),
+        Color(0xFF351722)
+    )
 
-private val CyanPalette=NmixPalette(
-    NmixThemeName.CYAN,
-    Color(0xFF26A6B5),
-    Color(0xFF176B76),
-    Color(0xFF69DCE7),
-    Color(0xFF123F46),
-    Color(0xFF0D3035)
-)
+private val CyanPalette=
+    NmixPalette(
+        NmixThemeName.CYAN,
+        Color(0xFF26A6B5),
+        Color(0xFF176B76),
+        Color(0xFF69DCE7),
+        Color(0xFF123F46),
+        Color(0xFF0D3035)
+    )
 
-fun NmixThemeName.palette():NmixPalette=when(this){
-    NmixThemeName.GREEN->GreenPalette
-    NmixThemeName.BLUE->BluePalette
-    NmixThemeName.PURPLE->PurplePalette
-    NmixThemeName.ORANGE->OrangePalette
-    NmixThemeName.ROSE->RosePalette
-    NmixThemeName.CYAN->CyanPalette
-}
+fun NmixThemeName.palette():NmixPalette=
+    when(this){
+        NmixThemeName.GREEN->
+            GreenPalette
+
+        NmixThemeName.BLUE->
+            BluePalette
+
+        NmixThemeName.PURPLE->
+            PurplePalette
+
+        NmixThemeName.ORANGE->
+            OrangePalette
+
+        NmixThemeName.ROSE->
+            RosePalette
+
+        NmixThemeName.CYAN->
+            CyanPalette
+    }
 
 private fun mixColor(
     first:Color,
@@ -138,124 +157,176 @@ private fun mixColor(
     )
 }
 
+/*
+ * Custom transparency intentionally affects the
+ * main accent tint, while derived dark/light/header
+ * colors remain opaque. This prevents transparent
+ * window/header holes while still making accent UI
+ * more or less transparent.
+ */
 private fun customPalette(
-    color:Color
+    color:Color,
+    transparency:Float
 ):NmixPalette{
+    val base=
+        color.copy(alpha=1f)
+
+    val opacity=
+        (
+            1f-
+                transparency.coerceIn(
+                    0f,
+                    .80f
+                )
+        ).coerceIn(
+            .20f,
+            1f
+        )
+
     return NmixPalette(
         name=NmixThemeName.GREEN,
 
         accent=
-            color.copy(
-                alpha=1f
+            base.copy(
+                alpha=opacity
             ),
 
         accentDark=
             mixColor(
-                color,
+                base,
                 Color.Black,
                 .31f
             ),
 
         accentLight=
             mixColor(
-                color,
+                base,
                 Color.White,
                 .32f
             ),
 
         topDark=
             mixColor(
-                color,
+                base,
                 Color(0xFF07100D),
                 .61f
             ),
 
         topEnd=
             mixColor(
-                color,
+                base,
                 Color(0xFF0B1511),
                 .70f
             )
     )
 }
 
-val NmixInter=FontFamily(
-    Font(
-        R.font.inter_regular,
-        FontWeight.Normal
-    ),
-    Font(
-        R.font.inter_bold,
-        FontWeight.Bold
+/*
+ * ==================================================
+ * FONTS
+ * ==================================================
+ */
+
+val NmixInter=
+    FontFamily(
+        Font(
+            R.font.inter_regular,
+            FontWeight.Normal
+        ),
+        Font(
+            R.font.inter_bold,
+            FontWeight.Bold
+        )
     )
-)
 
-val NmixNunito=FontFamily(
-    Font(
-        R.font.nunito_regular,
-        FontWeight.Normal
-    ),
-    Font(
-        R.font.nunito_bold,
-        FontWeight.Bold
+val NmixNunito=
+    FontFamily(
+        Font(
+            R.font.nunito_regular,
+            FontWeight.Normal
+        ),
+        Font(
+            R.font.nunito_bold,
+            FontWeight.Bold
+        )
     )
-)
 
-val NmixOutfit=FontFamily(
-    Font(
-        R.font.outfit_regular,
-        FontWeight.Normal
-    ),
-    Font(
-        R.font.outfit_bold,
-        FontWeight.Bold
+val NmixOutfit=
+    FontFamily(
+        Font(
+            R.font.outfit_regular,
+            FontWeight.Normal
+        ),
+        Font(
+            R.font.outfit_bold,
+            FontWeight.Bold
+        )
     )
-)
 
-val NmixPoppins=FontFamily(
-    Font(
-        R.font.poppins_regular,
-        FontWeight.Normal
-    ),
-    Font(
-        R.font.poppins_bold,
-        FontWeight.Bold
+val NmixPoppins=
+    FontFamily(
+        Font(
+            R.font.poppins_regular,
+            FontWeight.Normal
+        ),
+        Font(
+            R.font.poppins_bold,
+            FontWeight.Bold
+        )
     )
-)
 
-val NmixQuicksand=FontFamily(
-    Font(
-        R.font.quicksand_regular,
-        FontWeight.Normal
-    ),
-    Font(
-        R.font.quicksand_bold,
-        FontWeight.Bold
+val NmixQuicksand=
+    FontFamily(
+        Font(
+            R.font.quicksand_regular,
+            FontWeight.Normal
+        ),
+        Font(
+            R.font.quicksand_bold,
+            FontWeight.Bold
+        )
     )
-)
 
-val NmixLogoFont=FontFamily(
-    Font(
-        R.font.cinzel_decorative_bold,
-        FontWeight.Bold
+val NmixLogoFont=
+    FontFamily(
+        Font(
+            R.font.cinzel_decorative_bold,
+            FontWeight.Bold
+        )
     )
-)
 
-fun NmixFontName.family():FontFamily=when(this){
-    NmixFontName.INTER->NmixInter
-    NmixFontName.NUNITO->NmixNunito
-    NmixFontName.OUTFIT->NmixOutfit
-    NmixFontName.POPPINS->NmixPoppins
-    NmixFontName.QUICKSAND->NmixQuicksand
-}
+fun NmixFontName.family():FontFamily=
+    when(this){
+        NmixFontName.INTER->
+            NmixInter
 
-fun NmixFontName.label():String=when(this){
-    NmixFontName.INTER->"Inter"
-    NmixFontName.NUNITO->"Nunito"
-    NmixFontName.OUTFIT->"Outfit"
-    NmixFontName.POPPINS->"Poppins"
-    NmixFontName.QUICKSAND->"Quicksand"
-}
+        NmixFontName.NUNITO->
+            NmixNunito
+
+        NmixFontName.OUTFIT->
+            NmixOutfit
+
+        NmixFontName.POPPINS->
+            NmixPoppins
+
+        NmixFontName.QUICKSAND->
+            NmixQuicksand
+    }
+
+fun NmixFontName.label():String=
+    when(this){
+        NmixFontName.INTER->"Inter"
+        NmixFontName.NUNITO->"Nunito"
+        NmixFontName.OUTFIT->"Outfit"
+        NmixFontName.POPPINS->"Poppins"
+        NmixFontName.QUICKSAND->"Quicksand"
+    }
+
+/*
+ * ==================================================
+ * APPEARANCE STATE
+ * ==================================================
+ */
 
 @Stable
 class NmixAppearanceState internal constructor(
@@ -266,27 +337,20 @@ class NmixAppearanceState internal constructor(
     initialAnimationSpeed:Float,
     initialAnimationQuantity:Int,
     initialCustomColor:Color?,
+    initialCustomTransparency:Float,
     private val context:Context
 ){
     private var themeState by
-        mutableStateOf(
-            initialTheme
-        )
+        mutableStateOf(initialTheme)
 
     private var darkModeState by
-        mutableStateOf(
-            initialDark
-        )
+        mutableStateOf(initialDark)
 
     private var fontState by
-        mutableStateOf(
-            initialFont
-        )
+        mutableStateOf(initialFont)
 
     private var animationState by
-        mutableStateOf(
-            initialAnimation
-        )
+        mutableStateOf(initialAnimation)
 
     private var animationSpeedState by
         mutableFloatStateOf(
@@ -301,6 +365,11 @@ class NmixAppearanceState internal constructor(
     private var customColorState by
         mutableStateOf(
             initialCustomColor
+        )
+
+    private var customTransparencyState by
+        mutableFloatStateOf(
+            initialCustomTransparency
         )
 
     val theme:NmixThemeName
@@ -324,6 +393,13 @@ class NmixAppearanceState internal constructor(
     val customColor:Color?
         get()=customColorState
 
+    /*
+     * 0.0 = opaque
+     * 0.8 = maximum allowed transparency
+     */
+    val customTransparency:Float
+        get()=customTransparencyState
+
     val usingCustomColor:Boolean
         get()=
             customColorState!=null
@@ -336,7 +412,11 @@ class NmixAppearanceState internal constructor(
         get()=
             customColorState
                 ?.let{
-                    customPalette(it)
+                    customPalette(
+                        color=it,
+                        transparency=
+                            customTransparencyState
+                    )
                 }
                 ?:themeState.palette()
 
@@ -345,6 +425,7 @@ class NmixAppearanceState internal constructor(
     ){
         themeState=value
         customColorState=null
+        customTransparencyState=0f
 
         context
             .getSharedPreferences(
@@ -359,6 +440,9 @@ class NmixAppearanceState internal constructor(
             .remove(
                 KEY_CUSTOM_COLOR
             )
+            .remove(
+                KEY_CUSTOM_TRANSPARENCY
+            )
             .apply()
     }
 
@@ -366,12 +450,9 @@ class NmixAppearanceState internal constructor(
         value:Color
     ){
         val opaque=
-            value.copy(
-                alpha=1f
-            )
+            value.copy(alpha=1f)
 
-        customColorState=
-            opaque
+        customColorState=opaque
 
         context
             .getSharedPreferences(
@@ -381,9 +462,73 @@ class NmixAppearanceState internal constructor(
             .edit()
             .putLong(
                 KEY_CUSTOM_COLOR,
-                colorToLong(
-                    opaque
-                )
+                colorToLong(opaque)
+            )
+            .putFloat(
+                KEY_CUSTOM_TRANSPARENCY,
+                customTransparencyState
+            )
+            .apply()
+    }
+
+    fun setCustomTransparency(
+        value:Float
+    ){
+        val safe=
+            value.coerceIn(
+                0f,
+                .80f
+            )
+
+        customTransparencyState=safe
+
+        context
+            .getSharedPreferences(
+                PREFS,
+                Context.MODE_PRIVATE
+            )
+            .edit()
+            .putFloat(
+                KEY_CUSTOM_TRANSPARENCY,
+                safe
+            )
+            .apply()
+    }
+
+    /*
+     * Used by the Custom picker Apply button so
+     * color + transparency become active together.
+     */
+    fun setCustomAppearance(
+        color:Color,
+        transparency:Float
+    ){
+        val opaque=
+            color.copy(alpha=1f)
+
+        val safeTransparency=
+            transparency.coerceIn(
+                0f,
+                .80f
+            )
+
+        customColorState=opaque
+        customTransparencyState=
+            safeTransparency
+
+        context
+            .getSharedPreferences(
+                PREFS,
+                Context.MODE_PRIVATE
+            )
+            .edit()
+            .putLong(
+                KEY_CUSTOM_COLOR,
+                colorToLong(opaque)
+            )
+            .putFloat(
+                KEY_CUSTOM_TRANSPARENCY,
+                safeTransparency
             )
             .apply()
     }
@@ -475,8 +620,7 @@ class NmixAppearanceState internal constructor(
                 2.20f
             )
 
-        animationSpeedState=
-            safe
+        animationSpeedState=safe
 
         context
             .getSharedPreferences(
@@ -500,8 +644,7 @@ class NmixAppearanceState internal constructor(
                 5
             )
 
-        animationQuantityState=
-            safe
+        animationQuantityState=safe
 
         context
             .getSharedPreferences(
@@ -540,8 +683,17 @@ class NmixAppearanceState internal constructor(
 
         const val KEY_CUSTOM_COLOR=
             "custom_color_v1"
+
+        const val KEY_CUSTOM_TRANSPARENCY=
+            "custom_transparency_v1"
     }
 }
+
+/*
+ * ==================================================
+ * COLOR PERSISTENCE
+ * ==================================================
+ */
 
 private fun colorToLong(
     color:Color
@@ -549,46 +701,34 @@ private fun colorToLong(
     val a=
         (
             color.alpha*
-            255f
+                255f
         )
             .toInt()
-            .coerceIn(
-                0,
-                255
-            )
+            .coerceIn(0,255)
 
     val r=
         (
             color.red*
-            255f
+                255f
         )
             .toInt()
-            .coerceIn(
-                0,
-                255
-            )
+            .coerceIn(0,255)
 
     val g=
         (
             color.green*
-            255f
+                255f
         )
             .toInt()
-            .coerceIn(
-                0,
-                255
-            )
+            .coerceIn(0,255)
 
     val b=
         (
             color.blue*
-            255f
+                255f
         )
             .toInt()
-            .coerceIn(
-                0,
-                255
-            )
+            .coerceIn(0,255)
 
     return (
         (a.toLong() shl 24) or
@@ -606,7 +746,7 @@ private fun colorFromLong(
             (
                 value shr 24
             ) and
-            0xFF
+                0xFF
         ).toFloat()/255f
 
     val r=
@@ -614,7 +754,7 @@ private fun colorFromLong(
             (
                 value shr 16
             ) and
-            0xFF
+                0xFF
         ).toFloat()/255f
 
     val g=
@@ -622,13 +762,13 @@ private fun colorFromLong(
             (
                 value shr 8
             ) and
-            0xFF
+                0xFF
         ).toFloat()/255f
 
     val b=
         (
             value and
-            0xFF
+                0xFF
         ).toFloat()/255f
 
     return Color(
@@ -638,6 +778,12 @@ private fun colorFromLong(
         alpha=a
     )
 }
+
+/*
+ * ==================================================
+ * REMEMBER / LOAD
+ * ==================================================
+ */
 
 @Composable
 fun rememberNmixAppearance(
@@ -728,10 +874,19 @@ fun rememberNmixAppearance(
                         NmixAppearanceState.KEY_CUSTOM_COLOR,
                         0L
                     )
-                )
+                ).copy(alpha=1f)
             }else{
                 null
             }
+
+        val savedTransparency=
+            prefs.getFloat(
+                NmixAppearanceState.KEY_CUSTOM_TRANSPARENCY,
+                0f
+            ).coerceIn(
+                0f,
+                .80f
+            )
 
         NmixAppearanceState(
             initialTheme=savedTheme,
@@ -741,10 +896,18 @@ fun rememberNmixAppearance(
             initialAnimationSpeed=savedSpeed,
             initialAnimationQuantity=savedQuantity,
             initialCustomColor=savedCustom,
+            initialCustomTransparency=
+                savedTransparency,
             context=appContext
         )
     }
 }
+
+/*
+ * ==================================================
+ * UI COLORS
+ * ==================================================
+ */
 
 @Stable
 data class NmixUiColors(
@@ -838,6 +1001,12 @@ fun NmixAppearanceState.uiColors():NmixUiColors{
         )
     }
 }
+
+/*
+ * ==================================================
+ * PROVIDER
+ * ==================================================
+ */
 
 val LocalNmixAppearance=
     staticCompositionLocalOf<
