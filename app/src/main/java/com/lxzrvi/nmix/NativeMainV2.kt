@@ -1357,7 +1357,10 @@ fun NativeMainPageV2(
                     transitionSpec={
                         (
                             fadeIn(
-                                tween(190)
+                                animationSpec=tween(
+                                    190,
+                                    easing=EaseOutCubic
+                                )
                             )+
                             scaleIn(
                                 initialScale=.78f,
@@ -1365,36 +1368,25 @@ fun NativeMainPageV2(
                                     240,
                                     easing=EaseOutCubic
                                 )
-                            )+
-                            rotateIn(
-                                initialRotation=
-                                    -35f,
-                                animationSpec=tween(
-                                    260,
-                                    easing=EaseOutCubic
-                                )
                             )
                         ) togetherWith (
                             fadeOut(
-                                tween(150)
+                                animationSpec=tween(
+                                    150,
+                                    easing=EaseInCubic
+                                )
                             )+
                             scaleOut(
                                 targetScale=.82f,
                                 animationSpec=tween(
-                                    190
-                                )
-                            )+
-                            rotateOut(
-                                targetRotation=
-                                    35f,
-                                animationSpec=tween(
-                                    210
+                                    190,
+                                    easing=EaseInOutCubic
                                 )
                             )
                         )
                     },
                     label="menuIcon"
-                ){open->
+                ){open:Boolean->
                     NmixIcon(
                         if(open)
                             NmixIcon.CLOSE
