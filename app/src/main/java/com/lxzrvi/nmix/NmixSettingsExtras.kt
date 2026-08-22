@@ -27,11 +27,25 @@ fun NmixCustomThemeButton(
     val p=a.palette
     val ui=a.uiColors()
 
-    var open by remember {
+    var open by remember{
         mutableStateOf(false)
     }
 
-    val shape=RoundedCornerShape(14.dp)
+    val radius by animateDpAsState(
+        targetValue=
+            if(open)
+                16.dp
+            else
+                14.dp,
+        animationSpec=tween(
+            320,
+            easing=EaseInOutCubic
+        ),
+        label="customRadius"
+    )
+
+    val shape=
+        RoundedCornerShape(radius)
 
     Column(
         Modifier
@@ -39,9 +53,11 @@ fun NmixCustomThemeButton(
             .clip(shape)
             .background(
                 if(a.darkMode)
-                    Color(0xFF151A18).copy(alpha=.84f)
+                    Color(0xFF151A18)
+                        .copy(alpha=.84f)
                 else
-                    Color(0xFFE8ECEA).copy(alpha=.90f)
+                    Color(0xFFE8ECEA)
+                        .copy(alpha=.90f)
             )
             .background(
                 p.accent.copy(
@@ -52,22 +68,26 @@ fun NmixCustomThemeButton(
                             .04f
                 )
             )
-            .border(
-                if(a.usingCustomColor)
-                    1.dp
-                else
-                    .5.dp,
-                p.accent.copy(
-                    alpha=
-                        if(a.usingCustomColor)
-                            .68f
-                        else
-                            .22f
-                ),
-                shape
+            /*
+             * No visible border normally.
+             * Accent outline appears only while
+             * Custom is the active color source.
+             */
+            .then(
+                if(a.usingCustomColor){
+                    Modifier.border(
+                        1.dp,
+                        p.accent.copy(
+                            alpha=.82f
+                        ),
+                        shape
+                    )
+                }else{
+                    Modifier
+                }
             )
             .animateContentSize(
-                tween(
+                animationSpec=tween(
                     340,
                     easing=EaseInOutCubic
                 )
@@ -86,7 +106,8 @@ fun NmixCustomThemeButton(
                     open=!open
                 }
                 .padding(horizontal=12.dp),
-            verticalAlignment=Alignment.CenterVertically
+            verticalAlignment=
+                Alignment.CenterVertically
         ){
             Box(
                 Modifier
@@ -95,7 +116,9 @@ fun NmixCustomThemeButton(
                     .background(p.accent)
             )
 
-            Spacer(Modifier.width(9.dp))
+            Spacer(
+                Modifier.width(9.dp)
+            )
 
             Column(
                 Modifier.weight(1f)
@@ -120,7 +143,10 @@ fun NmixCustomThemeButton(
             }
 
             Text(
-                if(open)"CLOSE" else "OPEN",
+                if(open)
+                    "CLOSE"
+                else
+                    "OPEN",
                 color=p.accent,
                 fontSize=7.sp,
                 fontWeight=FontWeight.Bold,
@@ -136,17 +162,25 @@ fun NmixCustomThemeButton(
                     animationSpec=tween(
                         320,
                         easing=EaseOutCubic
-                    )
+                    ),
+                    expandFrom=
+                        Alignment.Top
                 )+
-                fadeIn(tween(220)),
+                fadeIn(
+                    tween(220)
+                ),
             exit=
                 shrinkVertically(
                     animationSpec=tween(
                         280,
                         easing=EaseInOutCubic
-                    )
+                    ),
+                    shrinkTowards=
+                        Alignment.Top
                 )+
-                fadeOut(tween(170))
+                fadeOut(
+                    tween(170)
+                )
         ){
             Column(
                 Modifier
@@ -162,11 +196,15 @@ fun NmixCustomThemeButton(
                         .fillMaxWidth()
                         .height(.5.dp)
                         .background(
-                            p.accent.copy(alpha=.16f)
+                            p.accent.copy(
+                                alpha=.14f
+                            )
                         )
                 )
 
-                Spacer(Modifier.height(9.dp))
+                Spacer(
+                    Modifier.height(9.dp)
+                )
 
                 Row(
                     Modifier.fillMaxWidth(),
@@ -175,14 +213,16 @@ fun NmixCustomThemeButton(
                 ){
                     CustomAction(
                         text="EDIT COLOR",
-                        modifier=Modifier.weight(1f),
+                        modifier=
+                            Modifier.weight(1f),
                         accent=true,
                         onClick=onClick
                     )
 
                     CustomAction(
                         text="RESET",
-                        modifier=Modifier.weight(1f),
+                        modifier=
+                            Modifier.weight(1f),
                         accent=false
                     ){
                         a.setTheme(a.theme)
@@ -204,19 +244,27 @@ private fun CustomAction(
     val p=a.palette
     val ui=a.uiColors()
 
-    val shape=RoundedCornerShape(11.dp)
+    val shape=
+        RoundedCornerShape(11.dp)
 
     Box(
         modifier
             .height(38.dp)
             .clip(shape)
             .background(
-                if(accent)
-                    p.accent.copy(alpha=.78f)
-                else if(a.darkMode)
-                    Color.White.copy(alpha=.045f)
-                else
-                    Color.White.copy(alpha=.50f)
+                if(accent){
+                    p.accent.copy(
+                        alpha=.78f
+                    )
+                }else if(a.darkMode){
+                    Color.White.copy(
+                        alpha=.045f
+                    )
+                }else{
+                    Color.White.copy(
+                        alpha=.50f
+                    )
+                }
             )
             .border(
                 .5.dp,
@@ -225,7 +273,7 @@ private fun CustomAction(
                         if(accent)
                             .48f
                         else
-                            .18f
+                            .16f
                 ),
                 shape
             )
@@ -236,7 +284,8 @@ private fun CustomAction(
                 indication=null,
                 onClick=onClick
             ),
-        contentAlignment=Alignment.Center
+        contentAlignment=
+            Alignment.Center
     ){
         Text(
             text,
