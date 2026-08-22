@@ -15,6 +15,31 @@ enum class NmixFontName{
     INTER,NUNITO,OUTFIT,POPPINS,QUICKSAND
 }
 
+/*
+ * Shared, persisted NMIX background motion style.
+ *
+ * Individual screens can interpret these styles
+ * using their own size while keeping one global
+ * appearance preference.
+ */
+enum class NmixAnimationName{
+    DRIFT,
+    ORBIT,
+    FLOW,
+    FLOAT,
+    PULSE,
+    CROSS
+}
+
+fun NmixAnimationName.label():String=when(this){
+    NmixAnimationName.DRIFT->"Drift"
+    NmixAnimationName.ORBIT->"Orbit"
+    NmixAnimationName.FLOW->"Flow"
+    NmixAnimationName.FLOAT->"Float"
+    NmixAnimationName.PULSE->"Pulse"
+    NmixAnimationName.CROSS->"Cross"
+}
+
 @Stable
 data class NmixPalette(
     val name:NmixThemeName,
@@ -89,28 +114,58 @@ fun NmixThemeName.palette():NmixPalette=when(this){
 }
 
 val NmixInter=FontFamily(
-    Font(R.font.inter_regular,FontWeight.Normal),
-    Font(R.font.inter_bold,FontWeight.Bold)
+    Font(
+        R.font.inter_regular,
+        FontWeight.Normal
+    ),
+    Font(
+        R.font.inter_bold,
+        FontWeight.Bold
+    )
 )
 
 val NmixNunito=FontFamily(
-    Font(R.font.nunito_regular,FontWeight.Normal),
-    Font(R.font.nunito_bold,FontWeight.Bold)
+    Font(
+        R.font.nunito_regular,
+        FontWeight.Normal
+    ),
+    Font(
+        R.font.nunito_bold,
+        FontWeight.Bold
+    )
 )
 
 val NmixOutfit=FontFamily(
-    Font(R.font.outfit_regular,FontWeight.Normal),
-    Font(R.font.outfit_bold,FontWeight.Bold)
+    Font(
+        R.font.outfit_regular,
+        FontWeight.Normal
+    ),
+    Font(
+        R.font.outfit_bold,
+        FontWeight.Bold
+    )
 )
 
 val NmixPoppins=FontFamily(
-    Font(R.font.poppins_regular,FontWeight.Normal),
-    Font(R.font.poppins_bold,FontWeight.Bold)
+    Font(
+        R.font.poppins_regular,
+        FontWeight.Normal
+    ),
+    Font(
+        R.font.poppins_bold,
+        FontWeight.Bold
+    )
 )
 
 val NmixQuicksand=FontFamily(
-    Font(R.font.quicksand_regular,FontWeight.Normal),
-    Font(R.font.quicksand_bold,FontWeight.Bold)
+    Font(
+        R.font.quicksand_regular,
+        FontWeight.Normal
+    ),
+    Font(
+        R.font.quicksand_bold,
+        FontWeight.Bold
+    )
 )
 
 val NmixLogoFont=FontFamily(
@@ -141,6 +196,7 @@ class NmixAppearanceState internal constructor(
     initialTheme:NmixThemeName,
     initialDark:Boolean,
     initialFont:NmixFontName,
+    initialAnimation:NmixAnimationName,
     private val context:Context
 ){
     private var themeState by
@@ -152,6 +208,9 @@ class NmixAppearanceState internal constructor(
     private var fontState by
         mutableStateOf(initialFont)
 
+    private var animationState by
+        mutableStateOf(initialAnimation)
+
     val theme:NmixThemeName
         get()=themeState
 
@@ -160,6 +219,9 @@ class NmixAppearanceState internal constructor(
 
     val font:NmixFontName
         get()=fontState
+
+    val animation:NmixAnimationName
+        get()=animationState
 
     val fontFamily:FontFamily
         get()=fontState.family()
@@ -204,7 +266,9 @@ class NmixAppearanceState internal constructor(
     }
 
     fun toggleDarkMode(){
-        setDarkMode(!darkModeState)
+        setDarkMode(
+            !darkModeState
+        )
     }
 
     fun setFont(value:NmixFontName){
@@ -225,11 +289,41 @@ class NmixAppearanceState internal constructor(
             .apply()
     }
 
+    fun setAnimation(
+        value:NmixAnimationName
+    ){
+        if(animationState==value)return
+
+        animationState=value
+
+        context
+            .getSharedPreferences(
+                PREFS,
+                Context.MODE_PRIVATE
+            )
+            .edit()
+            .putString(
+                KEY_ANIMATION,
+                value.name
+            )
+            .apply()
+    }
+
     companion object{
-        const val PREFS="nmix_appearance"
-        const val KEY_THEME="theme_v2"
-        const val KEY_DARK="dark_v2"
-        const val KEY_FONT="font_v1"
+        const val PREFS=
+            "nmix_appearance"
+
+        const val KEY_THEME=
+            "theme_v2"
+
+        const val KEY_DARK=
+            "dark_v2"
+
+        const val KEY_FONT=
+            "font_v1"
+
+        const val KEY_ANIMATION=
+            "animation_v1"
     }
 }
 
@@ -242,32 +336,47 @@ fun rememberNmixAppearance(
             context.applicationContext
 
         val prefs=
-            appContext.getSharedPreferences(
-                NmixAppearanceState.PREFS,
-                Context.MODE_PRIVATE
+            appContext
+                .getSharedPreferences(
+                    NmixAppearanceState.PREFS,
+                    Context.MODE_PRIVATE
+                )
+
+        val savedTheme=
+            runCatching{
+                NmixThemeName.valueOf(
+                    prefs.getString(
+                        NmixAppearanceState.KEY_THEME,
+                        NmixThemeName.GREEN.name
+                    )?:NmixThemeName.GREEN.name
+                )
+            }.getOrDefault(
+                NmixThemeName.GREEN
             )
 
-        val savedTheme=runCatching{
-            NmixThemeName.valueOf(
-                prefs.getString(
-                    NmixAppearanceState.KEY_THEME,
-                    NmixThemeName.GREEN.name
-                )?:NmixThemeName.GREEN.name
+        val savedFont=
+            runCatching{
+                NmixFontName.valueOf(
+                    prefs.getString(
+                        NmixAppearanceState.KEY_FONT,
+                        NmixFontName.INTER.name
+                    )?:NmixFontName.INTER.name
+                )
+            }.getOrDefault(
+                NmixFontName.INTER
             )
-        }.getOrDefault(
-            NmixThemeName.GREEN
-        )
 
-        val savedFont=runCatching{
-            NmixFontName.valueOf(
-                prefs.getString(
-                    NmixAppearanceState.KEY_FONT,
-                    NmixFontName.INTER.name
-                )?:NmixFontName.INTER.name
+        val savedAnimation=
+            runCatching{
+                NmixAnimationName.valueOf(
+                    prefs.getString(
+                        NmixAppearanceState.KEY_ANIMATION,
+                        NmixAnimationName.DRIFT.name
+                    )?:NmixAnimationName.DRIFT.name
+                )
+            }.getOrDefault(
+                NmixAnimationName.DRIFT
             )
-        }.getOrDefault(
-            NmixFontName.INTER
-        )
 
         val savedDark=
             prefs.getBoolean(
@@ -279,6 +388,7 @@ fun rememberNmixAppearance(
             initialTheme=savedTheme,
             initialDark=savedDark,
             initialFont=savedFont,
+            initialAnimation=savedAnimation,
             context=appContext
         )
     }
@@ -302,33 +412,85 @@ fun NmixAppearanceState.uiColors():NmixUiColors{
 
     return if(darkMode){
         NmixUiColors(
-            page=Color(0xFF0D1110),
-            glass=Color.White.copy(alpha=.075f),
-            glassStrong=Color.White.copy(alpha=.11f),
-            accentGlass=p.accent.copy(alpha=.13f),
-            accentGlassStrong=p.accent.copy(alpha=.22f),
-            text=Color(0xFFEDF4F1),
-            muted=Color(0xFFA4AFAA),
-            displayStart=Color(0xFF202725),
-            displayEnd=Color(0xFF121816)
+            page=
+                Color(0xFF0D1110),
+
+            glass=
+                Color.White.copy(
+                    alpha=.075f
+                ),
+
+            glassStrong=
+                Color.White.copy(
+                    alpha=.11f
+                ),
+
+            accentGlass=
+                p.accent.copy(
+                    alpha=.13f
+                ),
+
+            accentGlassStrong=
+                p.accent.copy(
+                    alpha=.22f
+                ),
+
+            text=
+                Color(0xFFEDF4F1),
+
+            muted=
+                Color(0xFFA4AFAA),
+
+            displayStart=
+                Color(0xFF202725),
+
+            displayEnd=
+                Color(0xFF121816)
         )
     }else{
         NmixUiColors(
-            page=Color(0xFFE0E2E1),
-            glass=Color.White.copy(alpha=.60f),
-            glassStrong=Color.White.copy(alpha=.78f),
-            accentGlass=p.accent.copy(alpha=.10f),
-            accentGlassStrong=p.accent.copy(alpha=.17f),
-            text=Color(0xFF202321),
-            muted=Color(0xFF66706C),
-            displayStart=Color(0xFFF0F3F1),
-            displayEnd=Color(0xFFD7DFDC)
+            page=
+                Color(0xFFE0E2E1),
+
+            glass=
+                Color.White.copy(
+                    alpha=.60f
+                ),
+
+            glassStrong=
+                Color.White.copy(
+                    alpha=.78f
+                ),
+
+            accentGlass=
+                p.accent.copy(
+                    alpha=.10f
+                ),
+
+            accentGlassStrong=
+                p.accent.copy(
+                    alpha=.17f
+                ),
+
+            text=
+                Color(0xFF202321),
+
+            muted=
+                Color(0xFF66706C),
+
+            displayStart=
+                Color(0xFFF0F3F1),
+
+            displayEnd=
+                Color(0xFFD7DFDC)
         )
     }
 }
 
 val LocalNmixAppearance=
-    staticCompositionLocalOf<NmixAppearanceState>{
+    staticCompositionLocalOf<
+        NmixAppearanceState
+    >{
         error(
             "NMIX appearance has not been provided."
         )
@@ -340,7 +502,8 @@ fun ProvideNmixAppearance(
     content:@Composable ()->Unit
 ){
     CompositionLocalProvider(
-        LocalNmixAppearance provides appearance,
+        LocalNmixAppearance provides
+            appearance,
         content=content
     )
 }
