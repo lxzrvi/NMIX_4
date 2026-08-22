@@ -4,10 +4,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
-import android.media.AudioAttributes
-import android.media.SoundPool
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -31,36 +30,50 @@ class NmixTimeService : Service(){
         const val EXTRA_TIMER_SECONDS=
             "timer_seconds"
 
+        const val EXTRA_STOPWATCH_ELAPSED=
+            "stopwatch_elapsed"
+
         private const val CHANNEL_ACTIVE=
             "nmix_time_active"
 
         private const val CHANNEL_COMPLETE=
             "nmix_time_complete"
 
-        private const val NOTIFICATION_ACTIVE=4101
-        private const val NOTIFICATION_COMPLETE=4102
+        private const val ACTIVE_ID=4101
+        private const val COMPLETE_ID=4102
     }
 
     private val handler=
-        Handler(Looper.getMainLooper())
+        Handler(
+            Looper.getMainLooper()
+        )
 
     private var mode=""
 
     private var timerFinishAt=0L
-    private var stopwatchStartedAt=0L
+
+    /*
+     * Base allows Stopwatch notification to resume
+     * from the same value shown inside NMIX.
+     */
+    private var stopwatchBase=0L
 
     private val updateRunnable=
         object:Runnable{
             override fun run(){
                 when(mode){
-                    "timer"->updateTimer()
-                    "stopwatch"->updateStopwatch()
+                    "timer"->
+                        updateTimer()
+
+                    "stopwatch"->
+                        updateStopwatch()
                 }
             }
         }
 
     override fun onCreate(){
         super.onCreate()
+
         createChannels()
     }
 
@@ -71,62 +84,20 @@ class NmixTimeService : Service(){
     ):Int{
         when(intent?.action){
             ACTION_START_TIMER->{
-                val seconds=
+                startTimer(
                     intent.getIntExtra(
                         EXTRA_TIMER_SECONDS,
                         0
-                    ).coerceAtLeast(0)
-
-                if(seconds<=0){
-                    stopSelf()
-                    return START_NOT_STICKY
-                }
-
-                mode="timer"
-
-                timerFinishAt=
-                    SystemClock.elapsedRealtime()+
-                        seconds*1000L
-
-                startForeground(
-                    NOTIFICATION_ACTIVE,
-                    activeNotification(
-                        title="NMIX • TIMER",
-                        value=formatTimer(seconds),
-                        detail="Timer is running"
                     )
-                )
-
-                handler.removeCallbacks(
-                    updateRunnable
-                )
-
-                handler.post(
-                    updateRunnable
                 )
             }
 
             ACTION_START_STOPWATCH->{
-                mode="stopwatch"
-
-                stopwatchStartedAt=
-                    SystemClock.elapsedRealtime()
-
-                startForeground(
-                    NOTIFICATION_ACTIVE,
-                    activeNotification(
-                        title="NMIX • STOPWATCH",
-                        value="00:00.00",
-                        detail="Stopwatch is running"
+                startStopwatch(
+                    intent.getLongExtra(
+                        EXTRA_STOPWATCH_ELAPSED,
+                        0L
                     )
-                )
-
-                handler.removeCallbacks(
-                    updateRunnable
-                )
-
-                handler.post(
-                    updateRunnable
                 )
             }
 
@@ -138,23 +109,91 @@ class NmixTimeService : Service(){
         return START_NOT_STICKY
     }
 
+    private fun startTimer(
+        seconds:Int
+    ){
+        val safe=
+            seconds.coerceAtLeast(0)
+
+        if(safe<=0){
+            stopTiming()
+            return
+        }
+
+        handler.removeCallbacks(
+            updateRunnable
+        )
+
+        mode="timer"
+
+        timerFinishAt=
+            SystemClock.elapsedRealtime()+
+                safe*1000L
+
+        startForeground(
+            ACTIVE_ID,
+            activeNotification(
+                title="NMIX • TIMER",
+                value=formatTimer(safe),
+                detail="Timer is running"
+            )
+        )
+
+        handler.post(
+            updateRunnable
+        )
+    }
+
+    private fun startStopwatch(
+        existingElapsed:Long
+    ){
+        handler.removeCallbacks(
+            updateRunnable
+        )
+
+        mode="stopwatch"
+
+        val safeElapsed=
+            existingElapsed.coerceAtLeast(0L)
+
+        stopwatchBase=
+            SystemClock.elapsedRealtime()-
+                safeElapsed
+
+        startForeground(
+            ACTIVE_ID,
+            activeNotification(
+                title="NMIX • STOPWATCH",
+                value=
+                    formatStopwatch(
+                        safeElapsed
+                    ),
+                detail="Stopwatch is running"
+            )
+        )
+
+        handler.post(
+            updateRunnable
+        )
+    }
+
     private fun updateTimer(){
         if(mode!="timer"){
             return
         }
 
-        val remainingMs=
+        val remaining=
             timerFinishAt-
                 SystemClock.elapsedRealtime()
 
-        if(remainingMs<=0L){
-            timerFinished()
+        if(remaining<=0L){
+            completeTimer()
             return
         }
 
         val seconds=
             (
-                remainingMs+
+                remaining+
                     999L
             )/1000L
 
@@ -179,8 +218,10 @@ class NmixTimeService : Service(){
         }
 
         val elapsed=
-            SystemClock.elapsedRealtime()-
-                stopwatchStartedAt
+            (
+                SystemClock.elapsedRealtime()-
+                    stopwatchBase
+            ).coerceAtLeast(0L)
 
         updateActiveNotification(
             title="NMIX • STOPWATCH",
@@ -197,7 +238,7 @@ class NmixTimeService : Service(){
         )
     }
 
-    private fun timerFinished(){
+    private fun completeTimer(){
         mode=""
 
         handler.removeCallbacks(
@@ -208,18 +249,27 @@ class NmixTimeService : Service(){
             STOP_FOREGROUND_REMOVE
         )
 
-        playCompletionTone()
+        playCompletionSequence()
 
         runCatching{
             NotificationManagerCompat
                 .from(this)
                 .notify(
-                    NOTIFICATION_COMPLETE,
-                    completeNotification()
+                    COMPLETE_ID,
+                    completionNotification()
                 )
         }
 
-        stopSelf()
+        /*
+         * Keep service alive just long enough for
+         * the four gentle beeps to finish.
+         */
+        handler.postDelayed(
+            {
+                stopSelf()
+            },
+            1750L
+        )
     }
 
     private fun stopTiming(){
@@ -245,7 +295,7 @@ class NmixTimeService : Service(){
             NotificationManagerCompat
                 .from(this)
                 .notify(
-                    NOTIFICATION_ACTIVE,
+                    ACTIVE_ID,
                     activeNotification(
                         title=title,
                         value=value,
@@ -265,14 +315,16 @@ class NmixTimeService : Service(){
             CHANNEL_ACTIVE
         )
             .setSmallIcon(
-                android.R.drawable.ic_lock_idle_alarm
+                android.R.drawable
+                    .ic_lock_idle_alarm
             )
             .setContentTitle(title)
             .setContentText(
                 "$value  •  $detail"
             )
             .setStyle(
-                NotificationCompat.BigTextStyle()
+                NotificationCompat
+                    .BigTextStyle()
                     .bigText(
                         "$value\n$detail\nEVERYTHING WITH NUMBERS"
                     )
@@ -280,14 +332,23 @@ class NmixTimeService : Service(){
             .setColor(
                 0xFF319B79.toInt()
             )
-            .setOnlyAlertOnce(true)
+            .setColorized(false)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
             .setSilent(true)
+            .setCategory(
+                NotificationCompat.CATEGORY_STOPWATCH
+            )
+            .setVisibility(
+                NotificationCompat
+                    .VISIBILITY_PUBLIC
+            )
             .setContentIntent(
                 openAppPendingIntent()
             )
             .addAction(
-                android.R.drawable.ic_menu_close_clear_cancel,
+                android.R.drawable
+                    .ic_menu_close_clear_cancel,
                 "Stop",
                 stopPendingIntent()
             )
@@ -296,13 +357,14 @@ class NmixTimeService : Service(){
             )
             .build()
 
-    private fun completeNotification()=
+    private fun completionNotification()=
         NotificationCompat.Builder(
             this,
             CHANNEL_COMPLETE
         )
             .setSmallIcon(
-                android.R.drawable.ic_lock_idle_alarm
+                android.R.drawable
+                    .ic_lock_idle_alarm
             )
             .setContentTitle(
                 "NMIX • TIMER COMPLETE"
@@ -310,10 +372,24 @@ class NmixTimeService : Service(){
             .setContentText(
                 "Time's up • EVERYTHING WITH NUMBERS"
             )
+            .setStyle(
+                NotificationCompat
+                    .BigTextStyle()
+                    .bigText(
+                        "Time's up.\nEVERYTHING WITH NUMBERS"
+                    )
+            )
             .setColor(
                 0xFF319B79.toInt()
             )
             .setAutoCancel(true)
+            .setCategory(
+                NotificationCompat.CATEGORY_ALARM
+            )
+            .setVisibility(
+                NotificationCompat
+                    .VISIBILITY_PUBLIC
+            )
             .setContentIntent(
                 openAppPendingIntent()
             )
@@ -322,7 +398,9 @@ class NmixTimeService : Service(){
             )
             .build()
 
-    private fun openAppPendingIntent():PendingIntent{
+    private fun openAppPendingIntent():
+        PendingIntent{
+
         val intent=
             packageManager
                 .getLaunchIntentForPackage(
@@ -347,7 +425,9 @@ class NmixTimeService : Service(){
         )
     }
 
-    private fun stopPendingIntent():PendingIntent{
+    private fun stopPendingIntent():
+        PendingIntent{
+
         val intent=
             Intent(
                 this,
@@ -381,11 +461,12 @@ class NmixTimeService : Service(){
         val active=
             NotificationChannel(
                 CHANNEL_ACTIVE,
-                "NMIX active time tools",
-                NotificationManager.IMPORTANCE_LOW
+                "NMIX time tools",
+                NotificationManager
+                    .IMPORTANCE_LOW
             ).apply{
                 description=
-                    "Timer and stopwatch progress"
+                    "Live Timer and Stopwatch progress"
 
                 setSound(
                     null,
@@ -393,20 +474,22 @@ class NmixTimeService : Service(){
                 )
 
                 enableVibration(false)
+                setShowBadge(false)
             }
 
         val complete=
             NotificationChannel(
                 CHANNEL_COMPLETE,
                 "NMIX timer alerts",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager
+                    .IMPORTANCE_HIGH
             ).apply{
                 description=
-                    "Timer completion alerts"
+                    "Timer completion"
 
                 /*
-                 * NMIX plays its own four-note
-                 * completion sequence.
+                 * Completion audio comes from our
+                 * own gentle four-beep sequence.
                  */
                 setSound(
                     null,
@@ -426,61 +509,34 @@ class NmixTimeService : Service(){
     }
 
     /*
-     * Four gentle short sine-like system tones.
-     *
-     * No external audio file is required, and the
-     * sequence stays short/non-aggressive.
+     * Four short, spaced notification tones.
+     * Volume intentionally moderate.
      */
-    private fun playCompletionTone(){
-        val attributes=
-            AudioAttributes.Builder()
-                .setUsage(
-                    AudioAttributes.USAGE_NOTIFICATION_EVENT
-                )
-                .setContentType(
-                    AudioAttributes.CONTENT_TYPE_SONIFICATION
-                )
-                .build()
-
-        val soundPool=
-            SoundPool.Builder()
-                .setMaxStreams(1)
-                .setAudioAttributes(
-                    attributes
-                )
-                .build()
-
-        /*
-         * SoundPool needs a resource to load,
-         * so use ToneGenerator instead for a
-         * deterministic native tone sequence.
-         */
-        soundPool.release()
-
+    private fun playCompletionSequence(){
         val tone=
-            android.media.ToneGenerator(
-                android.media.AudioManager.STREAM_NOTIFICATION,
-                42
+            ToneGenerator(
+                AudioManager.STREAM_NOTIFICATION,
+                38
             )
 
-        val gaps=
+        val starts=
             longArrayOf(
                 0L,
-                360L,
-                720L,
-                1080L
+                390L,
+                780L,
+                1170L
             )
 
-        gaps.forEachIndexed{
-            index,
+        starts.forEach{
             delay->
 
             handler.postDelayed(
                 {
-                    if(index<4){
+                    runCatching{
                         tone.startTone(
-                            android.media.ToneGenerator.TONE_PROP_BEEP2,
-                            150
+                            ToneGenerator
+                                .TONE_PROP_BEEP2,
+                            145
                         )
                     }
                 },
@@ -494,7 +550,7 @@ class NmixTimeService : Service(){
                     tone.release()
                 }
             },
-            1450L
+            1550L
         )
     }
 
