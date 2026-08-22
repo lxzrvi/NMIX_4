@@ -27,6 +27,18 @@ class NmixTimeService : Service(){
         const val ACTION_STOP=
             "com.lxzrvi.nmix.STOP_TIME_SERVICE"
 
+        const val ACTION_TIMER_PLUS=
+            "com.lxzrvi.nmix.TIMER_PLUS"
+
+        const val ACTION_TIMER_MINUS=
+            "com.lxzrvi.nmix.TIMER_MINUS"
+
+        const val ACTION_TIMER_RESET=
+            "com.lxzrvi.nmix.TIMER_RESET"
+
+        const val ACTION_STOPWATCH_RESET=
+            "com.lxzrvi.nmix.STOPWATCH_RESET"
+
         const val EXTRA_TIMER_SECONDS=
             "timer_seconds"
 
@@ -51,11 +63,6 @@ class NmixTimeService : Service(){
     private var mode=""
 
     private var timerFinishAt=0L
-
-    /*
-     * Base allows Stopwatch notification to resume
-     * from the same value shown inside NMIX.
-     */
     private var stopwatchBase=0L
 
     private val updateRunnable=
@@ -101,6 +108,41 @@ class NmixTimeService : Service(){
                 )
             }
 
+            ACTION_TIMER_PLUS->{
+                if(mode=="timer"){
+                    timerFinishAt+=5000L
+                    updateTimer()
+                }
+            }
+
+            ACTION_TIMER_MINUS->{
+                if(mode=="timer"){
+                    timerFinishAt-=5000L
+
+                    if(
+                        timerFinishAt<=
+                        SystemClock.elapsedRealtime()
+                    ){
+                        completeTimer()
+                    }else{
+                        updateTimer()
+                    }
+                }
+            }
+
+            ACTION_TIMER_RESET->{
+                stopTiming()
+            }
+
+            ACTION_STOPWATCH_RESET->{
+                if(mode=="stopwatch"){
+                    stopwatchBase=
+                        SystemClock.elapsedRealtime()
+
+                    updateStopwatch()
+                }
+            }
+
             ACTION_STOP->{
                 stopTiming()
             }
@@ -132,11 +174,7 @@ class NmixTimeService : Service(){
 
         startForeground(
             ACTIVE_ID,
-            activeNotification(
-                title="NMIX • TIMER",
-                value=formatTimer(safe),
-                detail="Timer is running"
-            )
+            timerNotification(safe)
         )
 
         handler.post(
@@ -153,23 +191,17 @@ class NmixTimeService : Service(){
 
         mode="stopwatch"
 
-        val safeElapsed=
-            existingElapsed.coerceAtLeast(0L)
+        val safe=
+            existingElapsed
+                .coerceAtLeast(0L)
 
         stopwatchBase=
             SystemClock.elapsedRealtime()-
-                safeElapsed
+                safe
 
         startForeground(
             ACTIVE_ID,
-            activeNotification(
-                title="NMIX • STOPWATCH",
-                value=
-                    formatStopwatch(
-                        safeElapsed
-                    ),
-                detail="Stopwatch is running"
-            )
+            stopwatchNotification(safe)
         )
 
         handler.post(
@@ -182,6 +214,10 @@ class NmixTimeService : Service(){
             return
         }
 
+        handler.removeCallbacks(
+            updateRunnable
+        )
+
         val remaining=
             timerFinishAt-
                 SystemClock.elapsedRealtime()
@@ -193,17 +229,13 @@ class NmixTimeService : Service(){
 
         val seconds=
             (
-                remaining+
-                    999L
+                remaining+999L
             )/1000L
 
-        updateActiveNotification(
-            title="NMIX • TIMER",
-            value=
-                formatTimer(
-                    seconds.toInt()
-                ),
-            detail="Timer is running"
+        notifyActive(
+            timerNotification(
+                seconds.toInt()
+            )
         )
 
         handler.postDelayed(
@@ -217,19 +249,20 @@ class NmixTimeService : Service(){
             return
         }
 
+        handler.removeCallbacks(
+            updateRunnable
+        )
+
         val elapsed=
             (
                 SystemClock.elapsedRealtime()-
                     stopwatchBase
             ).coerceAtLeast(0L)
 
-        updateActiveNotification(
-            title="NMIX • STOPWATCH",
-            value=
-                formatStopwatch(
-                    elapsed
-                ),
-            detail="Stopwatch is running"
+        notifyActive(
+            stopwatchNotification(
+                elapsed
+            )
         )
 
         handler.postDelayed(
@@ -261,14 +294,23 @@ class NmixTimeService : Service(){
         }
 
         /*
-         * Keep service alive just long enough for
-         * the four gentle beeps to finish.
+         * Beep-beep ... beep-beep.
+         * Completion notification is removed after
+         * the sound sequence.
          */
         handler.postDelayed(
             {
+                runCatching{
+                    NotificationManagerCompat
+                        .from(this)
+                        .cancel(
+                            COMPLETE_ID
+                        )
+                }
+
                 stopSelf()
             },
-            1750L
+            2450L
         )
     }
 
@@ -283,34 +325,41 @@ class NmixTimeService : Service(){
             STOP_FOREGROUND_REMOVE
         )
 
+        runCatching{
+            NotificationManagerCompat
+                .from(this)
+                .cancel(
+                    ACTIVE_ID
+                )
+        }
+
         stopSelf()
     }
 
-    private fun updateActiveNotification(
-        title:String,
-        value:String,
-        detail:String
+    private fun notifyActive(
+        notification:
+            android.app.Notification
     ){
         runCatching{
             NotificationManagerCompat
                 .from(this)
                 .notify(
                     ACTIVE_ID,
-                    activeNotification(
-                        title=title,
-                        value=value,
-                        detail=detail
-                    )
+                    notification
                 )
         }
     }
 
-    private fun activeNotification(
+    /*
+     * Small icon stays monochrome.
+     * Android itself renders notification small icons
+     * as a system-controlled monochrome glyph.
+     */
+    private fun baseNotification(
         title:String,
-        value:String,
-        detail:String
-    )=
-        NotificationCompat.Builder(
+        text:String
+    ):NotificationCompat.Builder{
+        return NotificationCompat.Builder(
             this,
             CHANNEL_ACTIVE
         )
@@ -319,26 +368,14 @@ class NmixTimeService : Service(){
                     .ic_lock_idle_alarm
             )
             .setContentTitle(title)
-            .setContentText(
-                "$value  •  $detail"
-            )
-            .setStyle(
-                NotificationCompat
-                    .BigTextStyle()
-                    .bigText(
-                        "$value\n$detail\nEVERYTHING WITH NUMBERS"
-                    )
-            )
+            .setContentText(text)
             .setColor(
-                0xFF319B79.toInt()
+                0xFF111111.toInt()
             )
             .setColorized(false)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
-            .setCategory(
-                NotificationCompat.CATEGORY_STOPWATCH
-            )
             .setVisibility(
                 NotificationCompat
                     .VISIBILITY_PUBLIC
@@ -346,19 +383,122 @@ class NmixTimeService : Service(){
             .setContentIntent(
                 openAppPendingIntent()
             )
+            .setPriority(
+                NotificationCompat
+                    .PRIORITY_LOW
+            )
+    }
+
+    private fun timerNotification(
+        seconds:Int
+    ):android.app.Notification{
+        val value=
+            formatTimer(seconds)
+
+        return baseNotification(
+            "NMIX • TIMER",
+            "$value  •  Running"
+        )
+            .setStyle(
+                NotificationCompat
+                    .BigTextStyle()
+                    .bigText(
+                        "$value\nTimer running\nEVERYTHING WITH NUMBERS"
+                    )
+            )
+            .setCategory(
+                NotificationCompat.CATEGORY_STOPWATCH
+            )
+            .addAction(
+                android.R.drawable
+                    .ic_media_rew,
+                "−5",
+                servicePendingIntent(
+                    request=5201,
+                    action=
+                        ACTION_TIMER_MINUS
+                )
+            )
+            .addAction(
+                android.R.drawable
+                    .ic_input_add,
+                "+5",
+                servicePendingIntent(
+                    request=5202,
+                    action=
+                        ACTION_TIMER_PLUS
+                )
+            )
+            .addAction(
+                android.R.drawable
+                    .ic_menu_revert,
+                "Reset",
+                servicePendingIntent(
+                    request=5203,
+                    action=
+                        ACTION_TIMER_RESET
+                )
+            )
             .addAction(
                 android.R.drawable
                     .ic_menu_close_clear_cancel,
                 "Stop",
-                stopPendingIntent()
-            )
-            .setPriority(
-                NotificationCompat.PRIORITY_LOW
+                servicePendingIntent(
+                    request=5204,
+                    action=
+                        ACTION_STOP
+                )
             )
             .build()
+    }
 
-    private fun completionNotification()=
-        NotificationCompat.Builder(
+    private fun stopwatchNotification(
+        elapsed:Long
+    ):android.app.Notification{
+        val value=
+            formatStopwatch(elapsed)
+
+        return baseNotification(
+            "NMIX • STOPWATCH",
+            "$value  •  Running"
+        )
+            .setStyle(
+                NotificationCompat
+                    .BigTextStyle()
+                    .bigText(
+                        "$value\nStopwatch running\nEVERYTHING WITH NUMBERS"
+                    )
+            )
+            .setCategory(
+                NotificationCompat.CATEGORY_STOPWATCH
+            )
+            .addAction(
+                android.R.drawable
+                    .ic_menu_revert,
+                "Reset",
+                servicePendingIntent(
+                    request=5301,
+                    action=
+                        ACTION_STOPWATCH_RESET
+                )
+            )
+            .addAction(
+                android.R.drawable
+                    .ic_menu_close_clear_cancel,
+                "Stop",
+                servicePendingIntent(
+                    request=5302,
+                    action=
+                        ACTION_STOP
+                )
+            )
+            .build()
+    }
+
+    private fun completionNotification():
+        android.app.Notification{
+
+        return NotificationCompat.Builder(
             this,
             CHANNEL_COMPLETE
         )
@@ -370,7 +510,7 @@ class NmixTimeService : Service(){
                 "NMIX • TIMER COMPLETE"
             )
             .setContentText(
-                "Time's up • EVERYTHING WITH NUMBERS"
+                "Time's up"
             )
             .setStyle(
                 NotificationCompat
@@ -380,8 +520,9 @@ class NmixTimeService : Service(){
                     )
             )
             .setColor(
-                0xFF319B79.toInt()
+                0xFF111111.toInt()
             )
+            .setColorized(false)
             .setAutoCancel(true)
             .setCategory(
                 NotificationCompat.CATEGORY_ALARM
@@ -394,9 +535,11 @@ class NmixTimeService : Service(){
                 openAppPendingIntent()
             )
             .setPriority(
-                NotificationCompat.PRIORITY_HIGH
+                NotificationCompat
+                    .PRIORITY_HIGH
             )
             .build()
+    }
 
     private fun openAppPendingIntent():
         PendingIntent{
@@ -425,20 +568,21 @@ class NmixTimeService : Service(){
         )
     }
 
-    private fun stopPendingIntent():
-        PendingIntent{
-
+    private fun servicePendingIntent(
+        request:Int,
+        action:String
+    ):PendingIntent{
         val intent=
             Intent(
                 this,
                 NmixTimeService::class.java
             ).apply{
-                action=ACTION_STOP
+                this.action=action
             }
 
         return PendingIntent.getService(
             this,
-            5102,
+            request,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or
                 PendingIntent.FLAG_IMMUTABLE
@@ -448,7 +592,7 @@ class NmixTimeService : Service(){
     private fun createChannels(){
         if(
             Build.VERSION.SDK_INT<
-                Build.VERSION_CODES.O
+            Build.VERSION_CODES.O
         ){
             return
         }
@@ -487,10 +631,6 @@ class NmixTimeService : Service(){
                 description=
                     "Timer completion"
 
-                /*
-                 * Completion audio comes from our
-                 * own gentle four-beep sequence.
-                 */
                 setSound(
                     null,
                     null
@@ -509,38 +649,39 @@ class NmixTimeService : Service(){
     }
 
     /*
-     * Four short, spaced notification tones.
-     * Volume intentionally moderate.
+     * Audible pattern:
+     *
+     * beep-beep ... beep-beep
      */
     private fun playCompletionSequence(){
         val tone=
             ToneGenerator(
                 AudioManager.STREAM_NOTIFICATION,
-                38
+                45
             )
 
         val starts=
             longArrayOf(
                 0L,
-                390L,
-                780L,
-                1170L
+                190L,
+                1050L,
+                1240L
             )
 
         starts.forEach{
-            delay->
+            start->
 
             handler.postDelayed(
                 {
                     runCatching{
                         tone.startTone(
                             ToneGenerator
-                                .TONE_PROP_BEEP2,
-                            145
+                                .TONE_PROP_BEEP,
+                            115
                         )
                     }
                 },
-                delay
+                start
             )
         }
 
@@ -550,7 +691,7 @@ class NmixTimeService : Service(){
                     tone.release()
                 }
             },
-            1550L
+            1700L
         )
     }
 
