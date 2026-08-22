@@ -1459,6 +1459,7 @@ private fun ThemeGrid(
     detail:Int
 ){
     val a=LocalNmixAppearance.current
+    val context=LocalContext.current
 
     Column(
         Modifier.fillMaxWidth(),
@@ -1492,7 +1493,7 @@ private fun ThemeGrid(
                             ){
                                 NmixIconManager
                                     .applyFromState(
-                                        LocalContext.current,
+                                        context,
                                         a
                                     )
                             }
