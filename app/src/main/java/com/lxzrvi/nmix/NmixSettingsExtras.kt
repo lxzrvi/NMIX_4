@@ -1,6 +1,5 @@
 package com.lxzrvi.nmix
 
-import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,276 +26,99 @@ fun NmixCustomThemeButton(
     val p=a.palette
     val ui=a.uiColors()
 
-    var open by remember{
-        mutableStateOf(false)
+    val interaction=remember{
+        MutableInteractionSource()
     }
 
-    val radius by animateDpAsState(
-        targetValue=
-            if(open)
-                16.dp
-            else
-                14.dp,
-        animationSpec=tween(
-            320,
-            easing=EaseInOutCubic
-        ),
-        label="customRadius"
-    )
-
     val shape=
-        RoundedCornerShape(radius)
+        RoundedCornerShape(14.dp)
 
-    Column(
+    Row(
         Modifier
             .fillMaxWidth()
+            .height(46.dp)
             .clip(shape)
             .background(
                 if(a.darkMode)
                     Color(0xFF151A18)
-                        .copy(alpha=.84f)
+                        .copy(alpha=.82f)
                 else
                     Color(0xFFE8ECEA)
-                        .copy(alpha=.90f)
+                        .copy(alpha=.88f)
             )
             .background(
                 p.accent.copy(
                     alpha=
                         if(a.darkMode)
-                            .05f
+                            .045f
                         else
-                            .04f
+                            .035f
                 )
-            )
-            /*
-             * No visible border normally.
-             * Accent outline appears only while
-             * Custom is the active color source.
-             */
-            .then(
-                if(a.usingCustomColor){
-                    Modifier.border(
-                        1.dp,
-                        p.accent.copy(
-                            alpha=.82f
-                        ),
-                        shape
-                    )
-                }else{
-                    Modifier
-                }
-            )
-            .animateContentSize(
-                animationSpec=tween(
-                    340,
-                    easing=EaseInOutCubic
-                )
-            )
-    ){
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .height(44.dp)
-                .clickable(
-                    interactionSource=remember{
-                        MutableInteractionSource()
-                    },
-                    indication=null
-                ){
-                    open=!open
-                }
-                .padding(horizontal=12.dp),
-            verticalAlignment=
-                Alignment.CenterVertically
-        ){
-            Box(
-                Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .background(p.accent)
-            )
-
-            Spacer(
-                Modifier.width(9.dp)
-            )
-
-            Column(
-                Modifier.weight(1f)
-            ){
-                Text(
-                    "Custom",
-                    color=ui.text,
-                    fontSize=10.sp,
-                    fontWeight=FontWeight.Bold,
-                    fontFamily=a.fontFamily
-                )
-
-                Text(
-                    if(a.usingCustomColor)
-                        "Custom color active"
-                    else
-                        "Create your own NMIX color",
-                    color=ui.muted,
-                    fontSize=7.5.sp,
-                    fontFamily=a.fontFamily
-                )
-            }
-
-            Text(
-                if(open)
-                    "CLOSE"
-                else
-                    "OPEN",
-                color=p.accent,
-                fontSize=7.sp,
-                fontWeight=FontWeight.Bold,
-                letterSpacing=.8.sp,
-                fontFamily=a.fontFamily
-            )
-        }
-
-        AnimatedVisibility(
-            visible=open,
-            enter=
-                expandVertically(
-                    animationSpec=tween(
-                        320,
-                        easing=EaseOutCubic
-                    ),
-                    expandFrom=
-                        Alignment.Top
-                )+
-                fadeIn(
-                    tween(220)
-                ),
-            exit=
-                shrinkVertically(
-                    animationSpec=tween(
-                        280,
-                        easing=EaseInOutCubic
-                    ),
-                    shrinkTowards=
-                        Alignment.Top
-                )+
-                fadeOut(
-                    tween(170)
-                )
-        ){
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start=10.dp,
-                        end=10.dp,
-                        bottom=10.dp
-                    )
-            ){
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(.5.dp)
-                        .background(
-                            p.accent.copy(
-                                alpha=.14f
-                            )
-                        )
-                )
-
-                Spacer(
-                    Modifier.height(9.dp)
-                )
-
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement=
-                        Arrangement.spacedBy(8.dp)
-                ){
-                    CustomAction(
-                        text="EDIT COLOR",
-                        modifier=
-                            Modifier.weight(1f),
-                        accent=true,
-                        onClick=onClick
-                    )
-
-                    CustomAction(
-                        text="RESET",
-                        modifier=
-                            Modifier.weight(1f),
-                        accent=false
-                    ){
-                        a.setTheme(a.theme)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CustomAction(
-    text:String,
-    modifier:Modifier,
-    accent:Boolean,
-    onClick:()->Unit
-){
-    val a=LocalNmixAppearance.current
-    val p=a.palette
-    val ui=a.uiColors()
-
-    val shape=
-        RoundedCornerShape(11.dp)
-
-    Box(
-        modifier
-            .height(38.dp)
-            .clip(shape)
-            .background(
-                if(accent){
-                    p.accent.copy(
-                        alpha=.78f
-                    )
-                }else if(a.darkMode){
-                    Color.White.copy(
-                        alpha=.045f
-                    )
-                }else{
-                    Color.White.copy(
-                        alpha=.50f
-                    )
-                }
             )
             .border(
                 .5.dp,
                 p.accent.copy(
                     alpha=
-                        if(accent)
-                            .48f
+                        if(a.usingCustomColor)
+                            .72f
+                        else if(a.darkMode)
+                            .18f
                         else
-                            .16f
+                            .25f
                 ),
                 shape
             )
             .clickable(
-                interactionSource=remember{
-                    MutableInteractionSource()
-                },
+                interactionSource=interaction,
                 indication=null,
                 onClick=onClick
-            ),
-        contentAlignment=
-            Alignment.Center
+            )
+            .padding(horizontal=12.dp),
+        verticalAlignment=
+            Alignment.CenterVertically
     ){
-        Text(
-            text,
-            color=
-                if(accent)
-                    Color.White
+        Box(
+            Modifier
+                .size(20.dp)
+                .clip(CircleShape)
+                .background(p.accent)
+        )
+
+        Spacer(
+            Modifier.width(9.dp)
+        )
+
+        Column(
+            Modifier.weight(1f)
+        ){
+            Text(
+                "Custom",
+                color=ui.text,
+                fontSize=10.sp,
+                fontWeight=FontWeight.Bold,
+                fontFamily=a.fontFamily
+            )
+
+            Text(
+                if(a.usingCustomColor)
+                    "Custom color active"
                 else
-                    ui.text,
-            fontSize=8.sp,
+                    "Create your own NMIX color",
+                color=ui.muted,
+                fontSize=7.5.sp,
+                fontFamily=a.fontFamily
+            )
+        }
+
+        Text(
+            if(a.usingCustomColor)
+                "ACTIVE"
+            else
+                "OPEN",
+            color=p.accent,
+            fontSize=7.sp,
             fontWeight=FontWeight.Bold,
-            letterSpacing=.5.sp,
+            letterSpacing=.8.sp,
             fontFamily=a.fontFamily
         )
     }
