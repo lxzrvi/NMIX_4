@@ -5,17 +5,20 @@ import android.os.SystemClock
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -31,131 +34,128 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.random.Random
-import androidx.compose.ui.draw.blur
-import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.CircleShape
 
 @Composable
 fun NativeMainPageV2(
-    onBack: () -> Unit
-) {
-    val a = LocalNmixAppearance.current
-    val p = a.palette
-    val ui = a.uiColors()
+    onBack:()->Unit
+){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+    val ui=a.uiColors()
 
-    val context = LocalContext.current
-    val configuration = LocalConfiguration.current
-    val density = LocalDensity.current
+    val context=LocalContext.current
+    val configuration=LocalConfiguration.current
+    val density=LocalDensity.current
 
-    val headerPrefs = remember(context) {
+    val headerPrefs=remember(context){
         context.getSharedPreferences(
             "nmix_main_display",
             Context.MODE_PRIVATE
         )
     }
 
-    var top by remember {
+    var top by remember{
         mutableStateOf(true)
     }
 
-    var section by remember {
+    var section by remember{
         mutableStateOf<String?>(null)
     }
 
-    var settings by remember {
-        mutableStateOf(false)
-    }
-
-    var fullscreen by rememberSaveable {
+    var settings by remember{
         mutableStateOf(false)
     }
 
     var customColorOpen by remember{
-    mutableStateOf(false)
+        mutableStateOf(false)
     }
 
-    var mode by remember {
+    var fullscreen by rememberSaveable{
+        mutableStateOf(false)
+    }
+
+    var mode by remember{
         mutableStateOf("idle")
     }
 
-    var display by remember {
+    var display by remember{
         mutableStateOf("Ready")
     }
 
-    var label by remember {
+    var label by remember{
         mutableStateOf("NMIX LIVE")
     }
 
-    var status by remember {
+    var status by remember{
         mutableStateOf(
             "Choose a tool below."
         )
     }
 
-    var n1 by remember {
+    var n1 by remember{
         mutableStateOf("")
     }
 
-    var n2 by remember {
+    var n2 by remember{
         mutableStateOf("")
     }
 
-    var op by remember {
+    var op by remember{
         mutableStateOf("")
     }
 
-    var second by remember {
+    var second by remember{
         mutableStateOf(false)
     }
 
-    var timer by remember {
+    var timer by remember{
         mutableIntStateOf(0)
     }
 
-    var timerRun by remember {
+    var timerRun by remember{
         mutableStateOf(false)
     }
 
-    var sw by remember {
+    var sw by remember{
         mutableLongStateOf(0L)
     }
 
-    var swRun by remember {
+    var swRun by remember{
         mutableStateOf(false)
     }
 
-    var swBase by remember {
+    var swBase by remember{
         mutableLongStateOf(0L)
     }
 
-    var count by remember {
+    var count by remember{
         mutableIntStateOf(0)
     }
 
-    var now by remember {
+    var now by remember{
         mutableLongStateOf(
             System.currentTimeMillis()
         )
     }
 
-    fun timerText(): String {
+    fun timerText():String{
         return "%02d:%02d".format(
-            timer / 60,
-            timer % 60
+            timer/60,
+            timer%60
         )
     }
 
-    fun swText(): String {
-        val seconds = sw / 1000
+    fun swText():String{
+        val s=sw/1000
 
         return "%02d:%02d.%02d".format(
-            seconds / 60,
-            seconds % 60,
-            (sw % 1000) / 10
+            s/60,
+            s%60,
+            (sw%1000)/10
         )
     }
 
-    fun timeText(): String {
+    fun timeText():String{
         return SimpleDateFormat(
             "hh:mm:ss a",
             Locale.getDefault()
@@ -164,7 +164,7 @@ fun NativeMainPageV2(
         )
     }
 
-    fun dateText(): String {
+    fun dateText():String{
         return SimpleDateFormat(
             "EEEE, d MMMM yyyy",
             Locale.getDefault()
@@ -173,61 +173,60 @@ fun NativeMainPageV2(
         )
     }
 
-    fun stop() {
-        timerRun = false
-        swRun = false
+    fun stop(){
+        timerRun=false
+        swRun=false
     }
 
-    fun open(name: String) {
-        top = true
-        settings = false
+    fun open(name:String){
+        top=true
+        settings=false
 
-        section =
-            if (section == name) {
+        section=
+            if(section==name)
                 null
-            } else {
+            else
                 name
-            }
     }
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            now =
+    LaunchedEffect(Unit){
+        while(true){
+            now=
                 System.currentTimeMillis()
 
             delay(200)
         }
     }
 
-    LaunchedEffect(timerRun) {
-        while (
+    LaunchedEffect(timerRun){
+        while(
             timerRun &&
-            timer > 0
-        ) {
+            timer>0
+        ){
             delay(1000)
 
-            if (timerRun) {
-                timer =
-                    (timer - 1)
+            if(timerRun){
+                timer=
+                    (timer-1)
                         .coerceAtLeast(0)
 
-                if (timer == 0) {
-                    timerRun = false
-                    status = "Time's up!"
+                if(timer==0){
+                    timerRun=false
+                    status="Time's up!"
                 }
             }
         }
     }
 
-    LaunchedEffect(swRun) {
-        if (swRun) {
-            swBase =
-                SystemClock.elapsedRealtime() -
+    LaunchedEffect(swRun){
+        if(swRun){
+            swBase=
+                SystemClock.elapsedRealtime()-
                     sw
 
-            while (swRun) {
-                sw =
-                    SystemClock.elapsedRealtime() -
+            while(swRun){
+                sw=
+                    SystemClock.elapsedRealtime()-
                         swBase
 
                 delay(30)
@@ -241,42 +240,43 @@ fun NativeMainPageV2(
         sw,
         now,
         count
-    ) {
-        when (mode) {
-            "timer" -> {
-                display = timerText()
-                label = "TIMER"
+    ){
+        when(mode){
+            "timer"->{
+                display=timerText()
+                label="TIMER"
             }
 
-            "clock" -> {
-                display = timeText()
-                label = "LIVE CLOCK"
+            "clock"->{
+                display=timeText()
+                label="LIVE CLOCK"
             }
 
-            "stopwatch" -> {
-                display = swText()
-                label = "STOPWATCH"
+            "stopwatch"->{
+                display=swText()
+                label="STOPWATCH"
             }
 
-            "counter" -> {
-                display = count.toString()
-                label = "COUNTER"
+            "counter"->{
+                display=count.toString()
+                label="COUNTER"
             }
         }
     }
 
-    fun fmt(v: Double): String {
-        if (!v.isFinite()) {
+    fun fmt(v:Double):String{
+        if(!v.isFinite()){
             return "Overflow"
         }
 
-        val integer = v.toLong()
+        val integer=
+            v.toLong()
 
-        return if (
-            integer.toDouble() == v
-        ) {
+        return if(
+            integer.toDouble()==v
+        ){
             integer.toString()
-        } else {
+        }else{
             String.format(
                 Locale.US,
                 "%.10f",
@@ -287,242 +287,231 @@ fun NativeMainPageV2(
         }
     }
 
-    fun calcStatus() {
-        status = when {
-            n1.isEmpty() ->
+    fun calcStatus(){
+        status=when{
+            n1.isEmpty()->
                 "Enter your first number."
 
-            op.isEmpty() ->
+            op.isEmpty()->
                 "Choose an operator."
 
-            n2.isEmpty() ->
+            n2.isEmpty()->
                 "Enter the second number."
 
-            else ->
+            else->
                 "Ready — tap = or the large display."
         }
     }
 
-    fun calculate() {
-        val x =
+    fun calculate(){
+        val x=
             n1.toDoubleOrNull()
 
-        val y =
+        val y=
             n2.toDoubleOrNull()
 
-        if (
-            x == null ||
-            y == null
-        ) {
-            display = "Incomplete"
-            status =
+        if(
+            x==null ||
+            y==null
+        ){
+            display="Incomplete"
+            status=
                 "Enter both numbers first."
 
             return
         }
 
-        val result = when (op) {
-            "+" -> x + y
-            "−" -> x - y
-            "×" -> x * y
+        val result=when(op){
+            "+"->x+y
+            "−"->x-y
+            "×"->x*y
 
-            "÷" -> {
-                if (y == 0.0) {
-                    display = "Error"
-
-                    status =
+            "÷"->{
+                if(y==0.0){
+                    display="Error"
+                    status=
                         "Division by zero is not allowed."
 
                     return
                 }
 
-                x / y
+                x/y
             }
 
-            "%" -> {
-                if (y == 0.0) {
-                    display = "Error"
-
-                    status =
+            "%"->{
+                if(y==0.0){
+                    display="Error"
+                    status=
                         "Remainder by zero is not allowed."
 
                     return
                 }
 
-                x % y
+                x%y
             }
 
-            else -> {
-                display = "No sign"
-                status =
+            else->{
+                display="No sign"
+                status=
                     "Choose an operator."
 
                 return
             }
         }
 
-        display = fmt(result)
-        label = "RESULT"
-        status =
+        display=fmt(result)
+        label="RESULT"
+        status=
             "Calculation complete."
     }
 
-    fun key(k: String) {
+    fun key(k:String){
         stop()
-        mode = "calculator"
+        mode="calculator"
 
-        when (k) {
-            "+", "−", "×", "÷", "%" -> {
-                if (n1.isEmpty()) {
-                    status =
+        when(k){
+            "+","−","×","÷","%"->{
+                if(n1.isEmpty()){
+                    status=
                         "Enter the first number first."
 
                     return
                 }
 
-                op = k
-                second = true
-                display = k
-                label = "OPERATOR"
+                op=k
+                second=true
+                display=k
+                label="OPERATOR"
             }
 
-            "=" -> {
+            "="->{
                 calculate()
             }
 
-            "." -> {
-                if (second) {
-                    if (!n2.contains(".")) {
-                        n2 +=
-                            if (n2.isEmpty()) {
+            "."->{
+                if(second){
+                    if(
+                        !n2.contains(".")
+                    ){
+                        n2+=
+                            if(n2.isEmpty())
                                 "0."
-                            } else {
+                            else
                                 "."
-                            }
 
-                        display = n2
+                        display=n2
                     }
-                } else if (
+                }else if(
                     !n1.contains(".")
-                ) {
-                    n1 +=
-                        if (n1.isEmpty()) {
+                ){
+                    n1+=
+                        if(n1.isEmpty())
                             "0."
-                        } else {
+                        else
                             "."
-                        }
 
-                    display = n1
+                    display=n1
                 }
             }
 
-            "±" -> {
-                if (second) {
+            "±"->{
+                if(second){
                     n2.toDoubleOrNull()
-                        ?.let {
-                            n2 = fmt(-it)
-                            display = n2
+                        ?.let{
+                            n2=fmt(-it)
+                            display=n2
                         }
-                } else {
+                }else{
                     n1.toDoubleOrNull()
-                        ?.let {
-                            n1 = fmt(-it)
-                            display = n1
+                        ?.let{
+                            n1=fmt(-it)
+                            display=n1
                         }
                 }
             }
 
-            "⌫" -> {
-                if (second) {
-                    if (n2.isNotEmpty()) {
-                        n2 =
+            "⌫"->{
+                if(second){
+                    if(n2.isNotEmpty()){
+                        n2=
                             n2.dropLast(1)
 
-                        display =
-                            n2.ifEmpty {
+                        display=
+                            n2.ifEmpty{
                                 "0"
                             }
-                    } else {
-                        op = ""
-                        second = false
+                    }else{
+                        op=""
+                        second=false
                     }
-                } else {
-                    n1 =
+                }else{
+                    n1=
                         n1.dropLast(1)
 
-                    display =
-                        n1.ifEmpty {
+                    display=
+                        n1.ifEmpty{
                             "0"
                         }
                 }
             }
 
-            "AC" -> {
-                n1 = ""
-                n2 = ""
-                op = ""
-                second = false
-                display = "Ready"
-                label = "CALCULATOR"
-                status =
+            "AC"->{
+                n1=""
+                n2=""
+                op=""
+                second=false
+                display="Ready"
+                label="CALCULATOR"
+                status=
                     "Calculator cleared."
             }
 
-            else -> {
-                if (
+            else->{
+                if(
                     k.all(
                         Char::isDigit
                     )
-                ) {
-                    if (
+                ){
+                    if(
                         second &&
-                        n2.length < 18
-                    ) {
-                        n2 += k
-                        display = n2
-                        label =
+                        n2.length<18
+                    ){
+                        n2+=k
+                        display=n2
+                        label=
                             "SECOND NUMBER"
-                    } else if (
+                    }else if(
                         !second &&
-                        n1.length < 18
-                    ) {
-                        n1 += k
-                        display = n1
-                        label =
+                        n1.length<18
+                    ){
+                        n1+=k
+                        display=n1
+                        label=
                             "FIRST NUMBER"
                     }
                 }
             }
         }
 
-        if (
-            k != "=" &&
-            k != "AC"
-        ) {
+        if(
+            k!="=" &&
+            k!="AC"
+        ){
             calcStatus()
         }
     }
 
-    val calcOpen =
-        section == "calculator"
+    val calcOpen=
+        section=="calculator"
 
-    /*
-     * ------------------------------------------------
-     * RESIZABLE HEADER
-     * ------------------------------------------------
-     *
-     * Dragging is direct / finger-following.
-     * No 420ms animation sits between the finger
-     * and the header while the top is visible.
-     */
-    val minimumHeaderHeight =
+    val minimumHeaderHeight=
         190.dp
 
-    val maximumHeaderHeight =
+    val maximumHeaderHeight=
         (
             configuration
                 .screenHeightDp
-                .dp *
+                .dp*
                 .50f
             )
             .coerceAtLeast(
@@ -531,7 +520,7 @@ fun NativeMainPageV2(
 
     var openHeaderHeight by remember(
         configuration.screenHeightDp
-    ) {
+    ){
         mutableStateOf(
             headerPrefs
                 .getFloat(
@@ -546,396 +535,357 @@ fun NativeMainPageV2(
         )
     }
 
-    /*
-     * This animation is only relevant when
-     * collapsing/restoring the entire header.
-     *
-     * While top == true, the direct height below
-     * is used so resize immediately follows touch.
-     */
     val animatedHeaderHeight by
         animateDpAsState(
-            targetValue =
-                if (top) {
+            targetValue=
+                if(top)
                     openHeaderHeight
-                } else {
-                    0.dp
-                },
-            animationSpec =
-                tween(
-                    380,
-                    easing =
-                        EaseInOutCubic
-                ),
-            label = "headerCollapse"
+                else
+                    0.dp,
+            animationSpec=tween(
+                380,
+                easing=
+                    EaseInOutCubic
+            ),
+            label="headerCollapse"
         )
 
-    val headerHeight =
-        if (top) {
+    val headerHeight=
+        if(top)
             openHeaderHeight
-        } else {
+        else
             animatedHeaderHeight
-        }
 
     val animatedListTop by
         animateDpAsState(
-            targetValue =
-                if (top) {
-                    openHeaderHeight +
+            targetValue=
+                if(top)
+                    openHeaderHeight+
                         16.dp
-                } else {
-                    112.dp
-                },
-            animationSpec =
-                tween(
-                    380,
-                    easing =
-                        EaseInOutCubic
-                ),
-            label = "listCollapse"
+                else
+                    112.dp,
+            animationSpec=tween(
+                380,
+                easing=
+                    EaseInOutCubic
+            ),
+            label="listCollapse"
         )
 
-    val listTop =
-        if (top) {
-            openHeaderHeight +
+    val listTop=
+        if(top)
+            openHeaderHeight+
                 16.dp
-        } else {
+        else
             animatedListTop
-        }
 
     Box(
         Modifier
             .fillMaxSize()
             .background(ui.page)
-    ) {
+    ){
         LazyColumn(
             Modifier
                 .fillMaxSize()
                 .blur(
-                    if(settings || customColorOpen)
+                    if(
+                        settings ||
+                        customColorOpen
+                    )
                         3.dp
                     else
                         0.dp
                 ),
             contentPadding=
                 PaddingValues(
-                    top = listTop,
-                    bottom = 22.dp
+                    top=listTop,
+                    bottom=22.dp
                 ),
-            verticalArrangement =
+            verticalArrangement=
                 Arrangement.spacedBy(
                     12.dp
                 )
-        ) {
-            item {
+        ){
+            item{
                 NmixToolSection(
-                    icon =
+                    icon=
                         NmixIcon.CALCULATOR,
-                    title =
-                        "Calculator",
-                    subtitle =
+                    title="Calculator",
+                    subtitle=
                         "Numbers and operations",
-                    open =
-                        calcOpen,
-                    onClick = {
+                    open=calcOpen,
+                    onClick={
                         open("calculator")
-
-                        mode =
-                            "calculator"
-
-                        label =
-                            "CALCULATOR"
-
+                        mode="calculator"
+                        label="CALCULATOR"
                         calcStatus()
                     }
-                ) {
+                ){
                     NmixCalculator(
                         ::key
                     )
                 }
             }
 
-            item {
+            item{
                 NmixToolSection(
-                    icon =
-                        NmixIcon.CLOCK,
-                    title =
-                        "Clock",
-                    subtitle =
+                    icon=NmixIcon.CLOCK,
+                    title="Clock",
+                    subtitle=
                         "Timer, clock and stopwatch",
-                    open =
-                        section == "clock",
-                    onClick = {
+                    open=
+                        section=="clock",
+                    onClick={
                         open("clock")
                         stop()
 
-                        mode = "clock"
-                        label = "LIVE CLOCK"
-                        display = timeText()
-                        status =
+                        mode="clock"
+                        label="LIVE CLOCK"
+                        display=timeText()
+                        status=
                             "Live clock is active."
                     }
-                ) {
+                ){
                     NmixClockTools(
-                        mode = mode,
+                        mode=mode,
 
-                        onTimer = {
-                            swRun = false
-                            mode = "timer"
+                        onTimer={
+                            swRun=false
+                            mode="timer"
 
-                            if (timer <= 0) {
-                                status =
+                            if(timer<=0){
+                                status=
                                     "Add five seconds before starting."
-                            } else {
-                                timerRun =
+                            }else{
+                                timerRun=
                                     !timerRun
 
-                                status =
-                                    if (timerRun) {
+                                status=
+                                    if(timerRun)
                                         "Timer running."
-                                    } else {
+                                    else
                                         "Timer paused."
-                                    }
                             }
                         },
 
-                        onTimerReset = {
-                            timerRun = false
-                            timer = 0
-                            mode = "timer"
+                        onTimerReset={
+                            timerRun=false
+                            timer=0
+                            mode="timer"
 
-                            status =
+                            status=
                                 "Timer reset to zero."
                         },
 
-                        onClock = {
+                        onClock={
                             stop()
-
-                            mode = "clock"
-                            label = "LIVE CLOCK"
-                            display = timeText()
-
-                            status =
+                            mode="clock"
+                            label="LIVE CLOCK"
+                            display=timeText()
+                            status=
                                 "Live clock is active."
                         },
 
-                        onFullscreen = {
+                        onFullscreen={
                             stop()
-
-                            mode = "clock"
-                            settings = false
-                            fullscreen = true
+                            mode="clock"
+                            settings=false
+                            fullscreen=true
                         },
 
-                        onStopwatch = {
-                            timerRun = false
-                            mode = "stopwatch"
-                            swRun = !swRun
+                        onStopwatch={
+                            timerRun=false
+                            mode="stopwatch"
+                            swRun=!swRun
 
-                            status =
-                                if (swRun) {
+                            status=
+                                if(swRun)
                                     "Stopwatch running."
-                                } else {
+                                else
                                     "Stopwatch paused."
-                                }
                         },
 
-                        onStopwatchReset = {
-                            swRun = false
-                            sw = 0
-                            mode = "stopwatch"
+                        onStopwatchReset={
+                            swRun=false
+                            sw=0
+                            mode="stopwatch"
 
-                            status =
+                            status=
                                 "Stopwatch reset."
                         }
                     )
                 }
             }
 
-            item {
+            item{
                 NmixToolSection(
-                    icon =
+                    icon=
                         NmixIcon.COUNTER,
-                    title =
-                        "Counters",
-                    subtitle =
+                    title="Counters",
+                    subtitle=
                         "Count and generate",
-                    open =
-                        section == "counter",
-                    onClick = {
+                    open=
+                        section=="counter",
+                    onClick={
                         open("counter")
                         stop()
 
-                        mode = "counter"
-                        display =
+                        mode="counter"
+                        display=
                             count.toString()
 
-                        label = "COUNTER"
-
-                        status =
+                        label="COUNTER"
+                        status=
                             "Counter ready."
                     }
-                ) {
+                ){
                     NmixCounters(
-                        add = {
+                        add={
                             count++
-                            mode = "counter"
-
-                            status =
+                            mode="counter"
+                            status=
                                 "Counter increased."
                         },
 
-                        reset = {
-                            count = 0
-                            mode = "counter"
-
-                            status =
+                        reset={
+                            count=0
+                            mode="counter"
+                            status=
                                 "Counter reset to zero."
                         },
 
-                        random = {
-                            count =
+                        random={
+                            count=
                                 Random.nextInt(
                                     1,
                                     1001
                                 )
 
-                            mode = "counter"
-
-                            status =
+                            mode="counter"
+                            status=
                                 "Random number generated."
                         },
 
-                        minus = {
-                            count =
-                                (count - 1)
+                        minus={
+                            count=
+                                (count-1)
                                     .coerceAtLeast(
                                         0
                                     )
 
-                            mode = "counter"
-
-                            status =
+                            mode="counter"
+                            status=
                                 "Counter decreased."
                         }
                     )
                 }
             }
 
-            item {
+            item{
                 NmixToolSection(
-                    icon =
-                        NmixIcon.HELP,
-                    title =
-                        "How to use NMIX",
-                    subtitle =
+                    icon=NmixIcon.HELP,
+                    title="How to use NMIX",
+                    subtitle=
                         "Instructions and controls",
-                    open =
-                        section == "help",
-                    onClick = {
+                    open=
+                        section=="help",
+                    onClick={
                         open("help")
                         stop()
 
-                        mode = "idle"
-                        label = "NMIX LIVE"
-                        display = "Ready"
-
-                        status =
+                        mode="idle"
+                        label="NMIX LIVE"
+                        display="Ready"
+                        status=
                             "NMIX instructions."
                     }
-                ) {
+                ){
                     NmixInstructions()
                 }
             }
 
-            item {
+            item{
                 Spacer(
-                    Modifier.height(
-                        4.dp
-                    )
+                    Modifier.height(4.dp)
                 )
             }
 
-            item {
+            item{
                 NmixContribution(
                     Modifier.fillMaxWidth()
                 )
             }
 
-            item {
+            item{
                 Spacer(
-                    Modifier.height(
-                        2.dp
-                    )
+                    Modifier.height(2.dp)
                 )
             }
 
-            item {
+            item{
                 Box(
                     Modifier.fillMaxWidth(),
-                    contentAlignment =
+                    contentAlignment=
                         Alignment.Center
-                ) {
+                ){
                     NmixTextButton(
-                        text =
+                        text=
                             "Back to the Start",
-                        modifier =
+                        modifier=
                             Modifier
-                                .width(
-                                    178.dp
-                                )
-                                .height(
-                                    42.dp
-                                ),
-                        accent = false,
-                        onClick = onBack
+                                .width(178.dp)
+                                .height(42.dp),
+                        accent=false,
+                        onClick=onBack
                     )
                 }
             }
 
-            item {
+            item{
                 Spacer(
-                    Modifier.height(
-                        8.dp
-                    )
+                    Modifier.height(8.dp)
                 )
             }
         }
 
         AnimatedVisibility(
             visible=top,
-            modifier=Modifier.blur(
-                if(settings || customColorOpen)
-                    3.dp
-                else
-                    0.dp
-            ),
+            modifier=
+                Modifier.blur(
+                    if(
+                        settings ||
+                        customColorOpen
+                    )
+                        3.dp
+                    else
+                        0.dp
+                ),
             enter=
                 fadeIn(
                     tween(
                         280,
-                        easing =
+                        easing=
                             EaseOutCubic
                     )
                 ),
-            exit =
+            exit=
                 fadeOut(
                     tween(
                         220,
-                        easing =
+                        easing=
                             EaseInCubic
                     )
                 )
-        ) {
+        ){
             Box(
                 Modifier
                     .fillMaxWidth()
                     .height(headerHeight)
                     .clip(
                         RoundedCornerShape(
-                            bottomStart =
+                            bottomStart=
                                 23.dp,
-                            bottomEnd =
+                            bottomEnd=
                                 23.dp
                         )
                     )
@@ -952,112 +902,105 @@ fun NativeMainPageV2(
                         WindowInsets.statusBars
                     )
                     /*
-                     * Same general spacing family as
-                     * the original top screen.
-                     *
-                     * Grip is an overlay and does not
-                     * consume Display layout height.
+                     * Bottom space belongs to accent
+                     * header. Display itself does not
+                     * consume grip space.
                      */
                     .padding(
-                        start = 12.dp,
-                        end = 12.dp,
-                        top = 7.dp,
-                        bottom = 11.dp
+                        start=12.dp,
+                        end=12.dp,
+                        top=7.dp,
+                        bottom=11.dp
                     )
-            ) {
+            ){
                 Column(
                     Modifier.fillMaxSize(),
-                    horizontalAlignment =
+                    horizontalAlignment=
                         Alignment.CenterHorizontally
-                ) {
+                ){
                     Box(
                         Modifier
                             .fillMaxWidth()
                             .height(62.dp),
-                        contentAlignment =
+                        contentAlignment=
                             Alignment.Center
-                    ) {
+                    ){
                         Column(
-                            horizontalAlignment =
+                            horizontalAlignment=
                                 Alignment.CenterHorizontally
-                        ) {
+                        ){
                             Text(
                                 "EVERYTHING WITH NUMBERS",
-                                color =
+                                color=
                                     Color.White.copy(
-                                        alpha = .72f
+                                        alpha=.72f
                                     ),
-                                fontSize = 7.5.sp,
-                                letterSpacing =
-                                    1.9.sp,
-                                fontFamily =
-                                    a.fontFamily
+                                fontSize=7.5.sp,
+                                letterSpacing=1.9.sp,
+                                fontFamily=a.fontFamily
                             )
 
                             Text(
                                 "NMIX",
-                                color =
-                                    Color.White,
-                                fontSize =
-                                    27.sp,
-                                fontWeight =
+                                color=Color.White,
+                                fontSize=27.sp,
+                                fontWeight=
                                     FontWeight.Bold,
-                                letterSpacing =
-                                    2.2.sp,
-                                fontFamily =
+                                letterSpacing=2.2.sp,
+                                fontFamily=
                                     NmixLogoFont
                             )
                         }
                     }
 
                     NmixDisplay(
-                        label = label,
-                        value = display,
-                        status = status,
-                        timer =
-                            mode == "timer",
+                        label=label,
+                        value=display,
+                        status=status,
+                        timer=
+                            mode=="timer",
 
-                        calcVisible =
+                        calcVisible=
                             calcOpen,
 
-                        calcFirst = n1,
-                        calcOperator = op,
-                        calcSecond = n2,
+                        calcFirst=n1,
+                        calcOperator=op,
+                        calcSecond=n2,
 
-                        onMinus = {
-                            timer =
-                                (timer - 5)
+                        onMinus={
+                            timer=
+                                (timer-5)
                                     .coerceAtLeast(
                                         0
                                     )
 
-                            if (timer == 0) {
-                                timerRun = false
+                            if(timer==0){
+                                timerRun=false
                             }
 
-                            status =
+                            status=
                                 "Five seconds removed."
                         },
 
-                        onPlus = {
-                            timer += 5
+                        onPlus={
+                            timer+=5
 
-                            status =
+                            status=
                                 "Five seconds added."
                         },
 
-                        onClick = {
-                            if (
-                                mode == "calculator" &&
+                        onClick={
+                            if(
+                                mode=="calculator" &&
                                 n1.isNotEmpty() &&
                                 op.isNotEmpty() &&
                                 n2.isNotEmpty()
-                            ) {
+                            ){
                                 calculate()
                             }
                         },
 
-                        modifier =
+                        modifier=
                             Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
@@ -1065,48 +1008,43 @@ fun NativeMainPageV2(
                 }
 
                 /*
-                 * ----------------------------------------
-                 * RESIZE GRIP
-                 * ----------------------------------------
-                 *
-                 * This is NOT inside NmixDisplay.
-                 * It overlays the original accent-header
-                 * bottom gap and does not push Display.
-                 *
-                 * The hit target is intentionally larger
-                 * than the visible dots.
+                 * Resize grip:
+                 * completely outside Display,
+                 * overlayed on accent bottom strip.
+                 * Large invisible hit target,
+                 * four small visible dots.
                  */
                 Box(
                     Modifier
                         .align(
                             Alignment.BottomEnd
                         )
-                        .width(46.dp)
-                        .height(20.dp)
-                        .offset(
-                            x=(-4).dp,
-                            y=5.dp
+                        .width(58.dp)
+                        .height(28.dp)
+                        .padding(
+                            end=8.dp,
+                            bottom=3.dp
                         )
                         .pointerInput(
                             minimumHeaderHeight,
                             maximumHeaderHeight
-                        ) {
+                        ){
                             detectVerticalDragGestures(
-                                onVerticalDrag = {
+                                onVerticalDrag={
                                     change,
-                                    dragAmount ->
+                                    dragAmount->
 
                                     change.consume()
 
-                                    val deltaDp =
-                                        with(density) {
+                                    val deltaDp=
+                                        with(density){
                                             dragAmount
                                                 .toDp()
                                         }
 
-                                    openHeaderHeight =
+                                    openHeaderHeight=
                                         (
-                                            openHeaderHeight +
+                                            openHeaderHeight+
                                                 deltaDp
                                             )
                                             .coerceIn(
@@ -1115,7 +1053,7 @@ fun NativeMainPageV2(
                                             )
                                 },
 
-                                onDragEnd = {
+                                onDragEnd={
                                     headerPrefs
                                         .edit()
                                         .putFloat(
@@ -1127,127 +1065,154 @@ fun NativeMainPageV2(
                                 }
                             )
                         },
-                    contentAlignment =
-                        Alignment.Center
-                ) {
-                    Text(
-                        text = "••••",
-                        color =
-                            p.accentLight.copy(
-                                alpha=.90f
+                    contentAlignment=
+                        Alignment.BottomCenter
+                ){
+                    Row(
+                        horizontalArrangement=
+                            Arrangement.spacedBy(
+                                3.dp
                             ),
-                        fontSize = 8.sp,
-                        letterSpacing = .7.sp,
-                        fontFamily =
-                            a.fontFamily
-                    )
+                        verticalAlignment=
+                            Alignment.CenterVertically
+                    ){
+                        repeat(4){
+                            Box(
+                                Modifier
+                                    .size(4.dp)
+                                    .clip(
+                                        CircleShape
+                                    )
+                                    .background(
+                                        p.accentLight
+                                            .copy(
+                                                alpha=.92f
+                                            )
+                                    )
+                            )
+                        }
+                    }
                 }
             }
         }
-
-        if (settings) {
+        
+        if(settings){
             Box(
                 Modifier
                     .fillMaxSize()
                     .background(
                         Color.Black.copy(
-                            alpha =
-                                if (a.darkMode) {
-                                    .15f
-                                } else {
-                                    .05f
-                                }
+                            alpha=
+                                if(a.darkMode)
+                                    .18f
+                                else
+                                    .07f
                         )
                     )
                     .clickable(
-                        interactionSource =
-                            remember {
+                        interactionSource=
+                            remember{
                                 MutableInteractionSource()
                             },
-                        indication = null
-                    ) {
-                        settings = false
+                        indication=null
+                    ){
+                        settings=false
                     }
             )
         }
 
         AnimatedVisibility(
-            visible = settings,
-            modifier =
+            visible=settings,
+            modifier=
                 Modifier.align(
                     Alignment.CenterEnd
                 ),
-            enter =
+            enter=
                 slideInHorizontally(
-                    initialOffsetX = {
+                    initialOffsetX={
                         it
                     },
-                    animationSpec =
-                        tween(
-                            460,
-                            easing =
-                                EaseOutCubic
-                        )
-                ) +
-                    fadeIn(
-                        tween(250)
-                    ),
-            exit =
-                slideOutHorizontally(
-                    targetOffsetX = {
-                        it
-                    },
-                    animationSpec =
-                        tween(
-                            420,
-                            easing =
-                                EaseInOutCubic
-                        )
-                ) +
-                    fadeOut(
-                        tween(220)
+                    animationSpec=tween(
+                        460,
+                        easing=
+                            EaseOutCubic
                     )
-        ) {
+                )+
+                fadeIn(
+                    tween(250)
+                ),
+            exit=
+                slideOutHorizontally(
+                    targetOffsetX={
+                        it
+                    },
+                    animationSpec=tween(
+                        420,
+                        easing=
+                            EaseInOutCubic
+                    )
+                )+
+                fadeOut(
+                    tween(220)
+                )
+        ){
+            val drawerShape=
+                RoundedCornerShape(
+                    topStart=25.dp,
+                    bottomStart=25.dp
+                )
+
             Box(
                 Modifier
                     .width(286.dp)
                     .fillMaxHeight()
-                    .clip(
-                        RoundedCornerShape(
-                            topStart =
-                                25.dp,
-                            bottomStart =
-                                25.dp
-                        )
+                    .clip(drawerShape)
+                    .background(
+                        if(a.darkMode){
+                            Color(0xFF151917)
+                                .copy(
+                                    alpha=.94f
+                                )
+                        }else{
+                            /*
+                             * Still translucent,
+                             * but no washed-out
+                             * see-through white.
+                             */
+                            Color(0xFFF0F4F2)
+                                .copy(
+                                    alpha=.94f
+                                )
+                        }
                     )
                     .background(
-                        if(a.darkMode)
-                            Color(0xFF151917)
-                        else
-                            p.accent.copy(alpha=.10f)
-                    )
-                    .border(
-                        .55.dp,
                         p.accent.copy(
                             alpha=
                                 if(a.darkMode)
-                                    .20f
+                                    .055f
                                 else
-                                    .28f
-                        ),
-                        RoundedCornerShape(
-                            topStart=25.dp,
-                            bottomStart=25.dp
+                                    .075f
                         )
                     )
+                    .border(
+                        .65.dp,
+                        p.accent.copy(
+                            alpha=
+                                if(a.darkMode)
+                                    .34f
+                                else
+                                    .38f
+                        ),
+                        drawerShape
+                    )
                     .clickable(
-                        interactionSource =
-                            remember {
+                        interactionSource=
+                            remember{
                                 MutableInteractionSource()
                             },
-                        indication = null
-                    ) {}
-            ) {
+                        indication=null
+                    ){}
+            ){
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -1255,14 +1220,21 @@ fun NativeMainPageV2(
                             WindowInsets.statusBars
                         )
                         .padding(
-                            top = 10.dp
+                            top=10.dp
                         )
-                ) {
-                    NmixSettings()
+                ){
+                    NmixSettings(
+                        onCustomColor={
+                            customColorOpen=true
+                        }
+                    )
                 }
             }
         }
 
+        /*
+         * Top controls.
+         */
         Row(
             Modifier
                 .fillMaxWidth()
@@ -1270,148 +1242,189 @@ fun NativeMainPageV2(
                     WindowInsets.statusBars
                 )
                 .padding(
-                    start = 14.dp,
-                    top = 9.dp
+                    start=14.dp,
+                    top=9.dp
                 ),
-            horizontalArrangement =
+            horizontalArrangement=
                 Arrangement.SpaceBetween,
-            verticalAlignment =
+            verticalAlignment=
                 Alignment.CenterVertically
-        ) {
+        ){
+            /*
+             * Arrow:
+             * dark/light glass + stronger
+             * accent border.
+             */
             Box(
                 Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .border(
-                            .55.dp,
-                            if(a.darkMode)
-                                Color(0xFF252B28)
-                            else
-                                Color.White.copy(alpha=.72f),
-                            CircleShape
-                        )
-                ){
-                    NmixCircleButton(
-                        icon=
-                            if(top)
-                                NmixIcon.ARROW_UP
-                            else
-                                NmixIcon.ARROW_DOWN,
-                        modifier=Modifier.fillMaxSize(),
-                        onClick={
-                            top=!top
-                
-                            if(!top){
-                                settings=false
-                            }
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if(a.darkMode){
+                            Color(0xFF151A18)
+                                .copy(
+                                    alpha=.82f
+                                )
+                        }else{
+                            Color.White.copy(
+                                alpha=.60f
+                            )
                         }
                     )
-                }
+                    .border(
+                        .75.dp,
+                        p.accent.copy(
+                            alpha=.62f
+                        ),
+                        CircleShape
+                    )
+            ){
+                NmixCircleButton(
+                    icon=
+                        if(top)
+                            NmixIcon.ARROW_UP
+                        else
+                            NmixIcon.ARROW_DOWN,
+
+                    modifier=
+                        Modifier.fillMaxSize(),
+
+                    /*
+                     * Transparent so wrapper
+                     * glass remains visible.
+                     */
+                    color=
+                        Color.Transparent,
+
+                    onClick={
+                        top=!top
+
+                        if(!top){
+                            settings=false
+                        }
+                    }
+                )
+            }
+
+            val menuShape=
+                RoundedCornerShape(
+                    topStart=25.dp,
+                    bottomStart=25.dp
+                )
 
             Box(
                 Modifier
                     .width(66.dp)
                     .height(48.dp)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart =
-                                25.dp,
-                            bottomStart =
-                                25.dp
-                        )
-                    )
+                    .clip(menuShape)
                     .background(
-                        p.accent
+                        if(a.darkMode){
+                            Color(0xFF151A18)
+                                .copy(
+                                    alpha=.82f
+                                )
+                        }else{
+                            Color.White.copy(
+                                alpha=.60f
+                            )
+                        }
                     )
                     .border(
-                        .55.dp,
-                        if(a.darkMode)
-                            Color(0xFF252B28)
-                        else
-                            Color.White.copy(alpha=.72f),
-                        RoundedCornerShape(
-                            topStart=25.dp,
-                            bottomStart=25.dp
-                        )
+                        .75.dp,
+                        p.accent.copy(
+                            alpha=.62f
+                        ),
+                        menuShape
                     )
                     .clickable(
-                        interactionSource =
-                            remember {
+                        interactionSource=
+                            remember{
                                 MutableInteractionSource()
                             },
-                        indication = null
-                    ) {
-                        settings =
+                        indication=null
+                    ){
+                        settings=
                             !settings
                     },
-                contentAlignment =
+                contentAlignment=
                     Alignment.Center
-            ) {
+            ){
                 AnimatedContent(
-                    targetState =
-                        settings,
-                    transitionSpec = {
+                    targetState=settings,
+                    transitionSpec={
                         (
                             fadeIn(
                                 tween(180)
-                            ) +
-                                scaleIn(
-                                    initialScale =
-                                        .82f,
-                                    animationSpec =
-                                        tween(220)
-                                )
-                            ) togetherWith (
+                            )+
+                            scaleIn(
+                                initialScale=.82f,
+                                animationSpec=
+                                    tween(220)
+                            )
+                        ) togetherWith (
                             fadeOut(
                                 tween(140)
-                            ) +
-                                scaleOut(
-                                    targetScale =
-                                        .82f,
-                                    animationSpec =
-                                        tween(180)
-                                )
+                            )+
+                            scaleOut(
+                                targetScale=.82f,
+                                animationSpec=
+                                    tween(180)
                             )
+                        )
                     },
-                    label = "menuIcon"
-                ) { open ->
+                    label="menuIcon"
+                ){open->
                     NmixIcon(
-                        if (open) {
+                        if(open)
                             NmixIcon.CLOSE
-                        } else {
-                            NmixIcon.MENU
-                        },
+                        else
+                            NmixIcon.MENU,
 
                         Modifier.size(
                             21.dp
                         ),
 
-                        Color.White
+                        if(a.darkMode)
+                            Color.White
+                        else
+                            p.accentDark
                     )
                 }
             }
         }
 
-                NmixCustomColorPicker(
-                    visible=customColorOpen,
-                    onClose={
-                        customColorOpen=false
-                    }
-                )
-        
-                AnimatedVisibility(
-                    visible=fullscreen,
-                    modifier=Modifier.fillMaxSize(),
-                    enter=fadeIn(tween(420)),
-                    exit=fadeOut(tween(340))
-                ){
-                    NmixFullscreenClock(
-                        time=timeText(),
-                        date=dateText(),
-                        onExit={
-                            fullscreen=false
-                        }
-                    )
-                }
+        /*
+         * Custom picker is root-level,
+         * therefore not confined to drawer.
+         */
+        NmixCustomColorPicker(
+            visible=
+                customColorOpen,
+            onClose={
+                customColorOpen=false
             }
+        )
+
+        AnimatedVisibility(
+            visible=fullscreen,
+            modifier=
+                Modifier.fillMaxSize(),
+            enter=
+                fadeIn(
+                    tween(420)
+                ),
+            exit=
+                fadeOut(
+                    tween(340)
+                )
+        ){
+            NmixFullscreenClock(
+                time=timeText(),
+                date=dateText(),
+                onExit={
+                    fullscreen=false
+                }
+            )
         }
+    }
+}
