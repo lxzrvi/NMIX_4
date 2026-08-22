@@ -2631,6 +2631,330 @@ private fun BoxScope.DisplayMotionLayer(
                                 lineTo(
                                     size.width*.02f,
                                     size.height*.93f
+@Composable
+private fun BoxScope.DisplayMotionLayer(
+    motion:NmixMotionValues
+){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+
+    val soft=
+        a.animation in listOf(
+            NmixAnimationName.DRIFT,
+            NmixAnimationName.ORBIT,
+            NmixAnimationName.FLOW
+        )
+
+    val quantity=
+        a.animationQuantity.coerceIn(1,5)
+
+    /*
+     * Wide home positions.
+     * Elements intentionally start far apart.
+     */
+    val homes=listOf(
+        Offset(-.40f,-.31f),
+        Offset(.40f,.30f),
+        Offset(.39f,-.32f),
+        Offset(-.39f,.32f),
+        Offset(.02f,.02f)
+    )
+
+    repeat(quantity){index->
+        val home=homes[index]
+        val direction=
+            if(index%2==0)1f else -1f
+
+        /*
+         * Different motion channels prevent all
+         * shapes from travelling together.
+         */
+        val mx=when(index){
+            0->motion.x
+            1->motion.z
+            2->-motion.y
+            3->-motion.x
+            else->motion.y
+        }
+
+        val my=when(index){
+            0->motion.y
+            1->-motion.x
+            2->motion.z
+            3->-motion.z
+            else->-motion.x
+        }
+
+        /*
+         * Different sizes make quantity look
+         * naturally distributed.
+         */
+        val itemScale=when(index){
+            0->1.00f
+            1->.82f
+            2->.70f
+            3->.76f
+            else->.64f
+        }
+
+        if(soft){
+            val shape=
+                when(a.animation){
+                    NmixAnimationName.DRIFT->
+                        CircleShape
+
+                    NmixAnimationName.ORBIT->
+                        RoundedCornerShape(52.dp)
+
+                    NmixAnimationName.FLOW->
+                        RoundedCornerShape(30.dp)
+
+                    else->
+                        CircleShape
+                }
+
+            /*
+             * Larger than before.
+             */
+            val baseSize=
+                when(a.animation){
+                    NmixAnimationName.DRIFT->285f
+                    NmixAnimationName.ORBIT->245f
+                    NmixAnimationName.FLOW->225f
+                    else->250f
+                }
+
+            Box(
+                Modifier
+                    .size(
+                        (baseSize*itemScale).dp
+                    )
+                    .align(Alignment.Center)
+                    .offset(
+                        x=(home.x*205f).dp,
+                        y=(home.y*150f).dp
+                    )
+                    .graphicsLayer{
+                        /*
+                         * Much wider travel.
+                         * Reverse motion from
+                         * rememberNmixMotion gives
+                         * imaginary-wall turns.
+                         */
+                        translationX=
+                            mx*
+                                (125f+index*10f)
+
+                        translationY=
+                            my*
+                                (78f+index*7f)
+
+                        val pulse=
+                            motion.pulse*
+                                when(index){
+                                    0->1f
+                                    1->.96f
+                                    2->1.04f
+                                    3->.98f
+                                    else->1.02f
+                                }
+
+                        scaleX=pulse
+                        scaleY=pulse
+
+                        rotationZ=
+                            when(a.animation){
+                                NmixAnimationName.ORBIT->
+                                    motion.z*
+                                        18f*
+                                        direction
+
+                                NmixAnimationName.FLOW->
+                                    motion.x*
+                                        10f*
+                                        direction
+
+                                else->0f
+                            }
+                    }
+                    .background(
+                        Brush.radialGradient(
+                            colorStops=arrayOf(
+                                0f to
+                                    (
+                                        if(index%2==0)
+                                            p.accent
+                                        else
+                                            p.accentLight
+                                    ).copy(
+                                        alpha=
+                                            if(a.darkMode)
+                                                .30f
+                                            else
+                                                .24f
+                                    ),
+
+                                .30f to
+                                    p.accent.copy(
+                                        alpha=
+                                            if(a.darkMode)
+                                                .19f
+                                            else
+                                                .16f
+                                    ),
+
+                                .58f to
+                                    p.accent.copy(
+                                        alpha=.09f
+                                    ),
+
+                                .78f to
+                                    p.accent.copy(
+                                        alpha=.035f
+                                    ),
+
+                                .92f to
+                                    p.accent.copy(
+                                        alpha=.009f
+                                    ),
+
+                                1f to
+                                    Color.Transparent
+                            )
+                        ),
+                        shape
+                    )
+            )
+        }else{
+            /*
+             * HARD shapes are also larger and
+             * travel much farther.
+             */
+            val hardSize=
+                when(index){
+                    0->122f
+                    1->103f
+                    2->91f
+                    3->98f
+                    else->82f
+                }
+
+            Canvas(
+                Modifier
+                    .size(hardSize.dp)
+                    .align(Alignment.Center)
+                    .offset(
+                        x=(home.x*205f).dp,
+                        y=(home.y*150f).dp
+                    )
+                    .graphicsLayer{
+                        translationX=
+                            mx*
+                                (132f+index*9f)
+
+                        translationY=
+                            my*
+                                (82f+index*6f)
+
+                        if(
+                            a.animation==
+                            NmixAnimationName.PULSE
+                        ){
+                            scaleX=motion.pulse
+                            scaleY=motion.pulse
+                        }
+
+                        rotationZ=
+                            motion.z*
+                                18f*
+                                direction
+                    }
+            ){
+                val color=
+                    if(index%2==0)
+                        p.accent
+                    else
+                        p.accentLight
+
+                val alpha=
+                    if(a.darkMode)
+                        .16f
+                    else
+                        .13f
+
+                when(a.animation){
+                    NmixAnimationName.FLOAT->{
+                        /*
+                         * Outer feather shell.
+                         */
+                        drawRoundRect(
+                            color=
+                                color.copy(
+                                    alpha=.035f
+                                ),
+                            cornerRadius=
+                                CornerRadius(
+                                    20.dp.toPx()
+                                )
+                        )
+
+                        val shell=
+                            3.dp.toPx()
+
+                        drawRoundRect(
+                            color=
+                                color.copy(
+                                    alpha=.065f
+                                ),
+                            topLeft=
+                                Offset(shell,shell),
+                            size=
+                                Size(
+                                    size.width-shell*2,
+                                    size.height-shell*2
+                                ),
+                            cornerRadius=
+                                CornerRadius(
+                                    17.dp.toPx()
+                                )
+                        )
+
+                        val inset=
+                            7.dp.toPx()
+
+                        drawRoundRect(
+                            color=
+                                color.copy(
+                                    alpha=alpha
+                                ),
+                            topLeft=
+                                Offset(inset,inset),
+                            size=
+                                Size(
+                                    size.width-inset*2,
+                                    size.height-inset*2
+                                ),
+                            cornerRadius=
+                                CornerRadius(
+                                    14.dp.toPx()
+                                )
+                        )
+                    }
+
+                    NmixAnimationName.PULSE->{
+                        val outer=
+                            Path().apply{
+                                moveTo(
+                                    size.width*.5f,
+                                    size.height*.02f
+                                )
+                                lineTo(
+                                    size.width*.98f,
+                                    size.height*.93f
+                                )
+                                lineTo(
+                                    size.width*.02f,
+                                    size.height*.93f
                                 )
                                 close()
                             }
