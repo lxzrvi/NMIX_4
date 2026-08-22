@@ -662,25 +662,31 @@ private fun hsvColor(
         )
 
     return Color(
-        red=AndroidColor.red(argb)/255f,
-        green=AndroidColor.green(argb)/255f,
-        blue=AndroidColor.blue(argb)/255f,
-        alpha=AndroidColor.alpha(argb)/255f
+        red=
+            AndroidColor.red(argb)
+                .toFloat()/255f,
+        green=
+            AndroidColor.green(argb)
+                .toFloat()/255f,
+        blue=
+            AndroidColor.blue(argb)
+                .toFloat()/255f,
+        alpha=
+            AndroidColor.alpha(argb)
+                .toFloat()/255f
     )
 }
 
 private fun colorHue(
     color:Color
 ):Float{
-    val hsv=FloatArray(3)
+    val hsv=
+        FloatArray(3)
 
     AndroidColor.RGBToHSV(
-        (color.red*255)
-            .toInt(),
-        (color.green*255)
-            .toInt(),
-        (color.blue*255)
-            .toInt(),
+        color.red*255f,
+        color.green*255f,
+        color.blue*255f,
         hsv
     )
 
@@ -690,15 +696,13 @@ private fun colorHue(
 private fun colorSaturation(
     color:Color
 ):Float{
-    val hsv=FloatArray(3)
+    val hsv=
+        FloatArray(3)
 
     AndroidColor.RGBToHSV(
-        (color.red*255)
-            .toInt(),
-        (color.green*255)
-            .toInt(),
-        (color.blue*255)
-            .toInt(),
+        color.red*255f,
+        color.green*255f,
+        color.blue*255f,
         hsv
     )
 
@@ -708,18 +712,89 @@ private fun colorSaturation(
 private fun colorValue(
     color:Color
 ):Float{
-    val hsv=FloatArray(3)
+    val hsv=
+        FloatArray(3)
 
     AndroidColor.RGBToHSV(
-        (color.red*255)
-            .toInt(),
-        (color.green*255)
-            .toInt(),
-        (color.blue*255)
-            .toInt(),
+        color.red*255f,
+        color.green*255f,
+        color.blue*255f,
         hsv
     )
 
+    return hsv[2]
+}
+
+private fun colorHex(
+    color:Color
+):String{
+    val r=
+        (color.red*255f)
+            .toInt()
+            .coerceIn(
+                0,
+                255
+            )
+
+    val g=
+        (color.green*255f)
+            .toInt()
+            .coerceIn(
+                0,
+                255
+            )
+
+    val b=
+        (color.blue*255f)
+            .toInt()
+            .coerceIn(
+                0,
+                255
+            )
+
+    return "#%02X%02X%02X".format(
+        r,
+        g,
+        b
+    )
+}
+
+private fun parseHex(
+    value:String
+):Color?{
+    val clean=
+        value.trim()
+
+    if(
+        !clean.matches(
+            Regex(
+                "^#[0-9A-Fa-f]{6}$"
+            )
+        )
+    ){
+        return null
+    }
+
+    return runCatching{
+        val argb=
+            AndroidColor.parseColor(
+                clean
+            )
+
+        Color(
+            red=
+                AndroidColor.red(argb)
+                    .toFloat()/255f,
+            green=
+                AndroidColor.green(argb)
+                    .toFloat()/255f,
+            blue=
+                AndroidColor.blue(argb)
+                    .toFloat()/255f,
+            alpha=1f
+        )
+    }.getOrNull()
+}
     return hsv[2]
 }
 
