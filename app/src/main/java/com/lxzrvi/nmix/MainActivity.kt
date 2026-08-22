@@ -1,7 +1,6 @@
 package com.lxzrvi.nmix
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
@@ -49,8 +48,7 @@ class MainActivity:ComponentActivity(){
             ActivityResultContracts.RequestPermission()
         ){granted->
             if(granted){
-                pendingNotificationAction
-                    ?.invoke()
+                pendingNotificationAction?.invoke()
             }
 
             pendingNotificationAction=null
@@ -59,6 +57,16 @@ class MainActivity:ComponentActivity(){
     override fun onCreate(
         savedInstanceState:Bundle?
     ){
+        /*
+         * Paint the Android window before Compose
+         * draws its first frame.
+         */
+        window.statusBarColor=
+            android.graphics.Color.TRANSPARENT
+
+        window.navigationBarColor=
+            android.graphics.Color.TRANSPARENT
+
         super.onCreate(savedInstanceState)
 
         setContent{
@@ -66,17 +74,12 @@ class MainActivity:ComponentActivity(){
         }
     }
 
-    /*
-     * Called only after the user explicitly starts
-     * a Timer/Stopwatch action that benefits from a
-     * system notification.
-     */
     fun runWithNotificationPermission(
         action:()->Unit
     ){
         if(
             Build.VERSION.SDK_INT<
-                Build.VERSION_CODES.TIRAMISU
+            Build.VERSION_CODES.TIRAMISU
         ){
             action()
             return
@@ -106,7 +109,7 @@ fun Context.findNmixActivity():MainActivity?{
 
     while(
         current is
-            android.content.ContextWrapper
+        android.content.ContextWrapper
     ){
         if(current is MainActivity){
             return current
@@ -125,13 +128,16 @@ fun NmixApp(){
     val appearance=
         rememberNmixAppearance(context)
 
-    val prefs=remember{
+    val prefs=remember(context){
         context.getSharedPreferences(
             "nmix_preferences",
             Context.MODE_PRIVATE
         )
     }
 
+    /*
+     * Keep the user's existing Start/Main preference.
+     */
     var main by remember{
         mutableStateOf(
             prefs.getString(
@@ -146,60 +152,83 @@ fun NmixApp(){
     }
 
     LaunchedEffect(Unit){
-        delay(1450)
+        delay(1050)
         loading=false
     }
 
     ProvideNmixAppearance(
         appearance
     ){
-        val ui=
-            appearance.uiColors()
+        val ui=appearance.uiColors()
+        val p=appearance.palette
+
+        val appBackground=
+            if(appearance.darkMode){
+                Brush.verticalGradient(
+                    listOf(
+                        ui.page,
+                        mixAppColor(
+                            ui.page,
+                            p.accent,
+                            .075f
+                        ),
+                        ui.page
+                    )
+                )
+            }else{
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFFF7F8F7),
+                        mixAppColor(
+                            Color(0xFFF7F8F7),
+                            p.accent,
+                            .055f
+                        ),
+                        Color(0xFFF7F8F7)
+                    )
+                )
+            }
 
         Box(
             Modifier
                 .fillMaxSize()
-                .background(ui.page)
+                .background(appBackground)
         ){
             AnimatedContent(
                 targetState=loading,
-                modifier=
-                    Modifier.fillMaxSize(),
+                modifier=Modifier.fillMaxSize(),
                 transitionSpec={
-                    fadeIn(
-                        tween(
-                            420,
-                            easing=EaseOutCubic
+                    (
+                        fadeIn(
+                            tween(
+                                300,
+                                easing=EaseOutCubic
+                            )
                         )
-                    ) togetherWith
+                    ) togetherWith (
                         fadeOut(
                             tween(
-                                420,
+                                340,
                                 easing=EaseInOutCubic
                             )
                         )
+                    )
                 },
                 label="launch"
             ){showLoading->
                 if(showLoading){
                     NmixLaunchScreen()
                 }else{
-                    /*
-                     * No large theme-colored slide.
-                     *
-                     * Both pages remain over the
-                     * opaque neutral app surface.
-                     * Incoming page gently scales /
-                     * fades while outgoing page
-                     * softens.
-                     */
                     AnimatedContent(
                         targetState=main,
                         modifier=
-                            Modifier
-                                .fillMaxSize()
-                                .background(ui.page),
+                            Modifier.fillMaxSize(),
                         transitionSpec={
+                            /*
+                             * Both pages always cover the full
+                             * window. No slide edge/cutout can
+                             * expose the window underneath.
+                             */
                             (
                                 fadeIn(
                                     tween(
@@ -208,34 +237,34 @@ fun NmixApp(){
                                     )
                                 )+
                                 scaleIn(
-                                    initialScale=.985f,
+                                    initialScale=.992f,
                                     animationSpec=tween(
-                                        460,
+                                        440,
                                         easing=EaseOutCubic
                                     )
                                 )
                             ) togetherWith (
                                 fadeOut(
                                     tween(
-                                        300,
+                                        330,
                                         easing=EaseInOutCubic
                                     )
                                 )+
                                 scaleOut(
-                                    targetScale=1.012f,
+                                    targetScale=.996f,
                                     animationSpec=tween(
-                                        360,
+                                        350,
                                         easing=EaseInOutCubic
                                     )
                                 )
                             )
                         },
-                        label="page"
+                        label="startMain"
                     ){showMain->
                         Box(
                             Modifier
                                 .fillMaxSize()
-                                .background(ui.page)
+                                .background(appBackground)
                         ){
                             if(showMain){
                                 NativeMainPageV2(
@@ -268,6 +297,25 @@ fun NmixApp(){
                     }
                 }
             }
+
+            /*
+             * Main -> Start.
+             * Start -> normal Activity/system exit.
+             */
+            BackHandler(
+                enabled=
+                    !loading &&
+                    main
+            ){
+                prefs.edit()
+                    .putString(
+                        "home_screen",
+                        "landing"
+                    )
+                    .apply()
+
+                main=false
+            }
         }
     }
 }
@@ -286,18 +334,26 @@ private fun NmixLaunchScreen(){
     }
 
     val scale by animateFloatAsState(
-        if(entered)1f else .88f,
-        spring(
-            dampingRatio=.78f,
-            stiffness=170f
+        targetValue=
+            if(entered)
+                1f
+            else
+                .90f,
+        animationSpec=spring(
+            dampingRatio=.80f,
+            stiffness=180f
         ),
         label="launchScale"
     )
 
     val alpha by animateFloatAsState(
-        if(entered)1f else 0f,
-        tween(
-            520,
+        targetValue=
+            if(entered)
+                1f
+            else
+                0f,
+        animationSpec=tween(
+            440,
             easing=EaseOutCubic
         ),
         label="launchAlpha"
@@ -308,59 +364,73 @@ private fun NmixLaunchScreen(){
             "launchMotion"
         )
 
+    val background=
+        if(a.darkMode){
+            Brush.verticalGradient(
+                listOf(
+                    Color(0xFF020403),
+                    p.topDark,
+                    p.topEnd,
+                    Color(0xFF020302)
+                )
+            )
+        }else{
+            Brush.linearGradient(
+                listOf(
+                    p.topDark,
+                    p.accentDark,
+                    p.accent,
+                    p.topEnd
+                )
+            )
+        }
+
     Box(
         Modifier
             .fillMaxSize()
-            .background(
-                Brush.linearGradient(
-                    listOf(
-                        p.topDark,
-                        p.accentDark,
-                        p.accent,
-                        p.topEnd
-                    )
-                )
+            .background(background)
+            .clip(
+                RoundedCornerShape(0.dp)
             ),
-        contentAlignment=
-            Alignment.Center
+        contentAlignment=Alignment.Center
     ){
-        /*
-         * Large zoomed glow. It follows the shared
-         * animation speed/style motion rather than
-         * having an unrelated animation engine.
-         */
         Box(
             Modifier
-                .size(680.dp)
+                .size(820.dp)
                 .graphicsLayer{
                     translationX=
-                        motion.x*205f
+                        motion.x*270f
 
                     translationY=
-                        motion.y*125f
+                        motion.y*170f
 
                     scaleX=
-                        motion.pulse*1.08f
+                        motion.pulse*1.10f
 
                     scaleY=
-                        motion.pulse*1.08f
+                        motion.pulse*1.10f
                 }
                 .background(
                     Brush.radialGradient(
                         colorStops=arrayOf(
                             0f to
                                 p.accentLight.copy(
-                                    alpha=.42f
+                                    alpha=.44f
                                 ),
 
-                            .34f to
+                            .30f to
                                 p.accent.copy(
-                                    alpha=.19f
+                                    alpha=.22f
                                 ),
 
-                            .68f to
+                            .58f to
                                 p.accent.copy(
-                                    alpha=.06f
+                                    alpha=.085f
+                                ),
+
+                            .80f to
+                                p.accent.copy(
+                                    alpha=.025f
                                 ),
 
                             1f to
@@ -428,9 +498,7 @@ private fun LandingScreen(
                 listOf(
                     Color(0xFF020403),
                     Color(0xFF07100D),
-                    p.topDark.copy(
-                        alpha=.92f
-                    ),
+                    p.topDark.copy(alpha=.92f),
                     Color(0xFF050A08),
                     Color(0xFF020302)
                 )
@@ -450,10 +518,6 @@ private fun LandingScreen(
         Modifier
             .fillMaxSize()
             .background(bg)
-            /*
-             * All oversized Landing shapes remain
-             * clipped to the Landing page.
-             */
             .clip(
                 RoundedCornerShape(0.dp)
             )
@@ -463,29 +527,29 @@ private fun LandingScreen(
                 Modifier
                     .align(Alignment.TopStart)
                     .offset(
-                        x=(-340).dp,
-                        y=(-315).dp
+                        x=(-360).dp,
+                        y=(-335).dp
                     )
                     .graphicsLayer{
                         translationX=
-                            motion.x*570f
+                            motion.x*620f
 
                         translationY=
-                            motion.y*245f
+                            motion.y*285f
 
                         scaleX=
-                            motion.pulse*1.12f
+                            motion.pulse*1.13f
 
                         scaleY=
-                            motion.pulse*1.12f
+                            motion.pulse*1.13f
                     },
             color=p.accentLight,
             alpha=
                 if(a.darkMode)
-                    .34f
+                    .35f
                 else
-                    .53f,
-            size=900
+                    .54f,
+            size=980
         )
 
         LandingGlow(
@@ -493,29 +557,26 @@ private fun LandingScreen(
                 Modifier
                     .align(Alignment.BottomEnd)
                     .offset(
-                        x=360.dp,
-                        y=330.dp
+                        x=390.dp,
+                        y=355.dp
                     )
                     .graphicsLayer{
                         translationX=
-                            motion.y*540f
+                            motion.y*600f
 
                         translationY=
-                            motion.z*275f
+                            motion.z*320f
 
-                        scaleX=
-                            1.06f
-
-                        scaleY=
-                            1.06f
+                        scaleX=1.08f
+                        scaleY=1.08f
                     },
             color=p.accent,
             alpha=
                 if(a.darkMode)
-                    .36f
+                    .37f
                 else
-                    .55f,
-            size=930
+                    .56f,
+            size=1010
         )
 
         LandingGlow(
@@ -523,29 +584,26 @@ private fun LandingScreen(
                 Modifier
                     .align(Alignment.Center)
                     .offset(
-                        x=(-170).dp,
-                        y=(-70).dp
+                        x=(-190).dp,
+                        y=(-80).dp
                     )
                     .graphicsLayer{
                         translationX=
-                            motion.z*470f
+                            motion.z*520f
 
                         translationY=
-                            motion.x*340f
+                            motion.x*380f
 
-                        scaleX=
-                            motion.pulse
-
-                        scaleY=
-                            motion.pulse
+                        scaleX=motion.pulse
+                        scaleY=motion.pulse
                     },
             color=p.accentLight,
             alpha=
                 if(a.darkMode)
-                    .24f
+                    .25f
                 else
-                    .36f,
-            size=760
+                    .37f,
+            size=820
         )
 
         Column(
@@ -569,7 +627,9 @@ private fun LandingScreen(
                 fontFamily=a.fontFamily
             )
 
-            Spacer(Modifier.height(3.dp))
+            Spacer(
+                Modifier.height(3.dp)
+            )
 
             Text(
                 "NMIX",
@@ -580,14 +640,18 @@ private fun LandingScreen(
                 fontFamily=NmixLogoFont
             )
 
-            Spacer(Modifier.height(27.dp))
+            Spacer(
+                Modifier.height(27.dp)
+            )
 
             LandingButton(
                 "Start",
                 onStart
             )
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(
+                Modifier.height(10.dp)
+            )
 
             LandingButton(
                 "Share"
@@ -680,26 +744,22 @@ private fun LandingGlow(
 
                         .24f to
                             color.copy(
-                                alpha=
-                                    alpha*.88f
+                                alpha=alpha*.88f
                             ),
 
                         .50f to
                             color.copy(
-                                alpha=
-                                    alpha*.52f
+                                alpha=alpha*.52f
                             ),
 
                         .73f to
                             color.copy(
-                                alpha=
-                                    alpha*.18f
+                                alpha=alpha*.18f
                             ),
 
                         .90f to
                             color.copy(
-                                alpha=
-                                    alpha*.04f
+                                alpha=alpha*.04f
                             ),
 
                         1f to
@@ -718,11 +778,11 @@ private fun LandingButton(
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
+    val haptic=rememberNmixHapticAction()
 
-    val interaction=
-        remember{
-            MutableInteractionSource()
-        }
+    val interaction=remember{
+        MutableInteractionSource()
+    }
 
     val pressed by
         interaction.collectIsPressedAsState()
@@ -791,11 +851,11 @@ private fun LandingButton(
                 shape
             )
             .clickable(
-                interactionSource=
-                    interaction,
-                indication=null,
-                onClick=onClick
-            ),
+                interactionSource=interaction,
+                indication=null
+            ){
+                haptic(onClick)
+            },
         contentAlignment=
             Alignment.Center
     ){
@@ -833,6 +893,7 @@ private fun LandingInfo(){
     LaunchedEffect(Unit){
         while(true){
             delay(4000)
+
             index=
                 (index+1)%
                     messages.size
@@ -847,7 +908,7 @@ private fun LandingInfo(){
                         .copy(alpha=.82f)
                 else
                     Color.White
-                        .copy(alpha=.74f),
+                        .copy(alpha=.76f),
 
                 p.accent.copy(
                     alpha=
@@ -862,7 +923,7 @@ private fun LandingInfo(){
                         .copy(alpha=.82f)
                 else
                     Color.White
-                        .copy(alpha=.72f)
+                        .copy(alpha=.74f)
             )
         )
 
@@ -872,7 +933,7 @@ private fun LandingInfo(){
                 .copy(alpha=.56f)
         else
             Color.White
-                .copy(alpha=.68f)
+                .copy(alpha=.72f)
 
     Column(
         Modifier
@@ -936,7 +997,9 @@ private fun LandingInfo(){
                 )
             }
 
-            Spacer(Modifier.width(7.dp))
+            Spacer(
+                Modifier.width(7.dp)
+            )
 
             MiniLink("GitHub"){
                 openUrl(
@@ -946,7 +1009,9 @@ private fun LandingInfo(){
             }
         }
 
-        Spacer(Modifier.height(10.dp))
+        Spacer(
+            Modifier.height(10.dp)
+        )
 
         Row(
             Modifier.fillMaxWidth(),
@@ -1056,7 +1121,9 @@ private fun LandingInfo(){
                     fontFamily=a.fontFamily
                 )
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(
+                    Modifier.height(8.dp)
+                )
 
                 Tech("Kotlin")
                 Spacer(Modifier.height(4.dp))
@@ -1083,9 +1150,7 @@ private fun Tech(
                 RoundedCornerShape(50)
             )
             .background(
-                p.accent.copy(
-                    alpha=.24f
-                )
+                p.accent.copy(alpha=.24f)
             )
             .padding(
                 horizontal=8.dp,
@@ -1100,8 +1165,7 @@ private fun Tech(
                 else
                     Color(0xFF26302C),
             fontSize=7.5.sp,
-            fontWeight=
-                FontWeight.SemiBold,
+            fontWeight=FontWeight.SemiBold,
             fontFamily=a.fontFamily,
             maxLines=1
         )
@@ -1115,11 +1179,11 @@ private fun MiniLink(
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
+    val haptic=rememberNmixHapticAction()
 
-    val interaction=
-        remember{
-            MutableInteractionSource()
-        }
+    val interaction=remember{
+        MutableInteractionSource()
+    }
 
     val pressed by
         interaction.collectIsPressedAsState()
@@ -1145,9 +1209,7 @@ private fun MiniLink(
                 RoundedCornerShape(50)
             )
             .background(
-                p.accent.copy(
-                    alpha=.27f
-                )
+                p.accent.copy(alpha=.27f)
             )
             .border(
                 .45.dp,
@@ -1161,11 +1223,11 @@ private fun MiniLink(
                 RoundedCornerShape(50)
             )
             .clickable(
-                interactionSource=
-                    interaction,
-                indication=null,
-                onClick=onClick
-            )
+                interactionSource=interaction,
+                indication=null
+            ){
+                haptic(onClick)
+            }
             .padding(
                 horizontal=12.dp,
                 vertical=7.dp
@@ -1179,12 +1241,33 @@ private fun MiniLink(
                 else
                     Color(0xFF25302C),
             fontSize=9.sp,
-            fontWeight=
-                FontWeight.SemiBold,
+            fontWeight=FontWeight.SemiBold,
             fontFamily=a.fontFamily,
             textAlign=TextAlign.Center
         )
     }
+}
+
+private fun mixAppColor(
+    first:Color,
+    second:Color,
+    amount:Float
+):Color{
+    val t=
+        amount.coerceIn(0f,1f)
+
+    return Color(
+        red=
+            first.red+
+                (second.red-first.red)*t,
+        green=
+            first.green+
+                (second.green-first.green)*t,
+        blue=
+            first.blue+
+                (second.blue-first.blue)*t,
+        alpha=1f
+    )
 }
 
 private fun openUrl(
