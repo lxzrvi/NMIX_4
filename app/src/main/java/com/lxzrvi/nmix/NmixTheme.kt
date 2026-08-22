@@ -106,18 +106,34 @@ private fun mixColor(
     second:Color,
     amount:Float
 ):Color{
-    val t=amount.coerceIn(0f,1f)
+    val t=
+        amount.coerceIn(
+            0f,
+            1f
+        )
 
     return Color(
         red=
             first.red+
-            (second.red-first.red)*t,
+                (
+                    second.red-
+                        first.red
+                )*t,
+
         green=
             first.green+
-            (second.green-first.green)*t,
+                (
+                    second.green-
+                        first.green
+                )*t,
+
         blue=
             first.blue+
-            (second.blue-first.blue)*t,
+                (
+                    second.blue-
+                        first.blue
+                )*t,
+
         alpha=1f
     )
 }
@@ -125,30 +141,35 @@ private fun mixColor(
 private fun customPalette(
     color:Color
 ):NmixPalette{
-    val dark=
-        Color(0xFF07100D)
-
     return NmixPalette(
         name=NmixThemeName.GREEN,
-        accent=color,
+
+        accent=
+            color.copy(
+                alpha=1f
+            ),
+
         accentDark=
             mixColor(
                 color,
                 Color.Black,
                 .31f
             ),
+
         accentLight=
             mixColor(
                 color,
                 Color.White,
                 .32f
             ),
+
         topDark=
             mixColor(
                 color,
-                dark,
+                Color(0xFF07100D),
                 .61f
             ),
+
         topEnd=
             mixColor(
                 color,
@@ -243,28 +264,44 @@ class NmixAppearanceState internal constructor(
     initialFont:NmixFontName,
     initialAnimation:NmixAnimationName,
     initialAnimationSpeed:Float,
+    initialAnimationQuantity:Int,
     initialCustomColor:Color?,
     private val context:Context
 ){
     private var themeState by
-        mutableStateOf(initialTheme)
+        mutableStateOf(
+            initialTheme
+        )
 
     private var darkModeState by
-        mutableStateOf(initialDark)
+        mutableStateOf(
+            initialDark
+        )
 
     private var fontState by
-        mutableStateOf(initialFont)
+        mutableStateOf(
+            initialFont
+        )
 
     private var animationState by
-        mutableStateOf(initialAnimation)
+        mutableStateOf(
+            initialAnimation
+        )
 
     private var animationSpeedState by
         mutableFloatStateOf(
             initialAnimationSpeed
         )
 
+    private var animationQuantityState by
+        mutableIntStateOf(
+            initialAnimationQuantity
+        )
+
     private var customColorState by
-        mutableStateOf(initialCustomColor)
+        mutableStateOf(
+            initialCustomColor
+        )
 
     val theme:NmixThemeName
         get()=themeState
@@ -281,19 +318,26 @@ class NmixAppearanceState internal constructor(
     val animationSpeed:Float
         get()=animationSpeedState
 
+    val animationQuantity:Int
+        get()=animationQuantityState
+
     val customColor:Color?
         get()=customColorState
 
     val usingCustomColor:Boolean
-        get()=customColorState!=null
+        get()=
+            customColorState!=null
 
     val fontFamily:FontFamily
-        get()=fontState.family()
+        get()=
+            fontState.family()
 
     val palette:NmixPalette
         get()=
             customColorState
-                ?.let(::customPalette)
+                ?.let{
+                    customPalette(it)
+                }
                 ?:themeState.palette()
 
     fun setTheme(
@@ -322,9 +366,12 @@ class NmixAppearanceState internal constructor(
         value:Color
     ){
         val opaque=
-            value.copy(alpha=1f)
+            value.copy(
+                alpha=1f
+            )
 
-        customColorState=opaque
+        customColorState=
+            opaque
 
         context
             .getSharedPreferences(
@@ -334,7 +381,9 @@ class NmixAppearanceState internal constructor(
             .edit()
             .putLong(
                 KEY_CUSTOM_COLOR,
-                opaque.toArgbLong()
+                colorToLong(
+                    opaque
+                )
             )
             .apply()
     }
@@ -342,7 +391,12 @@ class NmixAppearanceState internal constructor(
     fun setDarkMode(
         value:Boolean
     ){
-        if(darkModeState==value)return
+        if(
+            darkModeState==
+            value
+        ){
+            return
+        }
 
         darkModeState=value
 
@@ -368,7 +422,9 @@ class NmixAppearanceState internal constructor(
     fun setFont(
         value:NmixFontName
     ){
-        if(fontState==value)return
+        if(fontState==value){
+            return
+        }
 
         fontState=value
 
@@ -388,7 +444,12 @@ class NmixAppearanceState internal constructor(
     fun setAnimation(
         value:NmixAnimationName
     ){
-        if(animationState==value)return
+        if(
+            animationState==
+            value
+        ){
+            return
+        }
 
         animationState=value
 
@@ -410,11 +471,12 @@ class NmixAppearanceState internal constructor(
     ){
         val safe=
             value.coerceIn(
-                .55f,
-                1.80f
+                .45f,
+                2.20f
             )
 
-        animationSpeedState=safe
+        animationSpeedState=
+            safe
 
         context
             .getSharedPreferences(
@@ -424,6 +486,31 @@ class NmixAppearanceState internal constructor(
             .edit()
             .putFloat(
                 KEY_ANIMATION_SPEED,
+                safe
+            )
+            .apply()
+    }
+
+    fun setAnimationQuantity(
+        value:Int
+    ){
+        val safe=
+            value.coerceIn(
+                1,
+                5
+            )
+
+        animationQuantityState=
+            safe
+
+        context
+            .getSharedPreferences(
+                PREFS,
+                Context.MODE_PRIVATE
+            )
+            .edit()
+            .putInt(
+                KEY_ANIMATION_QUANTITY,
                 safe
             )
             .apply()
@@ -448,31 +535,60 @@ class NmixAppearanceState internal constructor(
         const val KEY_ANIMATION_SPEED=
             "animation_speed_v1"
 
+        const val KEY_ANIMATION_QUANTITY=
+            "animation_quantity_v1"
+
         const val KEY_CUSTOM_COLOR=
             "custom_color_v1"
     }
 }
 
-private fun Color.toArgbLong():Long{
+private fun colorToLong(
+    color:Color
+):Long{
     val a=
-        (alpha*255f)
+        (
+            color.alpha*
+            255f
+        )
             .toInt()
-            .coerceIn(0,255)
+            .coerceIn(
+                0,
+                255
+            )
 
     val r=
-        (red*255f)
+        (
+            color.red*
+            255f
+        )
             .toInt()
-            .coerceIn(0,255)
+            .coerceIn(
+                0,
+                255
+            )
 
     val g=
-        (green*255f)
+        (
+            color.green*
+            255f
+        )
             .toInt()
-            .coerceIn(0,255)
+            .coerceIn(
+                0,
+                255
+            )
 
     val b=
-        (blue*255f)
+        (
+            color.blue*
+            255f
+        )
             .toInt()
-            .coerceIn(0,255)
+            .coerceIn(
+                0,
+                255
+            )
 
     return (
         (a.toLong() shl 24) or
@@ -482,24 +598,38 @@ private fun Color.toArgbLong():Long{
     )
 }
 
-private fun colorFromArgbLong(
+private fun colorFromLong(
     value:Long
 ):Color{
     val a=
-        ((value shr 24) and 0xFF)
-            .toInt()
+        (
+            (
+                value shr 24
+            ) and
+            0xFF
+        ).toFloat()/255f
 
     val r=
-        ((value shr 16) and 0xFF)
-            .toInt()
+        (
+            (
+                value shr 16
+            ) and
+            0xFF
+        ).toFloat()/255f
 
     val g=
-        ((value shr 8) and 0xFF)
-            .toInt()
+        (
+            (
+                value shr 8
+            ) and
+            0xFF
+        ).toFloat()/255f
 
     val b=
-        (value and 0xFF)
-            .toInt()
+        (
+            value and
+            0xFF
+        ).toFloat()/255f
 
     return Color(
         red=r,
@@ -568,8 +698,17 @@ fun rememberNmixAppearance(
                 NmixAppearanceState.KEY_ANIMATION_SPEED,
                 1f
             ).coerceIn(
-                .55f,
-                1.80f
+                .45f,
+                2.20f
+            )
+
+        val savedQuantity=
+            prefs.getInt(
+                NmixAppearanceState.KEY_ANIMATION_QUANTITY,
+                2
+            ).coerceIn(
+                1,
+                5
             )
 
         val savedDark=
@@ -578,13 +717,13 @@ fun rememberNmixAppearance(
                 false
             )
 
-        val custom=
+        val savedCustom=
             if(
                 prefs.contains(
                     NmixAppearanceState.KEY_CUSTOM_COLOR
                 )
             ){
-                colorFromArgbLong(
+                colorFromLong(
                     prefs.getLong(
                         NmixAppearanceState.KEY_CUSTOM_COLOR,
                         0L
@@ -600,7 +739,8 @@ fun rememberNmixAppearance(
             initialFont=savedFont,
             initialAnimation=savedAnimation,
             initialAnimationSpeed=savedSpeed,
-            initialCustomColor=custom,
+            initialAnimationQuantity=savedQuantity,
+            initialCustomColor=savedCustom,
             context=appContext
         )
     }
