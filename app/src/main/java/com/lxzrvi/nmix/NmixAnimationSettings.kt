@@ -60,12 +60,8 @@ fun NmixAnimationSettings(){
         MotionBeamSlider(
             title="Animation Speed",
             value=
-                (
-                    a.animationSpeed-.45f
-                )/
-                (
-                    2.20f-.45f
-                ),
+                (a.animationSpeed-.45f)/
+                    (2.20f-.45f),
             valueText=
                 when{
                     a.animationSpeed<.75f->
@@ -80,13 +76,13 @@ fun NmixAnimationSettings(){
                     else->
                         "Rapid"
                 },
-            onChange={progress->
+            onChange={
+                progress->
+
                 a.setAnimationSpeed(
                     .45f+
                         progress*
-                        (
-                            2.20f-.45f
-                        )
+                        (2.20f-.45f)
                 )
             }
         )
@@ -96,12 +92,12 @@ fun NmixAnimationSettings(){
         MotionBeamSlider(
             title="Animation Quantity",
             value=
-                (
-                    a.animationQuantity-1
-                )/4f,
+                (a.animationQuantity-1)/4f,
             valueText=
                 "${a.animationQuantity}",
-            onChange={progress->
+            onChange={
+                progress->
+
                 a.setAnimationQuantity(
                     (
                         1f+
@@ -117,7 +113,7 @@ fun NmixAnimationSettings(){
 
         GroupLabel(
             title="SOFT",
-            detail="Blurred • flowing • bounded"
+            detail="Blurred • flowing • wide"
         )
 
         Spacer(Modifier.height(7.dp))
@@ -133,8 +129,7 @@ fun NmixAnimationSettings(){
                 detail="Soft orb drift",
                 soft=true,
                 shape=PreviewShape.ORB,
-                modifier=
-                    Modifier.weight(1f)
+                modifier=Modifier.weight(1f)
             )
 
             MotionCard(
@@ -143,8 +138,7 @@ fun NmixAnimationSettings(){
                 detail="Soft square orbit",
                 soft=true,
                 shape=PreviewShape.SQUARE,
-                modifier=
-                    Modifier.weight(1f)
+                modifier=Modifier.weight(1f)
             )
 
             MotionCard(
@@ -153,8 +147,7 @@ fun NmixAnimationSettings(){
                 detail="Soft triangle flow",
                 soft=true,
                 shape=PreviewShape.TRIANGLE,
-                modifier=
-                    Modifier.weight(1f)
+                modifier=Modifier.weight(1f)
             )
         }
 
@@ -162,7 +155,7 @@ fun NmixAnimationSettings(){
 
         GroupLabel(
             title="HARD",
-            detail="Defined • low-opacity • bounded"
+            detail="Defined • translucent • wide"
         )
 
         Spacer(Modifier.height(7.dp))
@@ -175,11 +168,10 @@ fun NmixAnimationSettings(){
             MotionCard(
                 animation=
                     NmixAnimationName.FLOAT,
-                detail="Square bounce",
+                detail="Square float",
                 soft=false,
                 shape=PreviewShape.SQUARE,
-                modifier=
-                    Modifier.weight(1f)
+                modifier=Modifier.weight(1f)
             )
 
             MotionCard(
@@ -188,8 +180,7 @@ fun NmixAnimationSettings(){
                 detail="Triangle pulse",
                 soft=false,
                 shape=PreviewShape.TRIANGLE,
-                modifier=
-                    Modifier.weight(1f)
+                modifier=Modifier.weight(1f)
             )
 
             MotionCard(
@@ -198,8 +189,7 @@ fun NmixAnimationSettings(){
                 detail="Diamond crossing",
                 soft=false,
                 shape=PreviewShape.DIAMOND,
-                modifier=
-                    Modifier.weight(1f)
+                modifier=Modifier.weight(1f)
             )
         }
     }
@@ -231,13 +221,12 @@ private fun MotionBeamSlider(
             .fillMaxWidth()
             .clip(shape)
             .background(
-                if(a.darkMode){
+                if(a.darkMode)
                     Color(0xFF151A18)
                         .copy(alpha=.82f)
-                }else{
+                else
                     Color(0xFFE8ECEA)
                         .copy(alpha=.88f)
-                }
             )
             .border(
                 .5.dp,
@@ -265,8 +254,7 @@ private fun MotionBeamSlider(
                 Modifier.weight(1f),
                 color=ui.text,
                 fontSize=9.5.sp,
-                fontWeight=
-                    FontWeight.SemiBold,
+                fontWeight=FontWeight.SemiBold,
                 fontFamily=a.fontFamily
             )
 
@@ -274,18 +262,13 @@ private fun MotionBeamSlider(
                 valueText,
                 color=p.accent,
                 fontSize=8.sp,
-                fontWeight=
-                    FontWeight.Bold,
+                fontWeight=FontWeight.Bold,
                 fontFamily=a.fontFamily
             )
         }
 
         Spacer(Modifier.height(8.dp))
 
-        /*
-         * Thick flat beam.
-         * No circular thumb.
-         */
         Box(
             Modifier
                 .fillMaxWidth()
@@ -296,7 +279,9 @@ private fun MotionBeamSlider(
                 }
                 .pointerInput(widthPx){
                     detectDragGestures(
-                        onDragStart={point->
+                        onDragStart={
+                            point->
+
                             onChange(
                                 (
                                     point.x/
@@ -307,6 +292,7 @@ private fun MotionBeamSlider(
                                 )
                             )
                         },
+
                         onDrag={
                             change,
                             _->
@@ -426,19 +412,18 @@ private fun MotionCard(
     val pressed by
         interaction.collectIsPressedAsState()
 
-    val scale by
-        animateFloatAsState(
-            targetValue=
-                if(pressed)
-                    .97f
-                else
-                    1f,
-            animationSpec=spring(
-                dampingRatio=.74f,
-                stiffness=620f
-            ),
-            label="motionCardPress"
-        )
+    val scale by animateFloatAsState(
+        targetValue=
+            if(pressed)
+                .97f
+            else
+                1f,
+        animationSpec=spring(
+            dampingRatio=.74f,
+            stiffness=620f
+        ),
+        label="motionCardPress"
+    )
 
     val cardShape=
         RoundedCornerShape(14.dp)
@@ -449,13 +434,12 @@ private fun MotionCard(
             .scale(scale)
             .clip(cardShape)
             .background(
-                if(a.darkMode){
+                if(a.darkMode)
                     Color(0xFF151A18)
                         .copy(alpha=.76f)
-                }else{
+                else
                     Color(0xFFE8ECEA)
                         .copy(alpha=.84f)
-                }
             )
             .border(
                 if(selected)
@@ -506,9 +490,7 @@ private fun MotionCard(
                 NmixIcon(
                     NmixIcon.CHECK,
                     Modifier
-                        .align(
-                            Alignment.TopEnd
-                        )
+                        .align(Alignment.TopEnd)
                         .padding(6.dp)
                         .size(12.dp),
                     if(a.darkMode)
@@ -543,142 +525,6 @@ private fun MotionCard(
     }
 }
 
-private data class PreviewPlacement(
-    val x:Float,
-    val y:Float,
-    val dx:Float,
-    val dy:Float,
-    val size:Float
-)
-
-private val previewPlacements=
-    listOf(
-        PreviewPlacement(
-            -.28f,-.22f,
-            1f,.72f,.90f
-        ),
-        PreviewPlacement(
-            .28f,.21f,
-            -.86f,-.94f,.72f
-        ),
-        PreviewPlacement(
-            .26f,-.23f,
-            .74f,-.81f,.60f
-        ),
-        PreviewPlacement(
-            -.27f,.25f,
-            -.70f,.84f,.66f
-        ),
-        PreviewPlacement(
-            0f,.02f,
-            .56f,-.60f,.54f
-        )
-    )
-    @Composable
-private fun MotionPreview(
-    animation:NmixAnimationName,
-    soft:Boolean,
-    shape:PreviewShape
-){
-    val a=LocalNmixAppearance.current
-    val p=a.palette
-
-    val speed=
-        a.animationSpeed
-            .coerceIn(.45f,2.20f)
-
-    /*
-     * Preview speed follows the exact user
-     * Animation Speed preference.
-     */
-    val baseDuration=
-        if(soft)
-            2400f
-        else
-            1850f
-
-    val duration=
-        (
-            baseDuration/
-                speed
-        )
-            .roundToInt()
-            .coerceAtLeast(480)
-
-    val transition=
-        rememberInfiniteTransition(
-            label=
-                "preview_${animation.name}_$duration"
-        )
-
-    /*
-     * Three independent axes. RepeatMode.Reverse
-     * makes each path turn at its bounds, giving
-     * an imaginary-wall bounce feel.
-     */
-    val x by transition.animateFloat(
-        initialValue=-1f,
-        targetValue=1f,
-        animationSpec=
-            infiniteRepeatable(
-                animation=tween(
-                    durationMillis=duration,
-                    easing=EaseInOutSine
-                ),
-                repeatMode=
-                    RepeatMode.Reverse
-            ),
-        label="previewX"
-    )
-
-    val y by transition.animateFloat(
-        initialValue=1f,
-        targetValue=-1f,
-        animationSpec=
-            infiniteRepeatable(
-                animation=tween(
-                    durationMillis=
-                        duration+370,
-                    easing=EaseInOutSine
-                ),
-                repeatMode=
-                    RepeatMode.Reverse
-            ),
-        label="previewY"
-    )
-
-    val z by transition.animateFloat(
-        initialValue=-1f,
-        targetValue=1f,
-        animationSpec=
-            infiniteRepeatable(
-                animation=tween(
-                    durationMillis=
-                        duration+710,
-                    easing=EaseInOutSine
-                ),
-                repeatMode=
-                    RepeatMode.Reverse
-            ),
-        label="previewZ"
-    )
-
-    BoxWithConstraints(
-        Modifier.fillMaxSize()
-    ){
-        /*
-         * Spread is relative to preview bounds,
-         * so quantity does not pile up at center.
-         */
-        val spreadX=
-            maxWidth*.72f
-
-        val spreadY=
-            maxHeight*.66f
-
-        repeat(
-            a.animationQuantity
-                .coerceIn(1,5)
 @Composable
 private fun MotionPreview(
     animation:NmixAnimationName,
@@ -714,52 +560,44 @@ private fun MotionPreview(
         )
 
     val x by transition.animateFloat(
-        initialValue=-1f,
-        targetValue=1f,
-        animationSpec=
-            infiniteRepeatable(
-                tween(
-                    durationMillis=duration,
-                    easing=EaseInOutSine
-                ),
-                RepeatMode.Reverse
+        -1f,
+        1f,
+        infiniteRepeatable(
+            tween(
+                duration,
+                easing=EaseInOutSine
             ),
+            RepeatMode.Reverse
+        ),
         label="previewX"
     )
 
     val y by transition.animateFloat(
-        initialValue=1f,
-        targetValue=-1f,
-        animationSpec=
-            infiniteRepeatable(
-                tween(
-                    durationMillis=
-                        duration+390,
-                    easing=EaseInOutSine
-                ),
-                RepeatMode.Reverse
+        1f,
+        -1f,
+        infiniteRepeatable(
+            tween(
+                duration+390,
+                easing=EaseInOutSine
             ),
+            RepeatMode.Reverse
+        ),
         label="previewY"
     )
 
     val z by transition.animateFloat(
-        initialValue=-1f,
-        targetValue=1f,
-        animationSpec=
-            infiniteRepeatable(
-                tween(
-                    durationMillis=
-                        duration+760,
-                    easing=EaseInOutSine
-                ),
-                RepeatMode.Reverse
+        -1f,
+        1f,
+        infiniteRepeatable(
+            tween(
+                duration+760,
+                easing=EaseInOutSine
             ),
+            RepeatMode.Reverse
+        ),
         label="previewZ"
     )
 
-    /*
-     * Wider home positions.
-     */
     val homes=listOf(
         Offset(-.39f,-.30f),
         Offset(.39f,.29f),
@@ -771,8 +609,11 @@ private fun MotionPreview(
     BoxWithConstraints(
         Modifier.fillMaxSize()
     ){
-        val spreadX=maxWidth*.90f
-        val spreadY=maxHeight*.82f
+        val spreadX=
+            maxWidth*.90f
+
+        val spreadY=
+            maxHeight*.82f
 
         repeat(
             a.animationQuantity
@@ -823,12 +664,8 @@ private fun MotionPreview(
                     Modifier
                         .align(Alignment.Center)
                         .offset(
-                            x=
-                                spreadX*
-                                    home.x,
-                            y=
-                                spreadY*
-                                    home.y
+                            x=spreadX*home.x,
+                            y=spreadY*home.y
                         )
                         .then(
                             if(soft)
@@ -837,10 +674,6 @@ private fun MotionPreview(
                                 Modifier
                         )
                         .graphicsLayer{
-                            /*
-                             * Significantly wider
-                             * travel than before.
-                             */
                             translationX=
                                 mx*
                                     (
@@ -858,27 +691,22 @@ private fun MotionPreview(
                             rotationZ=
                                 when(animation){
                                     NmixAnimationName.ORBIT->
-                                        z*
-                                            19f*
+                                        z*19f*
                                             direction
 
                                     NmixAnimationName.FLOW->
-                                        x*
-                                            10f*
+                                        x*10f*
                                             direction
 
                                     NmixAnimationName.FLOAT->
-                                        z*
-                                            15f*
+                                        z*15f*
                                             direction
 
                                     NmixAnimationName.CROSS->
-                                        z*
-                                            19f*
+                                        z*19f*
                                             direction
 
-                                    else->
-                                        0f
+                                    else->0f
                                 }
 
                             val pulse=
@@ -888,20 +716,17 @@ private fun MotionPreview(
                                 ){
                                     .80f+
                                         (
-                                            (x+1f)/
-                                                2f
+                                            (x+1f)/2f
                                         )*.30f
                                 }else{
                                     1f
                                 }
 
                             scaleX=
-                                itemScale*
-                                    pulse
+                                itemScale*pulse
 
                             scaleY=
-                                itemScale*
-                                    pulse
+                                itemScale*pulse
                         }
             )
         }
@@ -918,459 +743,249 @@ private fun PreviewGeometry(
     Canvas(
         modifier.size(
             if(soft)
-                48.dp
+                52.dp
             else
-                38.dp
+                40.dp
         )
     ){
-        if(soft){
-            /*
-             * SOFT
-             *
-             * Geometry remains identifiable,
-             * while edges fade instead of
-             * disappearing completely.
-             */
-            when(shape){
-                PreviewShape.ORB->{
-                    drawCircle(
-                        brush=
-                            Brush.radialGradient(
-                                colorStops=
+        when(shape){
+            PreviewShape.ORB->{
+                drawCircle(
+                    brush=
+                        Brush.radialGradient(
+                            colorStops=
+                                if(soft){
                                     arrayOf(
                                         0f to
                                             color.copy(
-                                                alpha=.68f
+                                                alpha=.66f
                                             ),
-
-                                        .42f to
+                                        .45f to
                                             color.copy(
-                                                alpha=.40f
+                                                alpha=.34f
                                             ),
-
-                                        .68f to
+                                        .72f to
                                             color.copy(
-                                                alpha=.18f
+                                                alpha=.12f
                                             ),
-
-                                        .86f to
-                                            color.copy(
-                                                alpha=.055f
-                                            ),
-
                                         1f to
                                             Color.Transparent
                                     )
-                            )
-                    )
-                }
-
-                PreviewShape.SQUARE->{
-                    drawRoundRect(
-                        color=
-                            color.copy(
-                                alpha=.10f
-                            ),
-                        cornerRadius=
-                            CornerRadius(
-                                9.dp.toPx()
-                            )
-                    )
-
-                    val inset1=
-                        3.dp.toPx()
-
-                    drawRoundRect(
-                        color=
-                            color.copy(
-                                alpha=.22f
-                            ),
-                        topLeft=
-                            Offset(
-                                inset1,
-                                inset1
-                            ),
-                        size=
-                            Size(
-                                size.width-
-                                    inset1*2,
-                                size.height-
-                                    inset1*2
-                            ),
-                        cornerRadius=
-                            CornerRadius(
-                                8.dp.toPx()
-                            )
-                    )
-
-                    val inset2=
-                        6.dp.toPx()
-
-                    drawRoundRect(
-                        color=
-                            color.copy(
-                                alpha=.38f
-                            ),
-                        topLeft=
-                            Offset(
-                                inset2,
-                                inset2
-                            ),
-                        size=
-                            Size(
-                                size.width-
-                                    inset2*2,
-                                size.height-
-                                    inset2*2
-                            ),
-                        cornerRadius=
-                            CornerRadius(
-                                6.dp.toPx()
-                            )
-                    )
-                }
-
-                PreviewShape.TRIANGLE->{
-                    val outer=
-                        Path().apply{
-                            moveTo(
-                                size.width*.5f,
-                                size.height*.05f
-                            )
-
-                            lineTo(
-                                size.width*.95f,
-                                size.height*.91f
-                            )
-
-                            lineTo(
-                                size.width*.05f,
-                                size.height*.91f
-                            )
-
-                            close()
-                        }
-
-                    drawPath(
-                        outer,
-                        color.copy(
-                            alpha=.09f
+                                }else{
+                                    arrayOf(
+                                        0f to
+                                            color.copy(
+                                                alpha=.38f
+                                            ),
+                                        .80f to
+                                            color.copy(
+                                                alpha=.16f
+                                            ),
+                                        1f to
+                                            Color.Transparent
+                                    )
+                                }
                         )
-                    )
-
-                    val inner=
-                        Path().apply{
-                            moveTo(
-                                size.width*.5f,
-                                size.height*.13f
-                            )
-
-                            lineTo(
-                                size.width*.87f,
-                                size.height*.85f
-                            )
-
-                            lineTo(
-                                size.width*.13f,
-                                size.height*.85f
-                            )
-
-                            close()
-                        }
-
-                    drawPath(
-                        inner,
-                        color.copy(
-                            alpha=.38f
-                        )
-                    )
-
-                    drawPath(
-                        inner,
-                        color.copy(
-                            alpha=.12f
-                        ),
-                        style=Stroke(
-                            width=
-                                2.dp.toPx()
-                        )
-                    )
-                }
-
-                PreviewShape.DIAMOND->{
-                    val outer=
-                        Path().apply{
-                            moveTo(
-                                size.width*.5f,
-                                size.height*.03f
-                            )
-
-                            lineTo(
-                                size.width*.97f,
-                                size.height*.5f
-                            )
-
-                            lineTo(
-                                size.width*.5f,
-                                size.height*.97f
-                            )
-
-                            lineTo(
-                                size.width*.03f,
-                                size.height*.5f
-                            )
-
-                            close()
-                        }
-
-                    drawPath(
-                        outer,
-                        color.copy(
-                            alpha=.09f
-                        )
-                    )
-
-                    val inner=
-                        Path().apply{
-                            moveTo(
-                                size.width*.5f,
-                                size.height*.11f
-                            )
-
-                            lineTo(
-                                size.width*.89f,
-                                size.height*.5f
-                            )
-
-                            lineTo(
-                                size.width*.5f,
-                                size.height*.89f
-                            )
-
-                            lineTo(
-                                size.width*.11f,
-                                size.height*.5f
-                            )
-
-                            close()
-                        }
-
-                    drawPath(
-                        inner,
-                        color.copy(
-                            alpha=.36f
-                        )
-                    )
-                }
+                )
             }
-        }else{
-            /*
-             * HARD
-             *
-             * Shape is recognisable but has lower
-             * opacity and a feather-like outer
-             * shell instead of razor-hard chunks.
-             */
-            when(shape){
-                PreviewShape.ORB->{
-                    drawCircle(
-                        color=
-                            color.copy(
-                                alpha=.10f
-                            )
-                    )
 
-                    drawCircle(
-                        color=
-                            color.copy(
-                                alpha=.43f
-                            ),
-                        radius=
-                            size.minDimension*
-                                .42f
-                    )
-                }
+            PreviewShape.SQUARE->{
+                drawRoundRect(
+                    color=
+                        color.copy(
+                            alpha=
+                                if(soft)
+                                    .10f
+                                else
+                                    .06f
+                        ),
+                    cornerRadius=
+                        CornerRadius(
+                            9.dp.toPx()
+                        )
+                )
 
-                PreviewShape.SQUARE->{
-                    drawRoundRect(
-                        color=
-                            color.copy(
-                                alpha=.08f
-                            ),
-                        cornerRadius=
-                            CornerRadius(
-                                7.dp.toPx()
-                            )
-                    )
-
-                    val inset=
+                val inset=
+                    if(soft)
+                        5.dp.toPx()
+                    else
                         3.dp.toPx()
 
-                    drawRoundRect(
-                        color=
-                            color.copy(
-                                alpha=.42f
-                            ),
-                        topLeft=
-                            Offset(
-                                inset,
-                                inset
-                            ),
-                        size=
-                            Size(
-                                size.width-
-                                    inset*2,
-                                size.height-
-                                    inset*2
-                            ),
-                        cornerRadius=
-                            CornerRadius(
-                                5.dp.toPx()
-                            )
-                    )
-                }
-
-                PreviewShape.TRIANGLE->{
-                    val outer=
-                        Path().apply{
-                            moveTo(
-                                size.width*.5f,
-                                size.height*.04f
-                            )
-
-                            lineTo(
-                                size.width*.96f,
-                                size.height*.91f
-                            )
-
-                            lineTo(
-                                size.width*.04f,
-                                size.height*.91f
-                            )
-
-                            close()
-                        }
-
-                    drawPath(
-                        outer,
+                drawRoundRect(
+                    color=
                         color.copy(
-                            alpha=.07f
-                        )
-                    )
-
-                    val inset=
-                        Path().apply{
-                            moveTo(
-                                size.width*.5f,
-                                size.height*.10f
-                            )
-
-                            lineTo(
-                                size.width*.90f,
-                                size.height*.86f
-                            )
-
-                            lineTo(
-                                size.width*.10f,
-                                size.height*.86f
-                            )
-
-                            close()
-                        }
-
-                    drawPath(
-                        inset,
-                        color.copy(
-                            alpha=.42f
-                        )
-                    )
-
-                    drawPath(
-                        inset,
-                        color.copy(
-                            alpha=.10f
+                            alpha=
+                                if(soft)
+                                    .36f
+                                else
+                                    .36f
                         ),
-                        style=Stroke(
-                            1.5.dp.toPx()
-                        )
-                    )
-                }
-
-                PreviewShape.DIAMOND->{
-                    val outer=
-                        Path().apply{
-                            moveTo(
-                                size.width*.5f,
-                                size.height*.02f
-                            )
-
-                            lineTo(
-                                size.width*.98f,
-                                size.height*.5f
-                            )
-
-                            lineTo(
-                                size.width*.5f,
-                                size.height*.98f
-                            )
-
-                            lineTo(
-                                size.width*.02f,
-                                size.height*.5f
-                            )
-
-                            close()
-                        }
-
-                    drawPath(
-                        outer,
-                        color.copy(
-                            alpha=.07f
-                        )
-                    )
-
-                    val inner=
-                        Path().apply{
-                            moveTo(
-                                size.width*.5f,
-                                size.height*.09f
-                            )
-
-                            lineTo(
-                                size.width*.91f,
-                                size.height*.5f
-                            )
-
-                            lineTo(
-                                size.width*.5f,
-                                size.height*.91f
-                            )
-
-                            lineTo(
-                                size.width*.09f,
-                                size.height*.5f
-                            )
-
-                            close()
-                        }
-
-                    drawPath(
-                        inner,
-                        color.copy(
-                            alpha=.40f
-                        )
-                    )
-
-                    drawPath(
-                        inner,
-                        color.copy(
-                            alpha=.09f
+                    topLeft=
+                        Offset(inset,inset),
+                    size=
+                        Size(
+                            size.width-inset*2,
+                            size.height-inset*2
                         ),
-                        style=Stroke(
-                            1.5.dp.toPx()
+                    cornerRadius=
+                        CornerRadius(
+                            6.dp.toPx()
                         )
+                )
+            }
+
+            PreviewShape.TRIANGLE->{
+                val outer=
+                    Path().apply{
+                        moveTo(
+                            size.width*.5f,
+                            size.height*.04f
+                        )
+
+                        lineTo(
+                            size.width*.96f,
+                            size.height*.91f
+                        )
+
+                        lineTo(
+                            size.width*.04f,
+                            size.height*.91f
+                        )
+
+                        close()
+                    }
+
+                drawPath(
+                    outer,
+                    color.copy(
+                        alpha=
+                            if(soft)
+                                .08f
+                            else
+                                .055f
                     )
-                }
+                )
+
+                val inner=
+                    Path().apply{
+                        moveTo(
+                            size.width*.5f,
+                            size.height*.12f
+                        )
+
+                        lineTo(
+                            size.width*.88f,
+                            size.height*.85f
+                        )
+
+                        lineTo(
+                            size.width*.12f,
+                            size.height*.85f
+                        )
+
+                        close()
+                    }
+
+                drawPath(
+                    inner,
+                    color.copy(
+                        alpha=
+                            if(soft)
+                                .35f
+                            else
+                                .34f
+                    )
+                )
+
+                drawPath(
+                    inner,
+                    color.copy(alpha=.08f),
+                    style=Stroke(
+                        1.5.dp.toPx()
+                    )
+                )
+            }
+
+            PreviewShape.DIAMOND->{
+                val outer=
+                    Path().apply{
+                        moveTo(
+                            size.width*.5f,
+                            size.height*.02f
+                        )
+
+                        lineTo(
+                            size.width*.98f,
+                            size.height*.5f
+                        )
+
+                        lineTo(
+                            size.width*.5f,
+                            size.height*.98f
+                        )
+
+                        lineTo(
+                            size.width*.02f,
+                            size.height*.5f
+                        )
+
+                        close()
+                    }
+
+                drawPath(
+                    outer,
+                    color.copy(
+                        alpha=
+                            if(soft)
+                                .08f
+                            else
+                                .055f
+                    )
+                )
+
+                val inner=
+                    Path().apply{
+                        moveTo(
+                            size.width*.5f,
+                            size.height*.10f
+                        )
+
+                        lineTo(
+                            size.width*.90f,
+                            size.height*.5f
+                        )
+
+                        lineTo(
+                            size.width*.5f,
+                            size.height*.90f
+                        )
+
+                        lineTo(
+                            size.width*.10f,
+                            size.height*.5f
+                        )
+
+                        close()
+                    }
+
+                drawPath(
+                    inner,
+                    color.copy(
+                        alpha=
+                            if(soft)
+                                .35f
+                            else
+                                .34f
+                    )
+                )
+
+                drawPath(
+                    inner,
+                    color.copy(alpha=.08f),
+                    style=Stroke(
+                        1.5.dp.toPx()
+                    )
+                )
             }
         }
     }
