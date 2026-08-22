@@ -1133,7 +1133,7 @@ fun NativeMainPageV2(
                     Text(
                         text = "••••",
                         color =
-                            color=p.accentLight.copy(
+                            p.accentLight.copy(
                                 alpha=.90f
                             ),
                         fontSize = 8.sp,
