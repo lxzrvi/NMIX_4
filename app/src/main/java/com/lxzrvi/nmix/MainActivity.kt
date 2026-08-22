@@ -152,7 +152,7 @@ fun NmixApp(){
     }
 
     LaunchedEffect(Unit){
-        delay(1050)
+        delay(420)
         loading=false
     }
 
