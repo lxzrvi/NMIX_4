@@ -195,9 +195,7 @@ fun NativeMainPageV2(
             return
         }
 
-        val action:{
-            ()->Unit
-        }={
+        val action:()->Unit={
             val intent=
                 Intent(
                     context,
@@ -236,9 +234,7 @@ fun NativeMainPageV2(
     fun startStopwatchService(
         elapsed:Long
     ){
-        val action:{
-            ()->Unit
-        }={
+        val action:()->Unit={
             val intent=
                 Intent(
                     context,
