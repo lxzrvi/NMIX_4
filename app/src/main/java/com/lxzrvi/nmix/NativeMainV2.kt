@@ -43,11 +43,12 @@ import kotlin.random.Random
 fun NativeMainPageV2(onBack:()->Unit){
     val a=LocalNmixAppearance.current
     val p=a.palette
-    val ui=a.uiColors()
     val context=LocalContext.current
     val config=LocalConfiguration.current
     val density=LocalDensity.current
-    val prefs=remember(context){context.getSharedPreferences("nmix_main_display",Context.MODE_PRIVATE)}
+    val prefs=remember(context){
+        context.getSharedPreferences("nmix_main_display",Context.MODE_PRIVATE)
+    }
 
     var top by remember{mutableStateOf(true)}
     var section by remember{mutableStateOf<String?>(null)}
@@ -59,10 +60,12 @@ fun NativeMainPageV2(onBack:()->Unit){
     var display by remember{mutableStateOf("Ready")}
     var label by remember{mutableStateOf("NMIX LIVE")}
     var status by remember{mutableStateOf("Choose a tool below.")}
+
     var n1 by remember{mutableStateOf("")}
     var n2 by remember{mutableStateOf("")}
     var op by remember{mutableStateOf("")}
     var second by remember{mutableStateOf(false)}
+
     var timer by remember{mutableIntStateOf(0)}
     var timerRun by remember{mutableStateOf(false)}
     var sw by remember{mutableLongStateOf(0L)}
@@ -72,23 +75,31 @@ fun NativeMainPageV2(onBack:()->Unit){
     var now by remember{mutableLongStateOf(System.currentTimeMillis())}
 
     fun timerText()="%02d:%02d".format(timer/60,timer%60)
+
     fun swText():String{
         val s=sw/1000
         return "%02d:%02d.%02d".format(s/60,s%60,(sw%1000)/10)
     }
-    fun timeText()=SimpleDateFormat("hh:mm:ss a",Locale.getDefault()).format(Date(now))
-    fun dateText()=SimpleDateFormat("EEEE, d MMMM yyyy",Locale.getDefault()).format(Date(now))
+
+    fun timeText()=
+        SimpleDateFormat("hh:mm:ss a",Locale.getDefault()).format(Date(now))
+
+    fun dateText()=
+        SimpleDateFormat("EEEE, d MMMM yyyy",Locale.getDefault()).format(Date(now))
 
     fun stopTimeService(){
         runCatching{
-            context.startService(Intent(context,NmixTimeService::class.java).apply{
-                action=NmixTimeService.ACTION_STOP
-            })
+            context.startService(
+                Intent(context,NmixTimeService::class.java).apply{
+                    action=NmixTimeService.ACTION_STOP
+                }
+            )
         }
     }
 
     fun startTimerService(seconds:Int){
         if(seconds<=0)return
+
         val action:()->Unit={
             ContextCompat.startForegroundService(
                 context,
@@ -98,7 +109,10 @@ fun NativeMainPageV2(onBack:()->Unit){
                 }
             )
         }
-        context.findNmixActivity()?.runWithNotificationPermission(action)?:action()
+
+        context.findNmixActivity()
+            ?.runWithNotificationPermission(action)
+            ?:action()
     }
 
     fun startStopwatchService(elapsed:Long){
@@ -111,7 +125,10 @@ fun NativeMainPageV2(onBack:()->Unit){
                 }
             )
         }
-        context.findNmixActivity()?.runWithNotificationPermission(action)?:action()
+
+        context.findNmixActivity()
+            ?.runWithNotificationPermission(action)
+            ?:action()
     }
 
     fun stop(){
@@ -188,31 +205,43 @@ fun NativeMainPageV2(onBack:()->Unit){
     fun calculate(){
         val x=n1.toDoubleOrNull()
         val y=n2.toDoubleOrNull()
+
         if(x==null||y==null){
             display="Incomplete"
             status="Enter both numbers first."
             return
         }
+
         val result=when(op){
             "+"->x+y
             "−"->x-y
             "×"->x*y
+
             "÷"->{
                 if(y==0.0){
-                    display="Error";status="Division by zero is not allowed.";return
+                    display="Error"
+                    status="Division by zero is not allowed."
+                    return
                 }
                 x/y
             }
+
             "%"->{
                 if(y==0.0){
-                    display="Error";status="Remainder by zero is not allowed.";return
+                    display="Error"
+                    status="Remainder by zero is not allowed."
+                    return
                 }
                 x%y
             }
+
             else->{
-                display="No sign";status="Choose an operator.";return
+                display="No sign"
+                status="Choose an operator."
+                return
             }
         }
+
         display=fmt(result)
         label="RESULT"
         status="Calculation complete."
@@ -221,15 +250,22 @@ fun NativeMainPageV2(onBack:()->Unit){
     fun key(k:String){
         stop()
         mode="calculator"
+
         when(k){
             "+","−","×","÷","%"->{
                 if(n1.isEmpty()){
                     status="Enter the first number first."
                     return
                 }
-                op=k;second=true;display=k;label="OPERATOR"
+
+                op=k
+                second=true
+                display=k
+                label="OPERATOR"
             }
+
             "="->calculate()
+
             "."->{
                 if(second){
                     if(!n2.contains(".")){
@@ -241,10 +277,21 @@ fun NativeMainPageV2(onBack:()->Unit){
                     display=n1
                 }
             }
+
             "±"->{
-                if(second)n2.toDoubleOrNull()?.let{n2=fmt(-it);display=n2}
-                else n1.toDoubleOrNull()?.let{n1=fmt(-it);display=n1}
+                if(second){
+                    n2.toDoubleOrNull()?.let{
+                        n2=fmt(-it)
+                        display=n2
+                    }
+                }else{
+                    n1.toDoubleOrNull()?.let{
+                        n1=fmt(-it)
+                        display=n1
+                    }
+                }
             }
+
             "⌫"->{
                 if(second){
                     if(n2.isNotEmpty()){
@@ -259,42 +306,48 @@ fun NativeMainPageV2(onBack:()->Unit){
                     display=n1.ifEmpty{"0"}
                 }
             }
+
             "AC"->{
-                n1="";n2="";op="";second=false
-                display="Ready";label="CALCULATOR";status="Calculator cleared."
+                n1=""
+                n2=""
+                op=""
+                second=false
+                display="Ready"
+                label="CALCULATOR"
+                status="Calculator cleared."
             }
+
             else->if(k.all(Char::isDigit)){
                 if(second&&n2.length<18){
-                    n2+=k;display=n2;label="SECOND NUMBER"
+                    n2+=k
+                    display=n2
+                    label="SECOND NUMBER"
                 }else if(!second&&n1.length<18){
-                    n1+=k;display=n1;label="FIRST NUMBER"
+                    n1+=k
+                    display=n1
+                    label="FIRST NUMBER"
                 }
             }
         }
+
         if(k!="="&&k!="AC")calcStatus()
     }
 
     val calcOpen=section=="calculator"
 
-    /*
-     * Four anchors:
-     * S  = 0.00
-     * M  = 0.27
-     * L  = 0.61
-     * EL = 1.00
-     */
     val minHeight=190.dp
     val maxHeight=(config.screenHeightDp.dp*.50f).coerceAtLeast(minHeight)
     val range=(maxHeight.value-minHeight.value).coerceAtLeast(1f)
+
     val small=minHeight
     val medium=(minHeight.value+range*.27f).dp
     val large=(minHeight.value+range*.61f).dp
     val extraLarge=maxHeight
     val anchors=listOf(small,medium,large,extraLarge)
 
-    fun nearest(v:Float)=anchors.minByOrNull{abs(it.value-v)}?:medium
+    fun nearest(v:Float)=
+        anchors.minByOrNull{abs(it.value-v)}?:medium
 
-    var targetHeight by remember(config.screenHeightDp){
     var targetHeight by remember(config.screenHeightDp){
         mutableStateOf(
             nearest(
@@ -303,76 +356,46 @@ fun NativeMainPageV2(onBack:()->Unit){
             )
         )
     }
-    
+
     var liveHeight by remember(config.screenHeightDp){
         mutableStateOf(targetHeight)
     }
-    
-    var dragging by remember{
-        mutableStateOf(false)
-    }
-    
+
+    var dragging by remember{mutableStateOf(false)}
+
+    /*
+     * Drag uses liveHeight directly.
+     * Only release settlement is animated.
+     */
     val releaseHeightState=animateDpAsState(
-    targetValue=targetHeight,
+        targetValue=targetHeight,
         animationSpec=spring<Dp>(
             dampingRatio=1f,
             stiffness=1250f
         ),
         label="displaySettle"
     )
-    
+
     val releaseHeight=releaseHeightState.value
-    
-    val displayHeight=
-        if(dragging) liveHeight
-        else releaseHeight
-    
-    /*
-     * Finger down = direct raw height.
-     * Release only = fast nearest-anchor settle.
-     */
-    val displayHeight=
-        if(dragging)liveHeight
-        else releaseHeight
-    
-    /*
-     * Do not animate height a second time while dragging.
-     */
-    val visibleHeight=
-        if(top)displayHeight
-        else 0.dp
-    
-    /*
-     * List follows Display directly too.
-     */
-    val listTop=
-        if(top)displayHeight+16.dp
-        else 112.dp
-    
+    val displayHeight=if(dragging)liveHeight else releaseHeight
+    val visibleHeight=if(top)displayHeight else 0.dp
+    val listTop=if(top)displayHeight+16.dp else 112.dp
+
     val normalized=(
         (displayHeight.value-minHeight.value)/range
     ).coerceIn(0f,1f)
 
-    /*
-     * S and M stay mathematically flat.
-     * Radius starts late between M -> L, reaches old 23dp at L,
-     * then remains unchanged through EL.
-     */
     val shellProgress=when{
         normalized<=.27f->0f
         normalized>=.61f->1f
-    
+
         else->{
-            val t=(
-                (normalized-.27f)/.34f
-            ).coerceIn(0f,1f)
-    
+            val t=((normalized-.27f)/.34f).coerceIn(0f,1f)
             t*t*(3f-2f*t)
         }
     }
-    
-    val shellRadius=
-        (23f*shellProgress).dp
+
+    val shellRadius=(23f*shellProgress).dp
 
     val headerShape=RoundedCornerShape(
         bottomStart=shellRadius,
@@ -380,7 +403,8 @@ fun NativeMainPageV2(onBack:()->Unit){
     )
 
     val controlSurface by animateColorAsState(
-        if(a.darkMode)Color(0xFF171C1A) else Color(0xFFF7F8F7),
+        if(a.darkMode)Color(0xFF171C1A)
+        else Color(0xFFF7F8F7),
         tween(210),
         label="controlSurface"
     )
@@ -397,25 +421,30 @@ fun NativeMainPageV2(onBack:()->Unit){
         label="menuIcon"
     )
 
-    /*
-     * Main page is appearance white/black. Accent no longer
-     * washes the whole background green/blue/etc.
-     */
-    val pageBackground=if(a.darkMode)Color(0xFF0D1110) else Color(0xFFF5F7F6)
+    val pageBackground=
+        if(a.darkMode)Color(0xFF0D1110)
+        else Color(0xFFF5F7F6)
 
     Box(
-        Modifier.fillMaxSize().background(pageBackground)
+        Modifier
+            .fillMaxSize()
+            .background(pageBackground)
     ){
         LazyColumn(
             Modifier
                 .fillMaxSize()
                 .blur(if(settings||customColorOpen)3.dp else 0.dp),
-            contentPadding=PaddingValues(top=listTop,bottom=22.dp),
+            contentPadding=PaddingValues(
+                top=listTop,
+                bottom=22.dp
+            ),
             verticalArrangement=Arrangement.spacedBy(12.dp)
         ){
             item{
                 NmixToolSection(
-                    NmixIcon.CALCULATOR,"Calculator","Numbers and operations",
+                    NmixIcon.CALCULATOR,
+                    "Calculator",
+                    "Numbers and operations",
                     calcOpen,
                     {
                         open("calculator")
@@ -423,12 +452,16 @@ fun NativeMainPageV2(onBack:()->Unit){
                         label="CALCULATOR"
                         calcStatus()
                     }
-                ){NmixCalculator(::key)}
+                ){
+                    NmixCalculator(::key)
+                }
             }
 
             item{
                 NmixToolSection(
-                    NmixIcon.CLOCK,"Clock","Timer, clock and stopwatch",
+                    NmixIcon.CLOCK,
+                    "Clock",
+                    "Timer, clock and stopwatch",
                     section=="clock",
                     {
                         open("clock")
@@ -444,10 +477,12 @@ fun NativeMainPageV2(onBack:()->Unit){
                         onTimer={
                             swRun=false
                             mode="timer"
+
                             if(timer<=0){
                                 status="Add five seconds before starting."
                             }else{
                                 timerRun=!timerRun
+
                                 if(timerRun){
                                     startTimerService(timer)
                                     status="Timer running."
@@ -481,6 +516,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                             timerRun=false
                             mode="stopwatch"
                             swRun=!swRun
+
                             if(swRun){
                                 startStopwatchService(sw)
                                 status="Stopwatch running."
@@ -502,7 +538,9 @@ fun NativeMainPageV2(onBack:()->Unit){
 
             item{
                 NmixToolSection(
-                    NmixIcon.COUNTER,"Counters","Count and generate",
+                    NmixIcon.COUNTER,
+                    "Counters",
+                    "Count and generate",
                     section=="counter",
                     {
                         open("counter")
@@ -514,8 +552,16 @@ fun NativeMainPageV2(onBack:()->Unit){
                     }
                 ){
                     NmixCounters(
-                        add={count++;mode="counter";status="Counter increased."},
-                        reset={count=0;mode="counter";status="Counter reset to zero."},
+                        add={
+                            count++
+                            mode="counter"
+                            status="Counter increased."
+                        },
+                        reset={
+                            count=0
+                            mode="counter"
+                            status="Counter reset to zero."
+                        },
                         random={
                             count=Random.nextInt(1,1001)
                             mode="counter"
@@ -532,7 +578,9 @@ fun NativeMainPageV2(onBack:()->Unit){
 
             item{
                 NmixToolSection(
-                    NmixIcon.HELP,"How to use NMIX","Instructions and controls",
+                    NmixIcon.HELP,
+                    "How to use NMIX",
+                    "Instructions and controls",
                     section=="help",
                     {
                         open("help")
@@ -542,28 +590,41 @@ fun NativeMainPageV2(onBack:()->Unit){
                         display="Ready"
                         status="NMIX instructions."
                     }
-                ){NmixInstructions()}
+                ){
+                    NmixInstructions()
+                }
             }
 
             item{Spacer(Modifier.height(4.dp))}
             item{NmixContribution(Modifier.fillMaxWidth())}
             item{Spacer(Modifier.height(2.dp))}
+
             item{
-                Box(Modifier.fillMaxWidth(),contentAlignment=Alignment.Center){
+                Box(
+                    Modifier.fillMaxWidth(),
+                    contentAlignment=Alignment.Center
+                ){
                     NmixTextButton(
                         "Back to the Start",
-                        Modifier.width(178.dp).height(42.dp),
+                        Modifier
+                            .width(178.dp)
+                            .height(42.dp),
                         false,
                         onBack
                     )
                 }
             }
+
             item{Spacer(Modifier.height(8.dp))}
         }
 
+        /*
+         * Header blur is intentionally removed.
+         * Settings overlay handles dimming, avoiding the
+         * clipped blur seam on the accent shell bottom.
+         */
         AnimatedVisibility(
             visible=top,
-            modifier=Modifier.blur(if(settings||customColorOpen)3.dp else 0.dp),
             enter=fadeIn(tween(220,easing=EaseOutCubic)),
             exit=fadeOut(tween(170,easing=EaseInCubic))
         ){
@@ -572,19 +633,36 @@ fun NativeMainPageV2(onBack:()->Unit){
                     .fillMaxWidth()
                     .height(visibleHeight)
                     .clip(headerShape)
-                    .background(Brush.linearGradient(listOf(p.topDark,p.accent,p.topEnd)))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                p.topDark,
+                                p.accent,
+                                p.topEnd
+                            )
+                        )
+                    )
                     .windowInsetsPadding(WindowInsets.statusBars)
-                    .padding(start=12.dp,end=12.dp,top=7.dp,bottom=10.dp)
+                    .padding(
+                        start=12.dp,
+                        end=12.dp,
+                        top=7.dp,
+                        bottom=12.dp
+                    )
             ){
                 Column(
                     Modifier.fillMaxSize(),
                     horizontalAlignment=Alignment.CenterHorizontally
                 ){
                     Box(
-                        Modifier.fillMaxWidth().height(62.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .height(62.dp),
                         contentAlignment=Alignment.Center
                     ){
-                        Column(horizontalAlignment=Alignment.CenterHorizontally){
+                        Column(
+                            horizontalAlignment=Alignment.CenterHorizontally
+                        ){
                             Text(
                                 "EVERYTHING WITH NUMBERS",
                                 color=Color.White.copy(alpha=.72f),
@@ -592,6 +670,7 @@ fun NativeMainPageV2(onBack:()->Unit){
                                 letterSpacing=1.9.sp,
                                 fontFamily=a.fontFamily
                             )
+
                             Text(
                                 "NMIX",
                                 color=Color.White,
@@ -603,11 +682,6 @@ fun NativeMainPageV2(onBack:()->Unit){
                         }
                     }
 
-                    /*
-                     * Header normalized progress is passed directly.
-                     * Calculator geometry no longer guesses the anchor
-                     * from Display's measured pixel height.
-                     */
                     NmixDisplay(
                         label=label,
                         value=display,
@@ -620,63 +694,80 @@ fun NativeMainPageV2(onBack:()->Unit){
                         displayProgress=normalized,
                         onMinus={
                             timer=(timer-5).coerceAtLeast(0)
+
                             if(timer==0){
                                 timerRun=false
                                 stopTimeService()
-                            }else if(timerRun)startTimerService(timer)
+                            }else if(timerRun){
+                                startTimerService(timer)
+                            }
+
                             status="Five seconds removed."
                         },
                         onPlus={
                             timer+=5
-                            if(timerRun)startTimerService(timer)
+
+                            if(timerRun){
+                                startTimerService(timer)
+                            }
+
                             status="Five seconds added."
                         },
                         onClick={
                             if(
                                 mode=="calculator"&&
-                                n1.isNotEmpty()&&op.isNotEmpty()&&n2.isNotEmpty()
-                            )calculate()
+                                n1.isNotEmpty()&&
+                                op.isNotEmpty()&&
+                                n2.isNotEmpty()
+                            ){
+                                calculate()
+                            }
                         },
-                        modifier=Modifier.fillMaxWidth().weight(1f)
+                        modifier=Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
                     )
                 }
 
-                /*
-                 * Large invisible touch target, tiny visual grip.
-                 * Dots are lower than before without creating a new strip.
-                 */
                 Box(
                     Modifier
                         .align(Alignment.BottomEnd)
                         .offset(y=6.5.dp)
                         .width(96.dp)
                         .height(32.dp)
-                        .pointerInput(minHeight,maxHeight){
+                        .pointerInput(
+                            minHeight,
+                            maxHeight
+                        ){
                             detectVerticalDragGestures(
                                 onDragStart={
                                     liveHeight=displayHeight
                                     dragging=true
                                 },
-                                onVerticalDrag={change,dragAmount->
+                                onVerticalDrag={
+                                    change,
+                                    dragAmount->
+
                                     change.consume()
-                                
+
                                     val delta=with(density){
                                         dragAmount.toDp()
                                     }
-                                
-                                    liveHeight=(liveHeight+delta)
-                                        .coerceIn(
-                                            minHeight,
-                                            maxHeight
-                                        )
+
+                                    liveHeight=
+                                        (liveHeight+delta)
+                                            .coerceIn(
+                                                minHeight,
+                                                maxHeight
+                                            )
                                 },
                                 onDragEnd={
                                     val destination=
                                         nearest(liveHeight.value)
-                                
+
                                     targetHeight=destination
                                     dragging=false
-                                
+
                                     prefs.edit()
                                         .putFloat(
                                             "header_height",
@@ -685,16 +776,19 @@ fun NativeMainPageV2(onBack:()->Unit){
                                         .apply()
                                 },
                                 onDragCancel={
-                                    val destination=
+                                    targetHeight=
                                         nearest(liveHeight.value)
-                                
-                                    targetHeight=destination
                                     dragging=false
-                                },
+                                }
+                            )
+                        },
                     contentAlignment=Alignment.BottomEnd
                 ){
                     Row(
-                        Modifier.padding(end=18.dp,bottom=0.dp),
+                        Modifier.padding(
+                            end=18.dp,
+                            bottom=0.dp
+                        ),
                         horizontalArrangement=Arrangement.spacedBy(3.dp),
                         verticalAlignment=Alignment.CenterVertically
                     ){
@@ -704,8 +798,10 @@ fun NativeMainPageV2(onBack:()->Unit){
                                     .size(4.dp)
                                     .clip(CircleShape)
                                     .background(
-                                        if(a.darkMode)Color.Black.copy(alpha=.92f)
-                                        else Color.White.copy(alpha=.97f)
+                                        if(a.darkMode)
+                                            Color.Black.copy(alpha=.92f)
+                                        else
+                                            Color.White.copy(alpha=.97f)
                                     )
                             )
                         }
@@ -719,12 +815,16 @@ fun NativeMainPageV2(onBack:()->Unit){
                 Modifier
                     .fillMaxSize()
                     .background(
-                        Color.Black.copy(alpha=if(a.darkMode).16f else .055f)
+                        Color.Black.copy(
+                            alpha=if(a.darkMode).16f else .055f
+                        )
                     )
                     .clickable(
                         interactionSource=remember{MutableInteractionSource()},
                         indication=null
-                    ){settings=false}
+                    ){
+                        settings=false
+                    }
             )
         }
 
@@ -742,7 +842,10 @@ fun NativeMainPageV2(onBack:()->Unit){
                 animationSpec=tween(340,easing=EaseInOutCubic)
             )+fadeOut(tween(175))
         ){
-            val drawerShape=RoundedCornerShape(topStart=25.dp,bottomStart=25.dp)
+            val drawerShape=RoundedCornerShape(
+                topStart=25.dp,
+                bottomStart=25.dp
+            )
 
             Box(
                 Modifier
@@ -750,10 +853,16 @@ fun NativeMainPageV2(onBack:()->Unit){
                     .fillMaxHeight()
                     .clip(drawerShape)
                     .background(
-                        if(a.darkMode)Color(0xFF151917).copy(alpha=.98f)
-                        else Color(0xFFF5F7F6).copy(alpha=.99f)
+                        if(a.darkMode)
+                            Color(0xFF151917).copy(alpha=.98f)
+                        else
+                            Color(0xFFF5F7F6).copy(alpha=.99f)
                     )
-                    .background(p.accent.copy(alpha=if(a.darkMode).035f else .025f))
+                    .background(
+                        p.accent.copy(
+                            alpha=if(a.darkMode).035f else .025f
+                        )
+                    )
                     .clickable(
                         interactionSource=remember{MutableInteractionSource()},
                         indication=null
@@ -765,7 +874,9 @@ fun NativeMainPageV2(onBack:()->Unit){
                         .windowInsetsPadding(WindowInsets.statusBars)
                         .padding(top=10.dp)
                 ){
-                    NmixSettings{customColorOpen=true}
+                    NmixSettings{
+                        customColorOpen=true
+                    }
                 }
             }
         }
@@ -774,12 +885,18 @@ fun NativeMainPageV2(onBack:()->Unit){
             Modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(start=14.dp,top=13.dp),
+                .padding(
+                    start=14.dp,
+                    top=13.dp
+                ),
             horizontalArrangement=Arrangement.SpaceBetween,
             verticalAlignment=Alignment.CenterVertically
         ){
             Box(
-                Modifier.size(48.dp).clip(CircleShape).background(controlSurface)
+                Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(controlSurface)
             ){
                 NmixPressBox(
                     Modifier.fillMaxSize(),
@@ -797,25 +914,39 @@ fun NativeMainPageV2(onBack:()->Unit){
                             else->"down"
                         },
                         transitionSpec={
-                            (fadeIn(tween(160))+scaleIn(initialScale=.82f)) togetherWith
-                                (fadeOut(tween(120))+scaleOut(targetScale=.86f))
+                            fadeIn(tween(140)) togetherWith
+                                fadeOut(tween(140))
                         },
                         label="leftControl"
                     ){state->
-                        if(state=="settings"){
-                            NmixSettingsGlyph(Modifier.size(23.dp),p.accent)
-                        }else{
-                            NmixIcon(
-                                if(state=="down")NmixIcon.ARROW_DOWN else NmixIcon.ARROW_UP,
-                                Modifier.size(21.dp),
-                                p.accent
-                            )
+                        Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment=Alignment.Center
+                        ){
+                            if(state=="settings"){
+                                NmixSettingsGlyph(
+                                    Modifier.size(22.dp),
+                                    p.accent
+                                )
+                            }else{
+                                NmixIcon(
+                                    if(state=="down")
+                                        NmixIcon.ARROW_DOWN
+                                    else
+                                        NmixIcon.ARROW_UP,
+                                    Modifier.size(21.dp),
+                                    p.accent
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            val menuShape=RoundedCornerShape(topStart=25.dp,bottomStart=25.dp)
+            val menuShape=RoundedCornerShape(
+                topStart=25.dp,
+                bottomStart=25.dp
+            )
 
             Box(
                 Modifier
@@ -826,14 +957,21 @@ fun NativeMainPageV2(onBack:()->Unit){
                     .clickable(
                         interactionSource=remember{MutableInteractionSource()},
                         indication=null
-                    ){settings=!settings},
+                    ){
+                        settings=!settings
+                    },
                 contentAlignment=Alignment.Center
             ){
                 AnimatedContent(
                     targetState=settings,
                     transitionSpec={
-                        (fadeIn(tween(160))+scaleIn(initialScale=.82f)) togetherWith
-                            (fadeOut(tween(120))+scaleOut(targetScale=.86f))
+                        (
+                            fadeIn(tween(160))+
+                                scaleIn(initialScale=.82f)
+                            ) togetherWith (
+                            fadeOut(tween(120))+
+                                scaleOut(targetScale=.86f)
+                            )
                     },
                     label="menuControl"
                 ){open->
@@ -848,7 +986,9 @@ fun NativeMainPageV2(onBack:()->Unit){
 
         NmixCustomColorPicker(
             visible=customColorOpen,
-            onClose={customColorOpen=false}
+            onClose={
+                customColorOpen=false
+            }
         )
 
         AnimatedVisibility(
@@ -860,7 +1000,9 @@ fun NativeMainPageV2(onBack:()->Unit){
             NmixFullscreenClock(
                 time=timeText(),
                 date=dateText()
-            ){fullscreen=false}
+            ){
+                fullscreen=false
+            }
         }
     }
 }
@@ -871,7 +1013,11 @@ private fun NmixSettingsGlyph(
     color:Color
 ){
     androidx.compose.foundation.Canvas(modifier){
-        val c=androidx.compose.ui.geometry.Offset(size.width/2f,size.height/2f)
+        val c=androidx.compose.ui.geometry.Offset(
+            size.width/2f,
+            size.height/2f
+        )
+
         val outer=size.minDimension*.36f
         val inner=size.minDimension*.13f
         val stroke=size.minDimension*.075f
@@ -880,21 +1026,43 @@ private fun NmixSettingsGlyph(
             color=color,
             radius=outer*.68f,
             center=c,
-            style=androidx.compose.ui.graphics.drawscope.Stroke(width=stroke)
+            style=androidx.compose.ui.graphics.drawscope.Stroke(
+                width=stroke
+            )
         )
+
         drawCircle(
             color=color,
             radius=inner,
             center=c,
-            style=androidx.compose.ui.graphics.drawscope.Stroke(width=stroke)
+            style=androidx.compose.ui.graphics.drawscope.Stroke(
+                width=stroke
+            )
         )
 
         repeat(8){i->
             val angle=Math.toRadians(i*45.0-90.0)
-            val x1=c.x+kotlin.math.cos(angle).toFloat()*outer*.72f
-            val y1=c.y+kotlin.math.sin(angle).toFloat()*outer*.72f
-            val x2=c.x+kotlin.math.cos(angle).toFloat()*outer
-            val y2=c.y+kotlin.math.sin(angle).toFloat()*outer
+
+            val x1=
+                c.x+
+                    kotlin.math.cos(angle).toFloat()*
+                    outer*.72f
+
+            val y1=
+                c.y+
+                    kotlin.math.sin(angle).toFloat()*
+                    outer*.72f
+
+            val x2=
+                c.x+
+                    kotlin.math.cos(angle).toFloat()*
+                    outer
+
+            val y2=
+                c.y+
+                    kotlin.math.sin(angle).toFloat()*
+                    outer
+
             drawLine(
                 color=color,
                 start=androidx.compose.ui.geometry.Offset(x1,y1),
