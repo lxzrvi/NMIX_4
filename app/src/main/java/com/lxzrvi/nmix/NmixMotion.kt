@@ -2,8 +2,6 @@ package com.lxzrvi.nmix
 
 import androidx.compose.runtime.*
 import kotlinx.coroutines.isActive
-import kotlin.math.abs
-import kotlin.math.floor
 import kotlin.math.sin
 
 @Stable
@@ -28,15 +26,13 @@ data class NmixWorldMotion(
 )
 
 /*
- * Reflecting line:
+ * Reflects a continuously increasing value between
+ * -1 and +1.
  *
- * Input keeps travelling forward forever.
- * Output reflects between -1 and +1.
- *
- * The wall therefore exists in a much larger
- * imaginary world, not at the visible viewport.
+ * These boundaries belong to the huge imaginary
+ * world. They are NOT visible screen boundaries.
  */
-private fun nmixReflect(
+private fun nmixWorldReflect(
     value:Float
 ):Float{
     var p=value%4f
@@ -57,12 +53,6 @@ private fun nmixReflect(
     }
 }
 
-private fun nmixFrac(
-    value:Float
-):Float{
-    return value-floor(value)
-}
-
 @Composable
 fun rememberNmixWorldMotion(
     label:String="nmixWorld",
@@ -73,322 +63,225 @@ fun rememberNmixWorldMotion(
     val a=LocalNmixAppearance.current
 
     val count=
-        quantity.coerceIn(1,5)
+        quantity.coerceIn(
+            1,
+            5
+        )
 
     if(!a.animationEnabled){
-        return NmixWorldMotion(
-            List(count){index->
-                val homes=
-                    listOf(
-                        NmixWorldBody(
-                            -.48f,
-                            -.28f,
-                            -12f,
-                            1f
-                        ),
-                        NmixWorldBody(
-                            .44f,
-                            .31f,
-                            15f,
-                            .91f
-                        ),
-                        NmixWorldBody(
-                            .36f,
-                            -.39f,
-                            -21f,
-                            .83f
-                        ),
-                        NmixWorldBody(
-                            -.39f,
-                            .38f,
-                            24f,
-                            .87f
-                        ),
-                        NmixWorldBody(
-                            .04f,
-                            .03f,
-                            0f,
-                            .78f
-                        )
-                    )
+        val staticBodies=
+            listOf(
+                NmixWorldBody(
+                    x=-.52f,
+                    y=-.33f,
+                    rotation=-12f,
+                    pulse=1f
+                ),
+                NmixWorldBody(
+                    x=.49f,
+                    y=.36f,
+                    rotation=17f,
+                    pulse=.92f
+                ),
+                NmixWorldBody(
+                    x=.40f,
+                    y=-.43f,
+                    rotation=-23f,
+                    pulse=.84f
+                ),
+                NmixWorldBody(
+                    x=-.44f,
+                    y=.42f,
+                    rotation=27f,
+                    pulse=.88f
+                ),
+                NmixWorldBody(
+                    x=.03f,
+                    y=.04f,
+                    rotation=4f,
+                    pulse=.79f
+                )
+            )
 
-                homes[index]
-            }
+        return NmixWorldMotion(
+            staticBodies.take(count)
         )
     }
 
     /*
-     * phase is accumulated frame-by-frame instead of
-     * being tied to a remembered tween duration.
-     *
-     * Changing Animation Speed therefore changes the
-     * actual movement immediately without leaving and
-     * reopening the screen.
+     * Frame-driven phase means changing the speed
+     * slider changes motion immediately.
      */
     var phase by remember(label){
         mutableFloatStateOf(0f)
     }
 
-    var lastFrame by remember(label){
+    var previousFrame by remember(label){
         mutableLongStateOf(0L)
     }
 
-    val speed by rememberUpdatedState(
-        a.animationSpeed.coerceIn(
-            .45f,
-            2.20f
+    val liveSpeed by
+        rememberUpdatedState(
+            a.animationSpeed
+                .coerceIn(
+                    .45f,
+                    2.20f
+                )
         )
-    )
 
-    val animation by rememberUpdatedState(
-        a.animation
-    )
+    val liveAnimation by
+        rememberUpdatedState(
+            a.animation
+        )
 
     LaunchedEffect(label){
         while(isActive){
-            withFrameNanos{frame->
-                if(lastFrame!=0L){
+            withFrameNanos{
+                frame->
+
+                if(previousFrame!=0L){
                     val delta=
                         (
                             frame-
-                                lastFrame
+                                previousFrame
                         )
                             .coerceAtMost(
                                 50_000_000L
-                            )/
+                            )
+                            .toFloat()/
                             1_000_000_000f
 
                     /*
-                     * One world crossing is deliberately
-                     * slow enough that the giant objects
-                     * feel heavy instead of vibrating.
+                     * Heavy, calm world movement.
                      */
                     phase+=
                         delta*
-                            speed*
-                            .34f
+                            liveSpeed*
+                            .32f
                 }
 
-                lastFrame=frame
+                previousFrame=frame
             }
         }
     }
 
     /*
-     * Each body owns a different straight trajectory.
-     * X and Y frequencies are intentionally unequal,
-     * so reflected wall hits send the visible path back
-     * at changing angles rather than retracing one line.
+     * Independent trajectories.
      *
-     * The world itself is several viewports larger.
-     * Rendering code applies the final world scale.
+     * No object-object collision logic exists here.
+     * Every body only reacts to its own imaginary
+     * world boundaries.
+     *
+     * Different X/Y velocities mean wall hits happen
+     * at different moments, making paths repeatedly
+     * return at different visible angles.
      */
-    val seeds=
-        listOf(
-            floatArrayOf(
-                .17f,
-                .43f,
-                .71f,
-                .28f,
-                .92f
-            ),
-            floatArrayOf(
-                .63f,
-                .12f,
-                .38f,
-                .84f,
-                .51f
-            ),
-            floatArrayOf(
-                .36f,
-                .79f,
-                .08f,
-                .57f,
-                .24f
-            ),
-            floatArrayOf(
-                .88f,
-                .31f,
-                .61f,
-                .05f,
-                .76f
-            ),
-            floatArrayOf(
-                .47f,
-                .94f,
-                .22f,
-                .68f,
-                .15f
-            )
+    val velocityX=
+        floatArrayOf(
+            1.00f,
+            -.81f,
+            .69f,
+            -.93f,
+            .61f
+        )
+
+    val velocityY=
+        floatArrayOf(
+            .63f,
+            .89f,
+            -.76f,
+            -.57f,
+            1.04f
+        )
+
+    val startX=
+        floatArrayOf(
+            .16f,
+            1.48f,
+            2.31f,
+            3.09f,
+            .82f
+        )
+
+    val startY=
+        floatArrayOf(
+            1.37f,
+            .24f,
+            2.83f,
+            1.94f,
+            3.42f
+        )
+
+    val rotationSeed=
+        floatArrayOf(
+            -14f,
+            19f,
+            -27f,
+            31f,
+            8f
+        )
+
+    val pulseSeed=
+        floatArrayOf(
+            .12f,
+            1.39f,
+            2.61f,
+            3.78f,
+            4.94f
         )
 
     val bodies=
-        List(count){index->
-            val seed=
-                seeds[index]
+        List(count){
+            index->
 
-            /*
-             * Large invisible-world velocity.
-             * Different irrational-looking ratios mean
-             * repeated wall reflection does not look
-             * like a simple left/right loop.
-             */
-            val vx=
-                when(index){
-                    0->1.00f
-                    1->-.83f
-                    2->.71f
-                    3->-.94f
-                    else->.62f
-                }
-
-            val vy=
-                when(index){
-                    0->.67f
-                    1->.91f
-                    2->-.78f
-                    3->-.59f
-                    else->1.07f
-                }
-
-            var worldX=
-                nmixReflect(
-                    (
-                        phase*vx+
-                            seed[0]*3.7f
-                    )
+            val x=
+                nmixWorldReflect(
+                    startX[index]+
+                        phase*
+                            velocityX[index]
                 )
 
-            var worldY=
-                nmixReflect(
-                    (
-                        phase*vy+
-                            seed[1]*3.7f
-                    )
+            val y=
+                nmixWorldReflect(
+                    startY[index]+
+                        phase*
+                            velocityY[index]
                 )
 
-            /*
-             * Visual collision response.
-             *
-             * Bodies share the same large world. When
-             * two projected paths come very close, each
-             * receives an opposite separation bend.
-             * It is deliberately visual rather than a
-             * heavyweight physics simulation.
-             */
-            if(count>1){
-                for(other in 0 until index){
-                    val otherSeed=
-                        seeds[other]
-
-                    val ovx=
-                        when(other){
-                            0->1.00f
-                            1->-.83f
-                            2->.71f
-                            3->-.94f
-                            else->.62f
-                        }
-
-                    val ovy=
-                        when(other){
-                            0->.67f
-                            1->.91f
-                            2->-.78f
-                            3->-.59f
-                            else->1.07f
-                        }
-
-                    val otherX=
-                        nmixReflect(
-                            phase*ovx+
-                                otherSeed[0]*3.7f
-                        )
-
-                    val otherY=
-                        nmixReflect(
-                            phase*ovy+
-                                otherSeed[1]*3.7f
-                        )
-
-                    val dx=
-                        worldX-otherX
-
-                    val dy=
-                        worldY-otherY
-
-                    val near=
-                        abs(dx)<.24f &&
-                            abs(dy)<.24f
-
-                    if(near){
-                        val push=
-                            (
-                                .24f-
-                                    maxOf(
-                                        abs(dx),
-                                        abs(dy)
-                                    )
-                            )
-                                .coerceAtLeast(0f)*
-                                .58f
-
-                        worldX+=
-                            if(dx>=0f)
-                                push
-                            else
-                                -push
-
-                        worldY+=
-                            if(dy>=0f)
-                                push*.72f
-                            else
-                                -push*.72f
-                    }
-                }
-            }
-
-            /*
-             * Do not clamp to viewport.
-             * Values slightly beyond the nominal world
-             * edge are useful during collision bends.
-             */
-            val spinDirection=
+            val direction=
                 if(index%2==0)
                     1f
                 else
                     -1f
 
             val rotation=
-                (
+                rotationSeed[index]+
                     phase*
                         (
-                            34f+
-                                index*7f
+                            28f+
+                                index*6f
                         )*
-                        spinDirection+
-                        seed[2]*120f
-                )%360f
+                        direction
 
-            val pulseBase=
-                when(animation){
+            val pulseAmount=
+                when(liveAnimation){
                     NmixAnimationName.DRIFT->
-                        .10f
+                        .105f
 
                     NmixAnimationName.ORBIT->
-                        .07f
+                        .075f
 
                     NmixAnimationName.FLOW->
                         .09f
 
                     NmixAnimationName.FLOAT->
-                        .045f
+                        .042f
 
                     NmixAnimationName.PULSE->
-                        .18f
+                        .16f
 
                     NmixAnimationName.CROSS->
-                        .06f
+                        .055f
                 }
 
             val pulse=
@@ -397,17 +290,17 @@ fun rememberNmixWorldMotion(
                         (
                             phase*
                                 (
-                                    2.1f+
-                                        index*.23f
+                                    2.0f+
+                                        index*.19f
                                 )+
-                                seed[3]*6.28f
+                                pulseSeed[index]
                         ).toDouble()
                     ).toFloat()*
-                    pulseBase
+                    pulseAmount
 
             NmixWorldBody(
-                x=worldX,
-                y=worldY,
+                x=x,
+                y=y,
                 rotation=rotation,
                 pulse=pulse
             )
@@ -419,10 +312,7 @@ fun rememberNmixWorldMotion(
 }
 
 /*
- * Compatibility engine.
- *
- * Older/current callers continue to compile while the
- * four visual surfaces use the richer world bodies.
+ * Compatibility for existing callers.
  */
 @Composable
 fun rememberNmixMotion(
@@ -445,19 +335,10 @@ fun rememberNmixMotion(
             quantity=3
         )
 
-    val first=
-        world.bodies[0]
-
-    val second=
-        world.bodies[1]
-
-    val third=
-        world.bodies[2]
-
     return NmixMotionValues(
-        x=first.x,
-        y=second.y,
-        z=third.x,
-        pulse=first.pulse
+        x=world.bodies[0].x,
+        y=world.bodies[1].y,
+        z=world.bodies[2].x,
+        pulse=world.bodies[0].pulse
     )
 }
