@@ -1,108 +1,76 @@
 <div align="center">
 
-<img src="assets/nmix-logo.png" width="120" alt="NMIX Logo">
+<img src="assets/nmix_banner.gif" width="100%" alt="NMIX">
 
 # NMIX
 
 ### EVERYTHING WITH NUMBERS
 
-A fluid, native Android toolkit for numbers, calculations and time.
+Native • Minimal • Fluid • Offline
 
-<br>
-
-![Android](https://img.shields.io/badge/Android-Native-3DDC84?style=for-the-badge&logo=android&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-Compose-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
-![Offline](https://img.shields.io/badge/OFFLINE-FIRST-319B79?style=for-the-badge)
-![License](https://img.shields.io/badge/©_2026-lxzrvi-111111?style=for-the-badge)
-
-<br>
-
-`CALCULATE` • `TIME` • `COUNT` • `CUSTOMIZE`
-
----
+[![Android](https://img.shields.io/badge/Android-Native-3DDC84?style=flat-square&logo=android&logoColor=white)](#)
+[![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](#)
 
 </div>
 
-## ✦ One app. Everything with numbers.
-
-NMIX is a native Android utility app designed around one simple idea:
-
-> Numbers should be useful, fast and beautiful.
-
-Calculator, Timer, Clock, Stopwatch and Counter live inside one minimal interface with fluid motion, customizable appearance and offline-first operation.
-
-No browser runtime.  
-No WebView.  
-No connection required for the core tools.
-
 ---
 
-## ◉ Tools
+## NMIX
 
-### Calculator
+NMIX is a native Android toolkit that brings useful number and time tools into one focused experience.
 
-Perform everyday calculations using a native keypad and a responsive Display.
+Built entirely with Kotlin and Jetpack Compose — no WebView, no web runtime.
 
-- Addition
-- Subtraction
-- Multiplication
-- Division
-- Remainder
-- Decimal input
-- Positive / negative values
-- Backspace
-- Clear
-- Up to ~18 characters
+### Tools
 
-The calculator fields dynamically rearrange as the main Display changes size.
+- Calculator
+- Timer
+- Live Clock
+- Fullscreen Clock
+- Stopwatch
+- Counter / Random Number
 
-### Timer
+### Customize
 
-A simple timer with live notification controls.
-
-`−5`  `+5`  `Reset`  `Stop`
-
-### Live Clock
-
-Local time directly inside the NMIX Display.
-
-### Fullscreen Clock
-
-Turn NMIX into a customizable fullscreen clock.
-
+- Light & Dark appearance
+- 6 accent themes + Custom Color
 - Multiple fonts
-- 20+ clock layouts
-- Custom clock colors
-- Hours / minutes / seconds controls
-- Date control
-- Custom wallpaper
-- Portrait / landscape rotation
-- Clean mode
-- Animated backgrounds
+- Soft / Medium / Hard haptics
+- Orb Drift & Box Float animations
+- Animation speed and quantity
+- Alternate launcher colors
+- Custom Fullscreen Clock wallpaper
+- 20+ Fullscreen Clock styles
 
-### Stopwatch
+### Highlights
 
-Start, pause and reset with persistent notification support.
-
-### Counter
-
-`Add` • `Minus` • `Reset` • `Random`
-
-Random values are generated from `1 – 1000`.
+- Free-resizable main Display
+- Responsive calculator fields
+- Giant-world background motion
+- Native Timer / Stopwatch notifications
+- Offline-first
+- Theme-aware interface
 
 ---
 
-## ✦ Fluid Display
+## Download
 
-The NMIX Display isn't a fixed panel.
+Get the latest APK from:
 
-Drag the four-dot grip to freely resize it.
+**[NMIX Releases →](../../releases/latest)**
 
-The calculator interface reacts to available space:
+---
 
-```text
-COMPACT
+## Built With
 
-[ 1 ][ ± ][ 2 ]        RESULT
-                        VALUE
-                        STATUS
+`Kotlin` • `Jetpack Compose` • `Android SDK` • `Gradle`
+
+---
+
+<div align="center">
+
+**NMIX • lxzrvi • © 2026**
+
+EVERYTHING WITH NUMBERS
+
+</div>
