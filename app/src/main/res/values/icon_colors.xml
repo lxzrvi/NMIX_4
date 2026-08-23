@@ -2,12 +2,13 @@
 <resources>
 
     <color name="nmix_icon_background">#319B79</color>
-
+    <color name="nmix_launch_background">#19493A</color>
+    
     <color name="nmix_icon_green">#319B79</color>
     <color name="nmix_icon_blue">#348BB8</color>
     <color name="nmix_icon_purple">#8A62C8</color>
     <color name="nmix_icon_orange">#D57D35</color>
     <color name="nmix_icon_rose">#C85878</color>
     <color name="nmix_icon_cyan">#26A6B5</color>
-
+    
 </resources>
