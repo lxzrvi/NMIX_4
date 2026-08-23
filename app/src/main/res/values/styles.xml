@@ -9,22 +9,18 @@
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowNoTitle">true</item>
 
-        <!-- Exact base color used by the NMIX launch surface -->
-        <item name="android:windowBackground">#19493A</item>
-        <item name="android:colorBackground">#19493A</item>
-
-        <item name="android:statusBarColor">#19493A</item>
-        <item name="android:navigationBarColor">#19493A</item>
+        <!-- Same exact first frame as Compose loading screen -->
+        <item name="android:windowBackground">@color/nmix_launch_background</item>
+        <item name="android:colorBackground">@color/nmix_launch_background</item>
+        <item name="android:statusBarColor">@color/nmix_launch_background</item>
+        <item name="android:navigationBarColor">@color/nmix_launch_background</item>
 
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
 
-        <!-- Keep Android startup preview opaque -->
         <item name="android:windowDisablePreview">false</item>
-
         <item name="android:windowIsTranslucent">false</item>
         <item name="android:windowIsFloating">false</item>
-
         <item name="android:windowAnimationStyle">@null</item>
 
     </style>
