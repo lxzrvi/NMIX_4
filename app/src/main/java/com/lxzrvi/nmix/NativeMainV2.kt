@@ -294,6 +294,7 @@ fun NativeMainPageV2(onBack:()->Unit){
     fun nearest(v:Float)=anchors.minByOrNull{abs(it.value-v)}?:medium
 
     var targetHeight by remember(config.screenHeightDp){
+    var targetHeight by remember(config.screenHeightDp){
         mutableStateOf(
             nearest(
                 prefs.getFloat("header_height",390f)
@@ -301,45 +302,70 @@ fun NativeMainPageV2(onBack:()->Unit){
             )
         )
     }
-    var liveHeight by remember(config.screenHeightDp){mutableStateOf(targetHeight)}
-    var dragging by remember{mutableStateOf(false)}
-
+    
+    var liveHeight by remember(config.screenHeightDp){
+        mutableStateOf(targetHeight)
+    }
+    
+    var dragging by remember{
+        mutableStateOf(false)
+    }
+    
+    val releaseHeight by animateDpAsState(
+        targetValue=targetHeight,
+        animationSpec=spring(
+            dampingRatio=1f,
+            stiffness=1250f
+        ),
+        label="displaySettle"
+    )
+    
     /*
-     * During drag no animation is inserted: liveHeight is the
-     * actual finger position. Only unsupported release positions
-     * settle softly to nearest S/M/L/EL.
+     * Finger down = direct raw height.
+     * Release only = fast nearest-anchor settle.
      */
-    val settledHeight by animateDpAsState(
-        targetValue=if(dragging)liveHeight else targetHeight,
-        animationSpec=if(dragging) snap()
-        else spring(dampingRatio=.92f,stiffness=720f),
-        label="displayHeight"
-    )
-
-    val visibleHeight by animateDpAsState(
-        if(top)settledHeight else 0.dp,
-        tween(270,easing=EaseInOutCubic),
-        label="headerCollapse"
-    )
-
-    val listTop by animateDpAsState(
-        if(top)settledHeight+16.dp else 112.dp,
-        tween(270,easing=EaseInOutCubic),
-        label="listPosition"
-    )
-
-    val normalized=((settledHeight.value-minHeight.value)/range).coerceIn(0f,1f)
+    val displayHeight=
+        if(dragging)liveHeight
+        else releaseHeight
+    
+    /*
+     * Do not animate height a second time while dragging.
+     */
+    val visibleHeight=
+        if(top)displayHeight
+        else 0.dp
+    
+    /*
+     * List follows Display directly too.
+     */
+    val listTop=
+        if(top)displayHeight+16.dp
+        else 112.dp
+    
+    val normalized=(
+        (displayHeight.value-minHeight.value)/range
+    ).coerceIn(0f,1f)
 
     /*
      * S and M stay mathematically flat.
      * Radius starts late between M -> L, reaches old 23dp at L,
      * then remains unchanged through EL.
      */
-    val radiusStart=.43f
-    val radiusEnd=.61f
-    val radiusLinear=((normalized-radiusStart)/(radiusEnd-radiusStart)).coerceIn(0f,1f)
-    val radiusProgress=radiusLinear*radiusLinear*(3f-2f*radiusLinear)
-    val shellRadius=(23f*radiusProgress).dp
+    val shellProgress=when{
+        normalized<=.27f->0f
+        normalized>=.61f->1f
+    
+        else->{
+            val t=(
+                (normalized-.27f)/.34f
+            ).coerceIn(0f,1f)
+    
+            t*t*(3f-2f*t)
+        }
+    }
+    
+    val shellRadius=
+        (23f*shellProgress).dp
 
     val headerShape=RoundedCornerShape(
         bottomStart=shellRadius,
@@ -615,35 +641,49 @@ fun NativeMainPageV2(onBack:()->Unit){
                 Box(
                     Modifier
                         .align(Alignment.BottomEnd)
-                        .offset(y=8.dp)
+                        .offset(y=6.5.dp)
                         .width(96.dp)
                         .height(32.dp)
                         .pointerInput(minHeight,maxHeight){
                             detectVerticalDragGestures(
                                 onDragStart={
+                                    liveHeight=displayHeight
                                     dragging=true
-                                    liveHeight=settledHeight
                                 },
                                 onVerticalDrag={change,dragAmount->
                                     change.consume()
-                                    val delta=with(density){dragAmount.toDp()}
-                                    liveHeight=(liveHeight+delta).coerceIn(minHeight,maxHeight)
+                                
+                                    val delta=with(density){
+                                        dragAmount.toDp()
+                                    }
+                                
+                                    liveHeight=(liveHeight+delta)
+                                        .coerceIn(
+                                            minHeight,
+                                            maxHeight
+                                        )
                                 },
                                 onDragEnd={
-                                    val destination=nearest(liveHeight.value)
-                                    dragging=false
+                                    val destination=
+                                        nearest(liveHeight.value)
+                                
                                     targetHeight=destination
+                                    dragging=false
+                                
                                     prefs.edit()
-                                        .putFloat("header_height",destination.value)
+                                        .putFloat(
+                                            "header_height",
+                                            destination.value
+                                        )
                                         .apply()
                                 },
                                 onDragCancel={
-                                    val destination=nearest(liveHeight.value)
-                                    dragging=false
+                                    val destination=
+                                        nearest(liveHeight.value)
+                                
                                     targetHeight=destination
-                                }
-                            )
-                        },
+                                    dragging=false
+                                },
                     contentAlignment=Alignment.BottomEnd
                 ){
                     Row(
