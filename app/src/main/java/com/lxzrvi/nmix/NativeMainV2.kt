@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -311,9 +312,9 @@ fun NativeMainPageV2(onBack:()->Unit){
         mutableStateOf(false)
     }
     
-    val releaseHeight by animateDpAsState(
+    val releaseHeight:Dp by animateDpAsState(
         targetValue=targetHeight,
-        animationSpec=spring(
+        animationSpec=spring<Dp>(
             dampingRatio=1f,
             stiffness=1250f
         ),
