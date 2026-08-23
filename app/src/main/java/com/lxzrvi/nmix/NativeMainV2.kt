@@ -312,14 +312,20 @@ fun NativeMainPageV2(onBack:()->Unit){
         mutableStateOf(false)
     }
     
-    val releaseHeight:Dp by animateDpAsState(
-        targetValue=targetHeight,
+    val releaseHeightState=animateDpAsState(
+    targetValue=targetHeight,
         animationSpec=spring<Dp>(
             dampingRatio=1f,
             stiffness=1250f
         ),
         label="displaySettle"
     )
+    
+    val releaseHeight=releaseHeightState.value
+    
+    val displayHeight=
+        if(dragging) liveHeight
+        else releaseHeight
     
     /*
      * Finger down = direct raw height.
