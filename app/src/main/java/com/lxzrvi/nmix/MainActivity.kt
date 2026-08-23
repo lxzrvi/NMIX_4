@@ -489,7 +489,7 @@ private fun LandingScreen(
 
                             putExtra(
                                 Intent.EXTRA_TEXT,
-                                "NMIX — EVERYTHING WITH NUMBERS\nhttps://lxzrvi.github.io/NMIX/"
+                                "https://github.com/lxzrvi/NMIX"
                             )
                         },
                         "Share NMIX"
@@ -823,7 +823,7 @@ private fun LandingInfo(){
             MiniLink("Web"){
                 openUrl(
                     context,
-                    "https://lxzrvi.github.io/NMIX/"
+                    "https://lxzrvi.github.io/NMIX_Web_Trial/"
                 )
             }
 
@@ -832,7 +832,7 @@ private fun LandingInfo(){
             MiniLink("GitHub"){
                 openUrl(
                     context,
-                    "https://github.com/lxzrvi"
+                    "https://github.com/lxzrvi/NMIX"
                 )
             }
         }
