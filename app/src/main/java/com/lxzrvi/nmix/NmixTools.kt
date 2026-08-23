@@ -1080,33 +1080,96 @@ private fun AppIconSettings(
                     "Icon Color",
                     color=ui.text,
                     fontSize=10.sp,
-                    fontWeight=FontWeight.SemiBold,
-                    fontFamily=a.fontFamily
-                )
+@Composable
+private fun AppIconSettings(
+    applying:Boolean,
+    localApplying:Boolean,
+    countdown:Int,
+    beginApply:()->Unit
+){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+    val ui=a.uiColors()
+    val shape=RoundedCornerShape(16.dp)
 
-                Spacer(Modifier.height(7.dp))
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(
+                if(a.darkMode)
+                    Color(0xFF151A18).copy(alpha=.82f)
+                else
+                    Color.White.copy(alpha=.90f)
+            )
+            .background(p.accent.copy(alpha=.018f))
+            .border(
+                .45.dp,
+                p.accent.copy(
+                    alpha=if(a.darkMode).15f else .22f
+                ),
+                shape
+            )
+            .padding(11.dp)
+    ){
+        Text(
+            "APP ICON",
+            color=p.accent,
+            fontSize=8.sp,
+            fontWeight=FontWeight.Bold,
+            letterSpacing=1.sp,
+            fontFamily=a.fontFamily
+        )
 
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement=Arrangement.spacedBy(6.dp)
+        /*
+         * Refresh/countdown now appears ABOVE toggle.
+         */
+        AnimatedVisibility(localApplying && countdown>=0){
+            Column{
+                Spacer(Modifier.height(8.dp))
+                IconCountdown(countdown)
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        SettingsToggleRow(
+            "Set App Icon",
+            if(a.appIconEnabled)
+                "Alternate NMIX icon active"
+            else
+                "Use default app icon",
+            a.appIconEnabled
+        ){
+            if(!applying){
+                a.setAppIconEnabled(!a.appIconEnabled)
+                beginApply()
+            }
+        }
+
+        AnimatedVisibility(a.appIconEnabled){
+            Column{
+                Spacer(Modifier.height(9.dp))
+
+                SettingsToggleRow(
+                    "Follow Theme",
+                    if(a.iconFollowTheme)
+                        "Ask when preset color changes"
+                    else
+                        "Manual icon color",
+                    a.iconFollowTheme
                 ){
-                    NmixThemeName.values().forEach{theme->
-                        IconColorChoice(
-                            theme=theme,
-                            selected=a.iconTheme==theme,
-                            enabled=!applying,
-                            modifier=Modifier.weight(1f)
-                        ){
-                            a.setIconTheme(theme)
-                            beginApply()
-                        }
+                    if(!applying){
+                        a.setIconFollowTheme(
+                            !a.iconFollowTheme
+                        )
                     }
                 }
 
                 Spacer(Modifier.height(10.dp))
 
                 Text(
-                    "Icon Style",
+                    "Icon Color",
                     color=ui.text,
                     fontSize=10.sp,
                     fontWeight=FontWeight.SemiBold,
@@ -1117,26 +1180,24 @@ private fun AppIconSettings(
 
                 Row(
                     Modifier.fillMaxWidth(),
-                    horizontalArrangement=Arrangement.spacedBy(7.dp)
+                    horizontalArrangement=
+                        Arrangement.spacedBy(6.dp)
                 ){
-                    IconStyleChoice(
-                        "Adaptive",
-                        a.iconStyle==NmixIconStyle.ADAPTIVE,
-                        !applying,
-                        Modifier.weight(1f)
-                    ){
-                        a.setIconStyle(NmixIconStyle.ADAPTIVE)
-                        beginApply()
-                    }
-
-                    IconStyleChoice(
-                        "Round",
-                        a.iconStyle==NmixIconStyle.ROUND,
-                        !applying,
-                        Modifier.weight(1f)
-                    ){
-                        a.setIconStyle(NmixIconStyle.ROUND)
-                        beginApply()
+                    NmixThemeName.values().forEach{theme->
+                        IconColorChoice(
+                            theme=theme,
+                            selected=a.iconTheme==theme,
+                            enabled=!applying,
+                            modifier=Modifier.weight(1f)
+                        ){
+                            /*
+                             * Preserve whichever icon style is
+                             * already persisted internally.
+                             * Style is simply no longer exposed.
+                             */
+                            a.setIconTheme(theme)
+                            beginApply()
+                        }
                     }
                 }
             }
@@ -1228,52 +1289,6 @@ private fun IconColorChoice(
                 onClick=onClick
             )
     )
-}
-
-@Composable
-private fun IconStyleChoice(
-    text:String,
-    selected:Boolean,
-    enabled:Boolean,
-    modifier:Modifier,
-    onClick:()->Unit
-){
-    val a=LocalNmixAppearance.current
-    val p=a.palette
-    val ui=a.uiColors()
-    val shape=RoundedCornerShape(11.dp)
-
-    Box(
-        modifier
-            .height(38.dp)
-            .clip(shape)
-            .background(
-                if(a.darkMode)
-                    Color(0xFF121715).copy(alpha=.88f)
-                else Color.White.copy(alpha=.90f)
-            )
-            .background(p.accent.copy(alpha=if(selected).07f else .018f))
-            .border(
-                if(selected)1.dp else .4.dp,
-                p.accent.copy(alpha=if(selected).58f else .16f),
-                shape
-            )
-            .clickable(
-                enabled=enabled,
-                interactionSource=remember{MutableInteractionSource()},
-                indication=null,
-                onClick=onClick
-            ),
-        contentAlignment=Alignment.Center
-    ){
-        Text(
-            text,
-            color=if(selected)p.accent else ui.text,
-            fontSize=9.sp,
-            fontWeight=FontWeight.SemiBold,
-            fontFamily=a.fontFamily
-        )
-    }
 }
 
 /* ==================================================
