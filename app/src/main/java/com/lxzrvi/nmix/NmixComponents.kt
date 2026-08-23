@@ -296,40 +296,108 @@ fun NmixDisplay(
          * M->L: fields travel to top and content continuously returns center.
          */
         if(calcVisible&&mToL<.92f){
-            val enterCenter=((mToL-.15f)/.77f).coerceIn(0f,1f)
+            val enterCenter=
+                ((mToL-.10f)/.82f)
+                    .coerceIn(0f,1f)
+        
+            /*
+             * S/M calculator fields own the left side.
+             * Main value owns the right side.
+             * Label/status disappear at the tightest height so
+             * "Enter your number" cannot collide with fields/value.
+             */
+            val detailsAlpha=
+                ((h-.10f)/.20f)
+                    .coerceIn(0f,1f)
+        
             Column(
                 Modifier
-                    .fillMaxWidth(mix(.64f,.78f,enterCenter))
+                    .fillMaxWidth(
+                        mix(.52f,.78f,enterCenter)
+                    )
                     .align(Alignment.CenterEnd)
-                    .padding(start=8.dp,end=10.dp)
-                    .graphicsLayer{translationY=-5f*enterCenter},
-                horizontalAlignment=Alignment.CenterHorizontally,
-                verticalArrangement=Arrangement.Center
+                    .padding(
+                        start=8.dp,
+                        end=10.dp
+                    )
+                    .graphicsLayer{
+                        translationY=
+                            -4f*enterCenter
+                    },
+                horizontalAlignment=
+                    Alignment.CenterHorizontally,
+                verticalArrangement=
+                    Arrangement.Center
             ){
                 Text(
                     label,
-                    color=if(a.darkMode)p.accentLight else p.accentDark,
-                    fontSize=mix(7.2f,8.7f,enterCenter).sp,
-                    fontWeight=FontWeight.Bold,letterSpacing=1.3.sp,
-                    fontFamily=a.fontFamily,maxLines=1
+                    Modifier.graphicsLayer{
+                        alpha=detailsAlpha
+                    },
+                    color=
+                        if(a.darkMode)
+                            p.accentLight
+                        else
+                            p.accentDark,
+                    fontSize=
+                        mix(
+                            6.8f,
+                            8.7f,
+                            enterCenter
+                        ).sp,
+                    fontWeight=FontWeight.Bold,
+                    letterSpacing=1.2.sp,
+                    fontFamily=a.fontFamily,
+                    maxLines=1
                 )
-                Spacer(Modifier.height(2.dp))
+        
+                if(detailsAlpha>.12f){
+                    Spacer(Modifier.height(2.dp))
+                }
+        
                 Text(
-                    value,color=displayText(),
-                    fontSize=mix(24f,34f,enterCenter).sp,
-                    fontWeight=FontWeight.SemiBold,fontFamily=a.fontFamily,
-                    maxLines=1,textAlign=TextAlign.Center
+                    value,
+                    color=displayText(),
+                    fontSize=
+                        mix(
+                            22f,
+                            34f,
+                            enterCenter
+                        ).sp,
+                    fontWeight=FontWeight.SemiBold,
+                    fontFamily=a.fontFamily,
+                    maxLines=1,
+                    textAlign=TextAlign.Center
                 )
-                Spacer(Modifier.height(2.dp))
+        
+                if(detailsAlpha>.12f){
+                    Spacer(Modifier.height(2.dp))
+                }
+        
                 Text(
                     status,
-                    color=if(a.darkMode)p.accentLight.copy(alpha=.72f) else p.accentDark.copy(alpha=.74f),
-                    fontSize=mix(6.7f,8.5f,enterCenter).sp,lineHeight=10.sp,
-                    fontWeight=FontWeight.Medium,fontFamily=a.fontFamily,
-                    textAlign=TextAlign.Center,maxLines=2
-                )
-            }
-        }else{
+                        Modifier.graphicsLayer{
+                            alpha=detailsAlpha
+                        },
+                        color=
+                            if(a.darkMode)
+                                p.accentLight.copy(alpha=.72f)
+                            else
+                                p.accentDark.copy(alpha=.74f),
+                        fontSize=
+                            mix(
+                                6.3f,
+                                8.5f,
+                                enterCenter
+                            ).sp,
+                        lineHeight=9.sp,
+                        fontWeight=FontWeight.Medium,
+                        fontFamily=a.fontFamily,
+                        textAlign=TextAlign.Center,
+                        maxLines=1
+                    )
+                }
+            }else{
             val topPadding=if(calcVisible)mix(72f,76f,lToEl).dp else 17.dp
 
             Text(
@@ -472,41 +540,73 @@ private fun CalculatorMorph(
         fun px(v:Float)=with(density){v.dp.toPx()}
 
         /* S: left vertical. */
-        val sLeft=px(5f)
-        val sWidth=w*.25f
-        val sOuter=px(5f)
-        val sGap=px(2f)
-        val sAvailable=(h-sOuter*2-sGap*2).coerceAtLeast(px(48f))
-        val sNumberH=sAvailable/2.78f
-        val sSignH=sNumberH*.78f
-        val sx=floatArrayOf(sLeft,sLeft,sLeft)
-        val sy=floatArrayOf(
-            sOuter,
-            sOuter+sNumberH+sGap,
-            sOuter+sNumberH+sGap+sSignH+sGap
-        )
-        val sw=floatArrayOf(sWidth,sWidth,sWidth)
-        val sh=floatArrayOf(sNumberH,sSignH,sNumberH)
-
         /*
-         * M: horizontal left group.
-         * This is an exact stable anchor, not an abandoned in-between layout.
+         * S + M are the same horizontal-left family.
+         * S is compact; M grows smoothly without changing topology.
          */
+        val sLeft=px(5f)
+        val sGap=px(2f)
+        val sTotal=w*.45f
+        val sSignW=sTotal*.22f
+        val sNumW=(sTotal-sSignW-sGap*2)/2f
+        val sHeight=(h-px(10f))
+            .coerceAtLeast(px(25f))
+        
+        val sx=floatArrayOf(
+            sLeft,
+            sLeft+sNumW+sGap,
+            sLeft+sNumW+sGap+sSignW+sGap
+        )
+        
+        val sy=floatArrayOf(
+            (h-sHeight)/2f,
+            (h-sHeight)/2f,
+            (h-sHeight)/2f
+        )
+        
+        val sw=floatArrayOf(
+            sNumW,
+            sSignW,
+            sNumW
+        )
+        
+        val sh=floatArrayOf(
+            sHeight,
+            sHeight,
+            sHeight
+        )
+        
         val mLeft=px(5f)
         val mGap=px(2.5f)
         val mTotal=w*.47f
         val mSignW=mTotal*.23f
         val mNumW=(mTotal-mSignW-mGap*2)/2f
-        val mY=px(5f)
-        val mHeight=(h-mY*2).coerceAtLeast(px(25f))
+        val mHeight=(h-px(10f))
+            .coerceAtLeast(px(25f))
+        
         val mx=floatArrayOf(
             mLeft,
             mLeft+mNumW+mGap,
             mLeft+mNumW+mGap+mSignW+mGap
         )
-        val my=floatArrayOf((h-mHeight)/2f,(h-mHeight)/2f,(h-mHeight)/2f)
-        val mw=floatArrayOf(mNumW,mSignW,mNumW)
-        val mh=floatArrayOf(mHeight,mHeight,mHeight)
+        
+        val my=floatArrayOf(
+            (h-mHeight)/2f,
+            (h-mHeight)/2f,
+            (h-mHeight)/2f
+        )
+        
+        val mw=floatArrayOf(
+            mNumW,
+            mSignW,
+            mNumW
+        )
+        
+        val mh=floatArrayOf(
+            mHeight,
+            mHeight,
+            mHeight
+        )
 
         /* L: full horizontal row at top. */
         val lOuter=px(12f)
@@ -591,34 +691,39 @@ private fun MorphField(
     val r=11f
 
     val shape=when(kind){
-        0->{
-            /*
-             * S: TL only
-             * M: strongly rounded left edge
-             * L: TL only
-             */
-            RoundedCornerShape(
-                topStart=mix(r,28f,sToM*(1f-mToL)).dp,
-                topEnd=0.dp,
-                bottomEnd=0.dp,
-                bottomStart=mix(0f,28f,sToM)*(1f-mToL).dp
-            )
-        }
-        1->RoundedCornerShape(0.dp)
-        else->{
-            /*
-             * S: BL only
-             * M: square
-             * L/EL: TR only
-             */
-            RoundedCornerShape(
-                topStart=0.dp,
-                topEnd=(r*mToL).dp,
-                bottomEnd=0.dp,
-                bottomStart=(r*(1f-sToM)*(1f-mToL)).dp
-            )
-        }
+    0->{
+        /*
+         * S/M: strong left-side rounding.
+         * L/EL: returns smoothly to top-left-only.
+         */
+        val leftRadius=
+            mix(24f,28f,sToM)
+
+        RoundedCornerShape(
+            topStart=
+                mix(leftRadius,r,mToL).dp,
+            topEnd=0.dp,
+            bottomEnd=0.dp,
+            bottomStart=
+                mix(leftRadius,0f,mToL).dp
+        )
     }
+
+    1->RoundedCornerShape(0.dp)
+
+    else->{
+        /*
+         * S/M: square right field.
+         * L/EL: top-right corner appears smoothly.
+         */
+        RoundedCornerShape(
+            topStart=0.dp,
+            topEnd=(r*mToL).dp,
+            bottomEnd=0.dp,
+            bottomStart=0.dp
+        )
+    }
+}
 
     Box(
         Modifier.fillMaxSize().clip(shape)
