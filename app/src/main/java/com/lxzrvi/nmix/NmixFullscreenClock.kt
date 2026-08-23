@@ -358,7 +358,7 @@ private fun ClockSelector(
     val shape=RoundedCornerShape(27.dp)
 
     Column(
-        Modifier.width(190.dp).height(52.dp).clip(shape)
+        Modifier.width(180.dp).height(48.dp).clip(shape)
             .background(
                 if(a.darkMode)Color(0xFF0D110F).copy(alpha=.97f)
                 else Color.White.copy(alpha=.97f)
@@ -386,7 +386,7 @@ private fun ClockSelector(
         horizontalAlignment=Alignment.CenterHorizontally
     ){
         Box(
-            Modifier.fillMaxWidth().height(20.dp),
+            Modifier.fillMaxWidth().height(18.dp),
             contentAlignment=Alignment.Center
         ){
             Text(
@@ -438,7 +438,7 @@ private fun BoxScope.SelectorValue(
     val t=selected.coerceIn(0f,1f)
 
     val travel=with(density){
-        61.dp.toPx()
+        58.dp.toPx()
     }
 
     Text(
