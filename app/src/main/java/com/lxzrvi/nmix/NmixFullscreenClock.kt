@@ -1,6 +1,7 @@
 package com.lxzrvi.nmix
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
@@ -48,12 +50,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
-import kotlin.math.roundToInt
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.ui.input.pointer.pointerInput
 
-private const val CLOCK_PREFS=
-    "nmix_fullscreen_clock"
+private const val CLOCK_PREFS="nmix_fullscreen_clock"
 
 private data class ClockParts(
     val hour:String,
@@ -62,44 +60,19 @@ private data class ClockParts(
     val period:String
 )
 
-private val clockStyles=
-    listOf(
-        "Digital",
-        "Minimal",
-        "Stack",
-        "Focus"
-    )
+private val clockStyles=listOf("Digital","Minimal","Stack","Focus")
+private val clockFonts=listOf("Inter","Nunito","Outfit","Poppins","Quicksand")
+private val clockColors=listOf("White","Green","Blue","Purple","Orange","Rose","Cyan")
 
-private val clockFonts=
-    listOf(
-        "Inter",
-        "Nunito",
-        "Outfit",
-        "Poppins",
-        "Quicksand"
-    )
-
-private val clockColors=
-    listOf(
-        "White",
-        "Green",
-        "Blue",
-        "Purple",
-        "Orange",
-        "Rose",
-        "Cyan"
-    )
-
-private val clockColorValues=
-    listOf(
-        Color.White,
-        Color(0xFF6CBBA1),
-        Color(0xFF71B4D8),
-        Color(0xFFB295DD),
-        Color(0xFFE4A16B),
-        Color(0xFFDC8AA2),
-        Color(0xFF68C6D0)
-    )
+private val clockColorValues=listOf(
+    Color.White,
+    Color(0xFF6CBBA1),
+    Color(0xFF71B4D8),
+    Color(0xFFB295DD),
+    Color(0xFFE4A16B),
+    Color(0xFFDC8AA2),
+    Color(0xFF68C6D0)
+)
 
 @Composable
 fun NmixFullscreenClock(
@@ -107,237 +80,127 @@ fun NmixFullscreenClock(
     date:String,
     onExit:()->Unit
 ){
-    val context=
-        LocalContext.current
+    val context=LocalContext.current
+    val activity=LocalActivity.current
+    val configuration=LocalConfiguration.current
+    val a=LocalNmixAppearance.current
+    val haptic=rememberNmixHapticAction()
 
-    val activity=
-        LocalActivity.current
-
-    val configuration=
-        LocalConfiguration.current
-
-    val a=
-        LocalNmixAppearance.current
-
-    val p=a.palette
-    val haptic=
-        rememberNmixHapticAction()
-
-    val prefs=
-        remember(context){
-            context.getSharedPreferences(
-                CLOCK_PREFS,
-                Context.MODE_PRIVATE
-            )
-        }
+    val prefs=remember(context){
+        context.getSharedPreferences(CLOCK_PREFS,Context.MODE_PRIVATE)
+    }
 
     val landscape=
-        configuration.orientation==
-            Configuration.ORIENTATION_LANDSCAPE
+        configuration.orientation==Configuration.ORIENTATION_LANDSCAPE
 
-    val originalOrientation=
-        remember(activity){
-            activity?.requestedOrientation
-                ?:ActivityInfo
-                    .SCREEN_ORIENTATION_UNSPECIFIED
-        }
+    val originalOrientation=remember(activity){
+        activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+    }
 
-    val initialFont=
-        when(a.font){
-            NmixFontName.INTER->0
-            NmixFontName.NUNITO->1
-            NmixFontName.OUTFIT->2
-            NmixFontName.POPPINS->3
-            NmixFontName.QUICKSAND->4
-        }
+    val initialFont=when(a.font){
+        NmixFontName.INTER->0
+        NmixFontName.NUNITO->1
+        NmixFontName.OUTFIT->2
+        NmixFontName.POPPINS->3
+        NmixFontName.QUICKSAND->4
+    }
 
     var fontIndex by remember{
         mutableIntStateOf(
-            prefs.getInt(
-                "font",
-                initialFont
-            ).coerceIn(
-                0,
-                clockFonts.lastIndex
-            )
+            prefs.getInt("font",initialFont)
+                .coerceIn(0,clockFonts.lastIndex)
         )
     }
 
     var styleIndex by remember{
         mutableIntStateOf(
-            prefs.getInt(
-                "style",
-                0
-            ).coerceIn(
-                0,
-                clockStyles.lastIndex
-            )
+            prefs.getInt("style",0)
+                .coerceIn(0,clockStyles.lastIndex)
         )
     }
 
     var colorIndex by remember{
         mutableIntStateOf(
-            prefs.getInt(
-                "text_color",
-                0
-            ).coerceIn(
-                0,
-                clockColors.lastIndex
-            )
+            prefs.getInt("text_color",0)
+                .coerceIn(0,clockColors.lastIndex)
         )
     }
 
     var showHours by remember{
-        mutableStateOf(
-            prefs.getBoolean(
-                "hours",
-                true
-            )
-        )
+        mutableStateOf(prefs.getBoolean("hours",true))
     }
 
     var showMinutes by remember{
-        mutableStateOf(
-            prefs.getBoolean(
-                "minutes",
-                true
-            )
-        )
+        mutableStateOf(prefs.getBoolean("minutes",true))
     }
 
     var showSeconds by remember{
-        mutableStateOf(
-            prefs.getBoolean(
-                "seconds",
-                true
-            )
-        )
+        mutableStateOf(prefs.getBoolean("seconds",true))
     }
 
     var showDate by remember{
-        mutableStateOf(
-            prefs.getBoolean(
-                "date",
-                true
-            )
-        )
+        mutableStateOf(prefs.getBoolean("date",true))
     }
 
-    var clean by remember{
-        mutableStateOf(false)
-    }
-
-    var displayOptions by remember{
-        mutableStateOf(false)
-    }
-
-    var wallpaperConsent by remember{
-        mutableStateOf(false)
-    }
+    var clean by remember{mutableStateOf(false)}
+    var displayOptions by remember{mutableStateOf(false)}
+    var wallpaperConsent by remember{mutableStateOf(false)}
 
     var customWallpaperString by remember{
-        mutableStateOf(
-            prefs.getString(
-                "custom_wallpaper",
-                null
-            )
-        )
+        mutableStateOf(prefs.getString("custom_wallpaper",null))
     }
 
-    val customWallpaper=
-        customWallpaperString
-            ?.let(Uri::parse)
+    val customWallpaper=customWallpaperString?.let(Uri::parse)
 
-    val font=
-        when(fontIndex){
-            1->NmixNunito
-            2->NmixOutfit
-            3->NmixPoppins
-            4->NmixQuicksand
-            else->NmixInter
-        }
+    val font=when(fontIndex){
+        1->NmixNunito
+        2->NmixOutfit
+        3->NmixPoppins
+        4->NmixQuicksand
+        else->NmixInter
+    }
 
-    val parts=
-        parseFullscreenTime(time)
+    val parts=parseFullscreenTime(time)
+    val clockTextColor=clockColorValues[
+        colorIndex.coerceIn(0,clockColorValues.lastIndex)
+    ]
 
-    val clockTextColor=
-        clockColorValues[
-            colorIndex.coerceIn(
-                0,
-                clockColorValues.lastIndex
-            )
-        ]
-
-    fun saveBoolean(
-        key:String,
-        value:Boolean
-    ){
-        prefs.edit()
-            .putBoolean(
-                key,
-                value
-            )
-            .apply()
+    fun saveBoolean(key:String,value:Boolean){
+        prefs.edit().putBoolean(key,value).apply()
     }
 
     fun exitFullscreen(){
-        activity?.requestedOrientation=
-            originalOrientation
-
+        activity?.requestedOrientation=originalOrientation
         onExit()
     }
 
-    val imagePicker=
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.GetContent()
-        ){uri->
-            if(uri!=null){
-                runCatching{
-                    context.contentResolver
-                        .takePersistableUriPermission(
-                            uri,
-                            IntentFlags.READ
-                        )
-                }
-
-                customWallpaperString=
-                    uri.toString()
-
-                prefs.edit()
-                    .putString(
-                        "custom_wallpaper",
-                        uri.toString()
-                    )
-                    .apply()
-            }
+    val imagePicker=rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ){uri->
+        if(uri!=null){
+            customWallpaperString=uri.toString()
+            prefs.edit()
+                .putString("custom_wallpaper",uri.toString())
+                .apply()
         }
-
-    BackHandler{
-        exitFullscreen()
     }
 
+    BackHandler{exitFullscreen()}
+
     DisposableEffect(activity){
-        val window=
-            activity?.window
+        val window=activity?.window
 
         if(window!=null){
-            WindowCompat
-                .setDecorFitsSystemWindows(
-                    window,
-                    false
-                )
+            WindowCompat.setDecorFitsSystemWindows(window,false)
 
             WindowInsetsControllerCompat(
                 window,
                 window.decorView
             ).apply{
                 hide(
-                    WindowInsetsCompat.Type
-                        .statusBars() or
-                        WindowInsetsCompat.Type
-                            .navigationBars()
+                    WindowInsetsCompat.Type.statusBars() or
+                        WindowInsetsCompat.Type.navigationBars()
                 )
-
                 systemBarsBehavior=
                     WindowInsetsControllerCompat
                         .BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -345,24 +208,16 @@ fun NmixFullscreenClock(
         }
 
         onDispose{
-            activity?.requestedOrientation=
-                originalOrientation
+            activity?.requestedOrientation=originalOrientation
 
             if(window!=null){
-                WindowCompat
-                    .setDecorFitsSystemWindows(
-                        window,
-                        true
-                    )
-
+                WindowCompat.setDecorFitsSystemWindows(window,true)
                 WindowInsetsControllerCompat(
                     window,
                     window.decorView
                 ).show(
-                    WindowInsetsCompat.Type
-                        .statusBars() or
-                        WindowInsetsCompat.Type
-                            .navigationBars()
+                    WindowInsetsCompat.Type.statusBars() or
+                        WindowInsetsCompat.Type.navigationBars()
                 )
             }
         }
@@ -372,221 +227,135 @@ fun NmixFullscreenClock(
         Modifier
             .fillMaxSize()
             .background(
-                if(a.darkMode)
-                    Color(0xFF050807)
-                else
-                    Color(0xFFF8FAF9)
+                if(a.darkMode)Color(0xFF050807)
+                else Color(0xFFF8FAF9)
             )
             .clickable(
-                interactionSource=
-                    remember{
-                        MutableInteractionSource()
-                    },
+                interactionSource=remember{MutableInteractionSource()},
                 indication=null
             ){
                 when{
-                    wallpaperConsent->
-                        wallpaperConsent=false
-
-                    displayOptions->
-                        displayOptions=false
-
-                    clean->
-                        clean=false
+                    wallpaperConsent->wallpaperConsent=false
+                    displayOptions->displayOptions=false
+                    clean->clean=false
                 }
             }
     ){
         if(customWallpaper!=null){
-            FullscreenWallpaper(
-                customWallpaper
-            )
+            FullscreenWallpaper(customWallpaper)
 
             Box(
                 Modifier
                     .fillMaxSize()
                     .background(
                         if(a.darkMode)
-                            Color.Black.copy(
-                                alpha=.43f
-                            )
+                            Color.Black.copy(alpha=.43f)
                         else
-                            Color.White.copy(
-                                alpha=.68f
-                            )
+                            Color.White.copy(alpha=.68f)
                     )
             )
         }
 
-        FullscreenWorldBackground(
-            wallpaper=
-                customWallpaper!=null
-        )
+        FullscreenWorldBackground(customWallpaper!=null)
 
         AnimatedVisibility(
             visible=!clean,
-            modifier=
-                Modifier
-                    .align(
-                        Alignment.TopStart
-                    )
-                    .windowInsetsPadding(
-                        WindowInsets.safeDrawing
-                    )
+            modifier=Modifier
+                .align(Alignment.TopStart)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
         ){
             ClockBrand(
-                Modifier.padding(
-                    start=19.dp,
-                    top=17.dp
-                )
+                Modifier.padding(start=19.dp,top=17.dp)
             )
         }
 
         AnimatedVisibility(
             visible=!clean,
-            modifier=
-                Modifier
-                    .align(
-                        Alignment.TopEnd
-                    )
-                    .windowInsetsPadding(
-                        WindowInsets.safeDrawing
-                    )
+            modifier=Modifier
+                .align(Alignment.TopEnd)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
         ){
+            /*
+             * All three are physically the same size.
+             * FONT/STYLE keep accent selection.
+             * COLOR alone previews its selected clock color.
+             */
             if(landscape){
                 Row(
-                    Modifier.padding(
-                        top=14.dp,
-                        end=12.dp
-                    ),
-                    horizontalArrangement=
-                        Arrangement.spacedBy(4.dp)
+                    Modifier.padding(top=14.dp,end=10.dp),
+                    horizontalArrangement=Arrangement.spacedBy(5.dp)
                 ){
-                    DragSelector(
+                    ClockDragSelector(
                         title="FONT",
                         options=clockFonts,
                         selected=fontIndex,
-                        selectedColor=
-                            clockTextColor,
+                        centerColor=a.palette.accent,
                         font=font
                     ){
                         fontIndex=it
-
-                        prefs.edit()
-                            .putInt(
-                                "font",
-                                it
-                            )
-                            .apply()
+                        prefs.edit().putInt("font",it).apply()
                     }
 
-                    DragSelector(
+                    ClockDragSelector(
                         title="STYLE",
                         options=clockStyles,
                         selected=styleIndex,
-                        selectedColor=
-                            clockTextColor,
+                        centerColor=a.palette.accent,
                         font=font
                     ){
                         styleIndex=it
-
-                        prefs.edit()
-                            .putInt(
-                                "style",
-                                it
-                            )
-                            .apply()
+                        prefs.edit().putInt("style",it).apply()
                     }
 
-                    DragSelector(
+                    ClockDragSelector(
                         title="COLOR",
                         options=clockColors,
                         selected=colorIndex,
-                        selectedColor=
-                            clockColorValues[itSafe(
-                                colorIndex,
-                                clockColorValues.size
-                            )],
-                        font=font
+                        centerColor=clockTextColor,
+                        font=font,
+                        colorSelector=true
                     ){
                         colorIndex=it
-
-                        prefs.edit()
-                            .putInt(
-                                "text_color",
-                                it
-                            )
-                            .apply()
+                        prefs.edit().putInt("text_color",it).apply()
                     }
                 }
             }else{
                 Column(
-                    Modifier.padding(
-                        top=14.dp,
-                        end=8.dp
-                    ),
-                    verticalArrangement=
-                        Arrangement.spacedBy(3.dp)
+                    Modifier.padding(top=14.dp,end=8.dp),
+                    verticalArrangement=Arrangement.spacedBy(5.dp)
                 ){
-                    DragSelector(
-                        title="FONT",
-                        options=clockFonts,
-                        selected=fontIndex,
-                        selectedColor=
-                            clockTextColor,
-                        font=font,
-                        compact=true
+                    ClockDragSelector(
+                        "FONT",
+                        clockFonts,
+                        fontIndex,
+                        a.palette.accent,
+                        font
                     ){
                         fontIndex=it
-
-                        prefs.edit()
-                            .putInt(
-                                "font",
-                                it
-                            )
-                            .apply()
+                        prefs.edit().putInt("font",it).apply()
                     }
 
-                    DragSelector(
-                        title="STYLE",
-                        options=clockStyles,
-                        selected=styleIndex,
-                        selectedColor=
-                            clockTextColor,
-                        font=font,
-                        compact=true
+                    ClockDragSelector(
+                        "STYLE",
+                        clockStyles,
+                        styleIndex,
+                        a.palette.accent,
+                        font
                     ){
                         styleIndex=it
-
-                        prefs.edit()
-                            .putInt(
-                                "style",
-                                it
-                            )
-                            .apply()
+                        prefs.edit().putInt("style",it).apply()
                     }
 
-                    DragSelector(
-                        title="COLOR",
-                        options=clockColors,
-                        selected=colorIndex,
-                        selectedColor=
-                            clockColorValues[
-                                itSafe(
-                                    colorIndex,
-                                    clockColorValues.size
-                                )
-                            ],
-                        font=font,
-                        compact=true
+                    ClockDragSelector(
+                        "COLOR",
+                        clockColors,
+                        colorIndex,
+                        clockTextColor,
+                        font,
+                        colorSelector=true
                     ){
                         colorIndex=it
-
-                        prefs.edit()
-                            .putInt(
-                                "text_color",
-                                it
-                            )
-                            .apply()
+                        prefs.edit().putInt("text_color",it).apply()
                     }
                 }
             }
@@ -595,43 +364,19 @@ fun NmixFullscreenClock(
         Box(
             Modifier
                 .align(Alignment.Center)
-                .fillMaxWidth(
-                    if(landscape)
-                        .90f
-                    else
-                        .95f
-                )
-                .height(
-                    if(landscape)
-                        330.dp
-                    else
-                        370.dp
-                ),
-            contentAlignment=
-                Alignment.Center
+                .fillMaxWidth(if(landscape).90f else .95f)
+                .height(if(landscape)330.dp else 370.dp),
+            contentAlignment=Alignment.Center
         ){
             AnimatedContent(
                 targetState=styleIndex,
                 transitionSpec={
                     (
-                        fadeIn(
-                            tween(
-                                260,
-                                easing=EaseOutCubic
-                            )
-                        )+
-                        scaleIn(
-                            initialScale=.985f,
-                            animationSpec=
-                                tween(280)
-                        )
+                        fadeIn(tween(260,easing=EaseOutCubic))+
+                            scaleIn(.985f,tween(280))
                     ) togetherWith (
-                        fadeOut(
-                            tween(180)
-                        )+
-                        scaleOut(
-                            targetScale=1.008f
-                        )
+                        fadeOut(tween(180))+
+                            scaleOut(1.008f)
                     )
                 },
                 label="clockStyle"
@@ -646,97 +391,57 @@ fun NmixFullscreenClock(
                     showMinutes=showMinutes,
                     showSeconds=showSeconds,
                     showDate=showDate,
-                    clockColor=
-                        clockTextColor
+                    clockColor=clockTextColor
                 )
             }
 
             AnimatedVisibility(
                 visible=clean,
-                modifier=
-                    Modifier.align(
-                        Alignment.BottomCenter
-                    )
+                modifier=Modifier.align(Alignment.BottomCenter)
             ){
                 ClockBrand(
-                    Modifier.padding(
-                        bottom=7.dp
-                    ),
+                    Modifier.padding(bottom=7.dp),
                     centered=true
                 )
             }
         }
 
         AnimatedVisibility(
-            visible=
-                !clean &&
-                    displayOptions,
-            modifier=
-                Modifier
-                    .align(
-                        Alignment.BottomCenter
-                    )
-                    .windowInsetsPadding(
-                        WindowInsets.safeDrawing
-                    )
-                    .padding(
-                        bottom=75.dp
-                    ),
-            enter=
-                fadeIn(tween(180))+
-                    scaleIn(
-                        initialScale=.97f
-                    ),
-            exit=
-                fadeOut(tween(150))
+            visible=!clean && displayOptions,
+            modifier=Modifier
+                .align(Alignment.BottomCenter)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(bottom=77.dp),
+            enter=fadeIn(tween(180))+scaleIn(initialScale=.97f),
+            exit=fadeOut(tween(150))
         ){
             DisplayOptions(
-                hours=showHours,
-                minutes=showMinutes,
-                seconds=showSeconds,
-                date=showDate,
-
+                showHours,
+                showMinutes,
+                showSeconds,
+                showDate,
                 onHours={
                     haptic{
                         showHours=!showHours
-
-                        saveBoolean(
-                            "hours",
-                            showHours
-                        )
+                        saveBoolean("hours",showHours)
                     }
                 },
-
                 onMinutes={
                     haptic{
                         showMinutes=!showMinutes
-
-                        saveBoolean(
-                            "minutes",
-                            showMinutes
-                        )
+                        saveBoolean("minutes",showMinutes)
                     }
                 },
-
                 onSeconds={
                     haptic{
                         showSeconds=!showSeconds
-
-                        saveBoolean(
-                            "seconds",
-                            showSeconds
-                        )
+                        saveBoolean("seconds",showSeconds)
                     }
                 },
-
                 onDate={
                     haptic{
                         showDate=!showDate
-
-                        saveBoolean(
-                            "date",
-                            showDate
-                        )
+                        saveBoolean("date",showDate)
                     }
                 }
             )
@@ -744,34 +449,21 @@ fun NmixFullscreenClock(
 
         AnimatedVisibility(
             visible=!clean,
-            modifier=
-                Modifier
-                    .align(
-                        Alignment.BottomCenter
-                    )
-                    .windowInsetsPadding(
-                        WindowInsets.safeDrawing
-                    )
+            modifier=Modifier
+                .align(Alignment.BottomCenter)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
         ){
             Row(
-                Modifier.padding(
-                    start=8.dp,
-                    end=8.dp,
-                    bottom=16.dp
-                ),
-                horizontalArrangement=
-                    Arrangement.spacedBy(5.dp),
-                verticalAlignment=
-                    Alignment.CenterVertically
+                Modifier.padding(start=7.dp,end=7.dp,bottom=16.dp),
+                horizontalArrangement=Arrangement.spacedBy(5.dp),
+                verticalAlignment=Alignment.CenterVertically
             ){
                 ClockAction(
                     "Wallpaper",
                     NmixIcon.WALLPAPER,
                     font
                 ){
-                    haptic{
-                        wallpaperConsent=true
-                    }
+                    haptic{wallpaperConsent=true}
                 }
 
                 ClockAction(
@@ -782,11 +474,9 @@ fun NmixFullscreenClock(
                     haptic{
                         activity?.requestedOrientation=
                             if(landscape)
-                                ActivityInfo
-                                    .SCREEN_ORIENTATION_PORTRAIT
+                                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                             else
-                                ActivityInfo
-                                    .SCREEN_ORIENTATION_LANDSCAPE
+                                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                     }
                 }
 
@@ -796,10 +486,7 @@ fun NmixFullscreenClock(
                     font,
                     selected=displayOptions
                 ){
-                    haptic{
-                        displayOptions=
-                            !displayOptions
-                    }
+                    haptic{displayOptions=!displayOptions}
                 }
 
                 ClockAction(
@@ -819,75 +506,48 @@ fun NmixFullscreenClock(
                     font,
                     red=true
                 ){
-                    haptic{
-                        exitFullscreen()
-                    }
+                    haptic{exitFullscreen()}
                 }
             }
         }
 
         AnimatedVisibility(
             visible=wallpaperConsent,
-            modifier=
-                Modifier
-                    .align(
-                        Alignment.Center
-                    )
-                    .padding(20.dp),
-            enter=
-                fadeIn(tween(180))+
-                    scaleIn(
-                        initialScale=.97f
-                    ),
-            exit=
-                fadeOut(tween(140))
+            modifier=Modifier
+                .align(Alignment.Center)
+                .padding(20.dp),
+            enter=fadeIn(tween(180))+scaleIn(initialScale=.97f),
+            exit=fadeOut(tween(140))
         ){
             WallpaperDialog(
-                hasWallpaper=
-                    customWallpaper!=null,
-
-                onCancel={
-                    wallpaperConsent=false
-                },
-
+                hasWallpaper=customWallpaper!=null,
+                onCancel={wallpaperConsent=false},
                 onRemove={
                     customWallpaperString=null
-
-                    prefs.edit()
-                        .remove(
-                            "custom_wallpaper"
-                        )
-                        .apply()
-
+                    prefs.edit().remove("custom_wallpaper").apply()
                     wallpaperConsent=false
                 },
-
                 onChoose={
                     wallpaperConsent=false
-
-                    imagePicker.launch(
-                        "image/*"
-                    )
+                    imagePicker.launch("image/*")
                 }
             )
         }
     }
 }
 
-/*
- * ==================================================
- * DRAG SELECTOR
- * ==================================================
- */
+/* ==================================================
+ * FINGER-FOLLOW CAROUSEL
+ * ================================================== */
 
 @Composable
-private fun DragSelector(
+private fun ClockDragSelector(
     title:String,
     options:List<String>,
     selected:Int,
-    selectedColor:Color,
+    centerColor:Color,
     font:FontFamily,
-    compact:Boolean=false,
+    colorSelector:Boolean=false,
     onSelect:(Int)->Unit
 ){
     val a=LocalNmixAppearance.current
@@ -895,163 +555,77 @@ private fun DragSelector(
     val ui=a.uiColors()
     val haptic=rememberNmixHapticAction()
 
-    var widthPx by remember{
-        mutableIntStateOf(1)
+    var widthPx by remember{mutableIntStateOf(1)}
+    var dragPx by remember{mutableFloatStateOf(0f)}
+
+    val safe=selected.coerceIn(0,options.lastIndex)
+
+    fun index(delta:Int):Int{
+        var value=(safe+delta)%options.size
+        if(value<0)value+=options.size
+        return value
     }
 
-    var dragPx by remember{
-        mutableFloatStateOf(0f)
-    }
+    val previous=index(-1)
+    val next=index(1)
+    val threshold=(widthPx*.23f).coerceAtLeast(1f)
 
-    val safe=
-        selected.coerceIn(
-            0,
-            options.lastIndex
-        )
+    val visual=(dragPx/threshold).coerceIn(-1f,1f)
 
-    fun indexAt(delta:Int):Int{
-        var result=
-            (safe+delta)%
-                options.size
-
-        if(result<0){
-            result+=options.size
-        }
-
-        return result
-    }
-
-    val threshold=
-        widthPx*
-            .22f
-
-    val visual=
-        if(threshold<=0f)
-            0f
-        else
-            (
-                dragPx/
-                    threshold
-            ).coerceIn(
-                -1f,
-                1f
-            )
-
-    val previous=
-        indexAt(-1)
-
-    val next=
-        indexAt(1)
-
-    val shape=
-        RoundedCornerShape(13.dp)
-
-    val boxWidth=
-        if(compact)
-            155.dp
-        else
-            158.dp
+    val shape=RoundedCornerShape(50)
 
     Column(
         Modifier
-            .width(boxWidth)
-            .height(48.dp)
+            .width(162.dp)
+            .height(52.dp)
             .clip(shape)
             .background(
                 if(a.darkMode)
-                    Color(0xFF131816)
-                        .copy(alpha=.93f)
+                    Color(0xFF131816).copy(alpha=.94f)
                 else
-                    Color.White
-                        .copy(alpha=.94f)
+                    Color.White.copy(alpha=.95f)
             )
             .background(
-                p.accent.copy(
-                    alpha=
-                        if(a.darkMode)
-                            .025f
-                        else
-                            .016f
-                )
+                p.accent.copy(alpha=if(a.darkMode).027f else .018f)
             )
             .border(
-                .4.dp,
-                p.accent.copy(
-                    alpha=
-                        if(a.darkMode)
-                            .14f
-                        else
-                            .21f
-                ),
+                .55.dp,
+                p.accent.copy(alpha=if(a.darkMode).18f else .27f),
                 shape
             )
-            .onSizeChanged{
-                widthPx=
-                    it.width.coerceAtLeast(1)
-            }
-            .pointerInput(
-                safe,
-                widthPx,
-                options.size
-            ){
+            .onSizeChanged{widthPx=it.width.coerceAtLeast(1)}
+            .pointerInput(safe,widthPx,options.size){
                 detectHorizontalDragGestures(
-                    onDragStart={
-                        dragPx=0f
+                    onDragStart={dragPx=0f},
+                    onHorizontalDrag={_,amount->
+                        dragPx=(dragPx+amount).coerceIn(
+                            -threshold*1.18f,
+                            threshold*1.18f
+                        )
                     },
-
-                    onHorizontalDrag={
-                        change,
-                        amount->
-
-                        change.consume()
-
-                        dragPx=
-                            (
-                                dragPx+
-                                    amount
-                            ).coerceIn(
-                                -threshold*1.18f,
-                                threshold*1.18f
-                            )
-                    },
-
                     onDragEnd={
                         when{
-                            dragPx<=
-                                -threshold*.62f->{
-                                haptic{
-                                    onSelect(next)
-                                }
-                            }
+                            dragPx<=-threshold*.58f->
+                                haptic{onSelect(next)}
 
-                            dragPx>=
-                                threshold*.62f->{
-                                haptic{
-                                    onSelect(previous)
-                                }
-                            }
+                            dragPx>=threshold*.58f->
+                                haptic{onSelect(previous)}
                         }
-
                         dragPx=0f
                     },
-
-                    onDragCancel={
-                        dragPx=0f
-                    }
+                    onDragCancel={dragPx=0f}
                 )
             },
-        horizontalAlignment=
-            Alignment.CenterHorizontally
+        horizontalAlignment=Alignment.CenterHorizontally
     ){
         Text(
             title,
             color=p.accent,
-            fontSize=6.4.sp,
+            fontSize=7.3.sp,
             fontWeight=FontWeight.Bold,
-            letterSpacing=.7.sp,
+            letterSpacing=.8.sp,
             fontFamily=a.fontFamily,
-            modifier=
-                Modifier.padding(top=3.dp)
+            modifier=Modifier.padding(top=4.dp)
         )
 
         Box(
@@ -1060,58 +634,50 @@ private fun DragSelector(
                 .weight(1f)
                 .clip(
                     RoundedCornerShape(
-                        bottomStart=13.dp,
-                        bottomEnd=13.dp
+                        bottomStart=50.dp,
+                        bottomEnd=50.dp
                     )
                 )
         ){
-            /*
-             * Finger directly moves the three labels.
-             * Side text becoming center simultaneously
-             * inherits center scale/weight/color.
-             */
-            SelectorMovingText(
-                text=
-                    options[previous],
-                position=
-                    -1f+visual,
-                selectedAmount=
-                    (visual)
-                        .coerceIn(
-                            0f,
-                            1f
-                        ),
-                color=
-                    selectedColor,
+            val previousSelected=visual.coerceIn(0f,1f)
+            val currentSelected=(1f-abs(visual)).coerceIn(0f,1f)
+            val nextSelected=(-visual).coerceIn(0f,1f)
+
+            SelectorText(
+                text=options[previous],
+                position=-1f+visual,
+                selectedAmount=previousSelected,
+                selectedColor=
+                    if(colorSelector)
+                        clockColorValues[previous]
+                    else
+                        centerColor,
                 muted=ui.muted,
                 font=font
             )
 
-            SelectorMovingText(
-                text=
-                    options[safe],
+            SelectorText(
+                text=options[safe],
                 position=visual,
-                selectedAmount=
-                    1f-abs(visual),
-                color=
-                    selectedColor,
+                selectedAmount=currentSelected,
+                selectedColor=
+                    if(colorSelector)
+                        clockColorValues[safe]
+                    else
+                        centerColor,
                 muted=ui.muted,
                 font=font
             )
 
-            SelectorMovingText(
-                text=
-                    options[next],
-                position=
-                    1f+visual,
-                selectedAmount=
-                    (-visual)
-                        .coerceIn(
-                            0f,
-                            1f
-                        ),
-                color=
-                    selectedColor,
+            SelectorText(
+                text=options[next],
+                position=1f+visual,
+                selectedAmount=nextSelected,
+                selectedColor=
+                    if(colorSelector)
+                        clockColorValues[next]
+                    else
+                        centerColor,
                 muted=ui.muted,
                 font=font
             )
@@ -1120,70 +686,48 @@ private fun DragSelector(
 }
 
 @Composable
-private fun BoxScope.SelectorMovingText(
+private fun BoxScope.SelectorText(
     text:String,
     position:Float,
     selectedAmount:Float,
-    color:Color,
+    selectedColor:Color,
     muted:Color,
     font:FontFamily
 ){
-    val amount=
-        selectedAmount.coerceIn(
-            0f,
-            1f
-        )
+    val amount=selectedAmount.coerceIn(0f,1f)
 
     Text(
         text,
-        modifier=
-            Modifier
-                .align(
-                    Alignment.Center
-                )
-                .graphicsLayer{
-                    translationX=
-                        position*
-                            54f
-
-                    scaleX=
-                        .84f+
-                            amount*.16f
-
-                    scaleY=
-                        .84f+
-                            amount*.16f
-                },
-        color=
-            lerpClockColor(
-                muted.copy(
-                    alpha=.62f
-                ),
-                color,
-                amount
-            ),
-        fontSize=
-            (
-                7.2f+
-                    amount*2.2f
-            ).sp,
+        Modifier
+            .align(Alignment.Center)
+            .graphicsLayer{
+                /*
+                 * More separation between side and
+                 * center labels while finger-follow
+                 * movement remains continuous.
+                 */
+                translationX=position*58f
+                scaleX=.88f+amount*.14f
+                scaleY=.88f+amount*.14f
+            },
+        color=lerpClockColor(
+            muted.copy(alpha=.72f),
+            selectedColor,
+            amount
+        ),
+        fontSize=(8.3f+amount*2.2f).sp,
         fontWeight=
-            if(amount>.55f)
-                FontWeight.Bold
-            else
-                FontWeight.Normal,
+            if(amount>.52f)FontWeight.Bold
+            else FontWeight.Medium,
         fontFamily=font,
         maxLines=1,
-        textAlign=
-            TextAlign.Center
+        textAlign=TextAlign.Center
     )
 }
 
-/*
- * ==================================================
- * WORLD BACKGROUND
- * ==================================================
- */
+/* ==================================================
+ * GIANT WORLD BACKGROUND
+ * ================================================== */
 
 @Composable
 private fun BoxScope.FullscreenWorldBackground(
@@ -1191,28 +735,18 @@ private fun BoxScope.FullscreenWorldBackground(
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
-
-    val world=
-        rememberNmixWorldMotion(
-            label="fullscreenWorld"
-        )
+    val world=rememberNmixWorldMotion("fullscreenWorld")
 
     if(!a.animationEnabled){
         Box(
             Modifier
-                .size(900.dp)
-                .align(
-                    Alignment.Center
-                )
+                .size(1000.dp)
+                .align(Alignment.Center)
                 .background(
                     Brush.radialGradient(
                         listOf(
                             p.accent.copy(
-                                alpha=
-                                    if(a.darkMode)
-                                        .18f
-                                    else
-                                        .13f
+                                alpha=if(a.darkMode).18f else .13f
                             ),
                             Color.Transparent
                         )
@@ -1220,210 +754,103 @@ private fun BoxScope.FullscreenWorldBackground(
                     CircleShape
                 )
         )
-
         return
     }
 
-    world.bodies.forEachIndexed{
-        index,
-        body->
-
-        val worldX=
-            body.x*
-                (
-                    760f+
-                        index*55f
-                )
-
-        val worldY=
-            body.y*
-                (
-                    650f+
-                        index*44f
-                )
-
-        val alphaMultiplier=
-            if(wallpaper)
-                .62f
-            else
-                1f
-
-        val soft=
-            a.animation!=
-                NmixAnimationName.FLOAT
+    world.bodies.forEachIndexed{index,body->
+        /*
+         * Much larger than the actual screen.
+         * Only imaginary world walls affect direction.
+         */
+        val worldX=body.x*(900f+index*66f)
+        val worldY=body.y*(760f+index*55f)
+        val alpha=if(wallpaper).58f else 1f
+        val soft=a.animation!=NmixAnimationName.FLOAT
 
         if(soft){
-            val elementSize=
-                when(index){
-                    0->1180.dp
-                    1->1010.dp
-                    2->880.dp
-                    3->940.dp
-                    else->790.dp
-                }
-
             Box(
                 Modifier
-                    .size(elementSize)
-                    .align(
-                        Alignment.Center
+                    .size(
+                        when(index){
+                            0->1480.dp
+                            1->1280.dp
+                            2->1110.dp
+                            3->1190.dp
+                            else->980.dp
+                        }
                     )
+                    .align(Alignment.Center)
                     .graphicsLayer{
-                        translationX=
-                            worldX
-
-                        translationY=
-                            worldY
-
-                        scaleX=
-                            body.pulse
-
-                        scaleY=
-                            body.pulse
+                        translationX=worldX
+                        translationY=worldY
+                        scaleX=body.pulse
+                        scaleY=body.pulse
                     }
                     .background(
                         Brush.radialGradient(
-                            colorStops=
-                                arrayOf(
-                                    0f to
-                                        (
-                                            if(index%2==0)
-                                                p.accent
-                                            else
-                                                p.accentLight
-                                        ).copy(
-                                            alpha=
-                                                (
-                                                    if(a.darkMode)
-                                                        .30f
-                                                    else
-                                                        .23f
-                                                )*
-                                                    alphaMultiplier
+                            colorStops=arrayOf(
+                                0f to
+                                    (if(index%2==0)p.accent else p.accentLight)
+                                        .copy(
+                                            alpha=(if(a.darkMode).31f else .24f)*alpha
                                         ),
-
-                                    .28f to
-                                        p.accent.copy(
-                                            alpha=
-                                                .17f*
-                                                    alphaMultiplier
-                                        ),
-
-                                    .56f to
-                                        p.accent.copy(
-                                            alpha=
-                                                .075f*
-                                                    alphaMultiplier
-                                        ),
-
-                                    .78f to
-                                        p.accent.copy(
-                                            alpha=
-                                                .021f*
-                                                    alphaMultiplier
-                                        ),
-
-                                    1f to
-                                        Color.Transparent
-                                )
+                                .28f to p.accent.copy(alpha=.17f*alpha),
+                                .56f to p.accent.copy(alpha=.075f*alpha),
+                                .78f to p.accent.copy(alpha=.020f*alpha),
+                                1f to Color.Transparent
+                            )
                         ),
                         CircleShape
                     )
             )
         }else{
-            val elementSize=
-                when(index){
-                    0->430.dp
-                    1->370.dp
-                    2->320.dp
-                    3->345.dp
-                    else->285.dp
-                }
+            val elementSize=when(index){
+                0->560.dp
+                1->485.dp
+                2->420.dp
+                3->455.dp
+                else->375.dp
+            }
 
             Canvas(
                 Modifier
                     .size(elementSize)
-                    .align(
-                        Alignment.Center
-                    )
+                    .align(Alignment.Center)
                     .graphicsLayer{
-                        translationX=
-                            worldX
-
-                        translationY=
-                            worldY
-
-                        rotationZ=
-                            body.rotation
-
-                        scaleX=
-                            body.pulse
-
-                        scaleY=
-                            body.pulse
+                        translationX=worldX
+                        translationY=worldY
+                        rotationZ=body.rotation
+                        scaleX=body.pulse
+                        scaleY=body.pulse
                     }
             ){
-                val color=
-                    if(index%2==0)
-                        p.accent
-                    else
-                        p.accentLight
-
-                val inset=
-                    12.dp.toPx()
+                val color=if(index%2==0)p.accent else p.accentLight
+                val inset=14.dp.toPx()
 
                 drawRoundRect(
-                    color=
-                        color.copy(
-                            alpha=
-                                .025f*
-                                    alphaMultiplier
-                        ),
-                    cornerRadius=
-                        CornerRadius(
-                            46.dp.toPx()
-                        )
+                    color=color.copy(alpha=.025f*alpha),
+                    cornerRadius=CornerRadius(55.dp.toPx())
                 )
 
                 drawRoundRect(
-                    color=
-                        color.copy(
-                            alpha=
-                                (
-                                    if(a.darkMode)
-                                        .14f
-                                    else
-                                        .105f
-                                )*
-                                    alphaMultiplier
-                        ),
-                    topLeft=
-                        Offset(
-                            inset,
-                            inset
-                        ),
-                    size=
-                        Size(
-                            size.width-
-                                inset*2,
-                            size.height-
-                                inset*2
-                        ),
-                    cornerRadius=
-                        CornerRadius(
-                            37.dp.toPx()
-                        )
+                    color=color.copy(
+                        alpha=(if(a.darkMode).145f else .11f)*alpha
+                    ),
+                    topLeft=Offset(inset,inset),
+                    size=Size(
+                        (size.width-inset*2).coerceAtLeast(0f),
+                        (size.height-inset*2).coerceAtLeast(0f)
+                    ),
+                    cornerRadius=CornerRadius(43.dp.toPx())
                 )
             }
         }
     }
 }
 
-/*
- * ==================================================
+/* ==================================================
  * CLOCK FACE
- * ==================================================
- */
+ * ================================================== */
 
 @Composable
 private fun FullscreenClockFace(
@@ -1438,345 +865,218 @@ private fun FullscreenClockFace(
     showDate:Boolean,
     clockColor:Color
 ){
-    val a=
-        LocalNmixAppearance.current
-
+    val a=LocalNmixAppearance.current
     val p=a.palette
 
-    val mainColor=
-        if(
-            a.darkMode &&
-            clockColor==
-                Color.White
-        )
-            Color.White.copy(
-                alpha=.94f
-            )
-        else if(
-            !a.darkMode &&
-            clockColor==
-                Color.White
-        )
-            Color(0xFF252A27)
-        else
-            clockColor
+    val mainColor=when{
+        clockColor!=Color.White->clockColor
+        a.darkMode->Color.White.copy(alpha=.94f)
+        else->Color(0xFF252A27)
+    }
 
     val secondary=
         if(clockColor==Color.White){
-            if(a.darkMode)
-                p.accentLight
-            else
-                p.accentDark
+            if(a.darkMode)p.accentLight else p.accentDark
         }else{
-            clockColor.copy(
-                alpha=.74f
-            )
+            clockColor.copy(alpha=.74f)
         }
 
-    val numeric=
-        buildList{
-            if(showHours){
-                add(parts.hour)
-            }
+    val numeric=buildList{
+        if(showHours)add(parts.hour)
+        if(showMinutes)add(parts.minute)
+        if(showSeconds)add(parts.second)
+    }.joinToString(":").ifEmpty{"--"}
 
-            if(showMinutes){
-                add(parts.minute)
-            }
-
-            if(showSeconds){
-                add(parts.second)
-            }
-        }.joinToString(":")
-
-    val safeNumeric=
-        numeric.ifEmpty{
-            "--"
-        }
-
+    /*
+     * period is never linked to showSeconds.
+     */
     when(style){
-        1->{
-            Column(
-                horizontalAlignment=
-                    Alignment.CenterHorizontally
-            ){
-                Text(
-                    safeNumeric,
-                    color=mainColor,
-                    fontSize=
-                        if(landscape)
-                            78.sp
-                        else
-                            55.sp,
-                    fontWeight=
-                        FontWeight.Bold,
-                    fontFamily=font,
-                    maxLines=1
-                )
+        1->Column(
+            horizontalAlignment=Alignment.CenterHorizontally
+        ){
+            Text(
+                numeric,
+                color=mainColor,
+                fontSize=if(landscape)78.sp else 55.sp,
+                fontWeight=FontWeight.Bold,
+                fontFamily=font,
+                maxLines=1
+            )
+            Text(
+                parts.period,
+                color=secondary,
+                fontSize=14.sp,
+                fontWeight=FontWeight.Bold,
+                fontFamily=font
+            )
 
-                /*
-                 * Never conditional on Seconds.
-                 */
+            if(showDate){
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    date,
+                    color=mainColor.copy(alpha=.64f),
+                    fontSize=11.sp,
+                    fontFamily=font
+                )
+            }
+        }
+
+        2->Row(
+            verticalAlignment=Alignment.CenterVertically,
+            horizontalArrangement=Arrangement.spacedBy(20.dp)
+        ){
+            Column{
+                if(showHours){
+                    Text(
+                        parts.hour,
+                        color=mainColor,
+                        fontSize=if(landscape)68.sp else 52.sp,
+                        fontWeight=FontWeight.Bold,
+                        fontFamily=font
+                    )
+                }
+
+                if(showMinutes){
+                    Text(
+                        parts.minute,
+                        color=secondary,
+                        fontSize=if(landscape)68.sp else 52.sp,
+                        fontWeight=FontWeight.Bold,
+                        fontFamily=font
+                    )
+                }
+            }
+
+            Column{
+                if(showSeconds){
+                    Text(
+                        parts.second,
+                        color=mainColor,
+                        fontSize=31.sp,
+                        fontWeight=FontWeight.Bold,
+                        fontFamily=font
+                    )
+                }
+
                 Text(
                     parts.period,
                     color=secondary,
                     fontSize=13.sp,
-                    fontWeight=
-                        FontWeight.Bold,
+                    fontWeight=FontWeight.Bold,
                     fontFamily=font
                 )
 
                 if(showDate){
-                    Spacer(
-                        Modifier.height(10.dp)
-                    )
-
+                    Spacer(Modifier.height(8.dp))
                     Text(
                         date,
-                        color=
-                            mainColor.copy(
-                                alpha=.64f
-                            ),
-                        fontSize=11.sp,
+                        color=mainColor.copy(alpha=.60f),
+                        fontSize=9.sp,
                         fontFamily=font
                     )
                 }
             }
         }
 
-        2->{
-            Row(
-                verticalAlignment=
-                    Alignment.CenterVertically,
-                horizontalArrangement=
-                    Arrangement.spacedBy(
-                        20.dp
-                    )
-            ){
-                Column{
-                    if(showHours){
-                        Text(
-                            parts.hour,
-                            color=mainColor,
-                            fontSize=
-                                if(landscape)
-                                    68.sp
-                                else
-                                    52.sp,
-                            fontWeight=
-                                FontWeight.Bold,
-                            fontFamily=font
-                        )
-                    }
+        3->Column(
+            horizontalAlignment=Alignment.CenterHorizontally
+        ){
+            Text(
+                "FOCUS",
+                color=secondary,
+                fontSize=9.sp,
+                fontWeight=FontWeight.Bold,
+                letterSpacing=3.5.sp,
+                fontFamily=font
+            )
 
-                    if(showMinutes){
-                        Text(
-                            parts.minute,
-                            color=secondary,
-                            fontSize=
-                                if(landscape)
-                                    68.sp
-                                else
-                                    52.sp,
-                            fontWeight=
-                                FontWeight.Bold,
-                            fontFamily=font
-                        )
-                    }
-                }
+            Spacer(Modifier.height(9.dp))
 
-                Column{
-                    if(showSeconds){
-                        Text(
-                            parts.second,
-                            color=mainColor,
-                            fontSize=31.sp,
-                            fontWeight=
-                                FontWeight.Bold,
-                            fontFamily=font
-                        )
-                    }
-
-                    Text(
-                        parts.period,
-                        color=secondary,
-                        fontSize=12.sp,
-                        fontWeight=
-                            FontWeight.Bold,
-                        fontFamily=font
-                    )
-
-                    if(showDate){
-                        Spacer(
-                            Modifier.height(8.dp)
-                        )
-
-                        Text(
-                            date,
-                            color=
-                                mainColor.copy(
-                                    alpha=.60f
-                                ),
-                            fontSize=9.sp,
-                            fontFamily=font
-                        )
-                    }
-                }
-            }
-        }
-
-        3->{
-            Column(
-                horizontalAlignment=
-                    Alignment.CenterHorizontally
-            ){
+            Row(verticalAlignment=Alignment.Bottom){
                 Text(
-                    "FOCUS",
-                    color=secondary,
-                    fontSize=9.sp,
-                    fontWeight=
-                        FontWeight.Bold,
-                    letterSpacing=3.5.sp,
-                    fontFamily=font
+                    numeric,
+                    color=mainColor,
+                    fontSize=if(landscape)82.sp else 57.sp,
+                    fontWeight=FontWeight.Bold,
+                    fontFamily=font,
+                    maxLines=1
                 )
 
-                Spacer(
-                    Modifier.height(9.dp)
-                )
+                Spacer(Modifier.width(7.dp))
 
-                Row(
-                    verticalAlignment=
-                        Alignment.Bottom
-                ){
-                    Text(
-                        safeNumeric,
-                        color=mainColor,
-                        fontSize=
-                            if(landscape)
-                                82.sp
-                            else
-                                57.sp,
-                        fontWeight=
-                            FontWeight.Bold,
-                        fontFamily=font,
-                        maxLines=1
-                    )
-
-                    Spacer(
-                        Modifier.width(7.dp)
-                    )
-
-                    Text(
-                        parts.period,
-                        color=secondary,
-                        fontSize=13.sp,
-                        fontWeight=
-                            FontWeight.Bold,
-                        fontFamily=font,
-                        modifier=
-                            Modifier.padding(
-                                bottom=8.dp
-                            )
-                    )
-                }
-
-                if(showDate){
-                    Spacer(
-                        Modifier.height(9.dp)
-                    )
-
-                    Text(
-                        date,
-                        color=
-                            mainColor.copy(
-                                alpha=.60f
-                            ),
-                        fontSize=10.sp,
-                        fontFamily=font
-                    )
-                }
-            }
-        }
-
-        else->{
-            Column(
-                horizontalAlignment=
-                    Alignment.CenterHorizontally
-            ){
                 Text(
-                    "NMIX • LOCAL TIME",
+                    parts.period,
                     color=secondary,
+                    fontSize=14.sp,
+                    fontWeight=FontWeight.Bold,
+                    fontFamily=font,
+                    modifier=Modifier.padding(bottom=8.dp)
+                )
+            }
+
+            if(showDate){
+                Spacer(Modifier.height(9.dp))
+                Text(
+                    date,
+                    color=mainColor.copy(alpha=.60f),
                     fontSize=10.sp,
-                    letterSpacing=1.9.sp,
-                    fontWeight=
-                        FontWeight.Bold,
                     fontFamily=font
                 )
+            }
+        }
 
-                Spacer(
-                    Modifier.height(12.dp)
+        else->Column(
+            horizontalAlignment=Alignment.CenterHorizontally
+        ){
+            Text(
+                "NMIX • LOCAL TIME",
+                color=secondary,
+                fontSize=10.sp,
+                letterSpacing=1.9.sp,
+                fontWeight=FontWeight.Bold,
+                fontFamily=font
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            Row(verticalAlignment=Alignment.Bottom){
+                Text(
+                    numeric,
+                    color=mainColor,
+                    fontSize=if(landscape)78.sp else 55.sp,
+                    fontWeight=FontWeight.Bold,
+                    fontFamily=font,
+                    maxLines=1
                 )
 
-                Row(
-                    verticalAlignment=
-                        Alignment.Bottom
-                ){
-                    Text(
-                        safeNumeric,
-                        color=mainColor,
-                        fontSize=
-                            if(landscape)
-                                78.sp
-                            else
-                                55.sp,
-                        fontWeight=
-                            FontWeight.Bold,
-                        fontFamily=font,
-                        maxLines=1
-                    )
+                Spacer(Modifier.width(8.dp))
 
-                    Spacer(
-                        Modifier.width(8.dp)
-                    )
+                Text(
+                    parts.period,
+                    color=secondary,
+                    fontSize=14.sp,
+                    fontWeight=FontWeight.Bold,
+                    fontFamily=font,
+                    modifier=Modifier.padding(bottom=8.dp)
+                )
+            }
 
-                    Text(
-                        parts.period,
-                        color=secondary,
-                        fontSize=13.sp,
-                        fontWeight=
-                            FontWeight.Bold,
-                        fontFamily=font,
-                        modifier=
-                            Modifier.padding(
-                                bottom=8.dp
-                            )
-                    )
-                }
-
-                if(showDate){
-                    Spacer(
-                        Modifier.height(10.dp)
-                    )
-
-                    Text(
-                        date,
-                        color=
-                            mainColor.copy(
-                                alpha=.67f
-                            ),
-                        fontSize=12.sp,
-                        fontFamily=font
-                    )
-                }
+            if(showDate){
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    date,
+                    color=mainColor.copy(alpha=.67f),
+                    fontSize=12.sp,
+                    fontFamily=font
+                )
             }
         }
     }
 }
 
-/*
- * ==================================================
+/* ==================================================
  * DISPLAY OPTIONS
- * ==================================================
- */
+ * ================================================== */
 
 @Composable
 private fun DisplayOptions(
@@ -1789,68 +1089,32 @@ private fun DisplayOptions(
     onSeconds:()->Unit,
     onDate:()->Unit
 ){
-    val a=
-        LocalNmixAppearance.current
-
+    val a=LocalNmixAppearance.current
     val p=a.palette
-
-    val shape=
-        RoundedCornerShape(16.dp)
+    val shape=RoundedCornerShape(50)
 
     Row(
         Modifier
             .clip(shape)
             .background(
                 if(a.darkMode)
-                    Color(0xFF141917)
-                        .copy(alpha=.95f)
+                    Color(0xFF141917).copy(alpha=.95f)
                 else
-                    Color.White
-                        .copy(alpha=.96f)
+                    Color.White.copy(alpha=.96f)
             )
-            .background(
-                p.accent.copy(
-                    alpha=.025f
-                )
-            )
+            .background(p.accent.copy(alpha=.025f))
             .border(
-                .45.dp,
-                p.accent.copy(
-                    alpha=
-                        if(a.darkMode)
-                            .16f
-                        else
-                            .24f
-                ),
+                .55.dp,
+                p.accent.copy(alpha=if(a.darkMode).18f else .27f),
                 shape
             )
-            .padding(9.dp),
-        horizontalArrangement=
-            Arrangement.spacedBy(6.dp)
+            .padding(8.dp),
+        horizontalArrangement=Arrangement.spacedBy(6.dp)
     ){
-        DisplayChoice(
-            "H",
-            hours,
-            onHours
-        )
-
-        DisplayChoice(
-            "M",
-            minutes,
-            onMinutes
-        )
-
-        DisplayChoice(
-            "S",
-            seconds,
-            onSeconds
-        )
-
-        DisplayChoice(
-            "D",
-            date,
-            onDate
-        )
+        DisplayChoice("H",hours,onHours)
+        DisplayChoice("M",minutes,onMinutes)
+        DisplayChoice("S",seconds,onSeconds)
+        DisplayChoice("D",date,onDate)
     }
 }
 
@@ -1860,83 +1124,55 @@ private fun DisplayChoice(
     selected:Boolean,
     onClick:()->Unit
 ){
-    val a=
-        LocalNmixAppearance.current
-
+    val a=LocalNmixAppearance.current
     val p=a.palette
     val ui=a.uiColors()
 
-    val progress by
-        animateFloatAsState(
-            targetValue=
-                if(selected)1f else 0f,
-            animationSpec=tween(190),
-            label="displayChoice"
-        )
+    val progress by animateFloatAsState(
+        if(selected)1f else 0f,
+        tween(190),
+        label="displayChoice"
+    )
 
-    val shape=
-        RoundedCornerShape(11.dp)
+    val shape=RoundedCornerShape(50)
 
     Box(
         Modifier
-            .size(38.dp)
+            .width(44.dp)
+            .height(39.dp)
             .clip(shape)
             .background(
-                if(a.darkMode)
-                    Color(0xFF111614)
-                else
-                    Color.White
+                if(a.darkMode)Color(0xFF111614)
+                else Color.White
             )
             .background(
-                p.accent.copy(
-                    alpha=
-                        .018f+
-                            progress*.055f
-                )
+                p.accent.copy(alpha=.018f+progress*.055f)
             )
             .border(
-                (
-                    .4f+
-                        progress*.6f
-                ).dp,
-                p.accent.copy(
-                    alpha=
-                        .15f+
-                            progress*.36f
-                ),
+                (.45f+progress*.6f).dp,
+                p.accent.copy(alpha=.16f+progress*.36f),
                 shape
             )
             .clickable(
-                interactionSource=
-                    remember{
-                        MutableInteractionSource()
-                    },
+                interactionSource=remember{MutableInteractionSource()},
                 indication=null,
                 onClick=onClick
             ),
-        contentAlignment=
-            Alignment.Center
+        contentAlignment=Alignment.Center
     ){
         Text(
             text,
-            color=
-                if(selected)
-                    p.accent
-                else
-                    ui.text,
-            fontSize=9.sp,
-            fontWeight=
-                FontWeight.Bold,
+            color=if(selected)p.accent else ui.text,
+            fontSize=10.5.sp,
+            fontWeight=FontWeight.Bold,
             fontFamily=a.fontFamily
         )
     }
 }
 
-/*
- * ==================================================
+/* ==================================================
  * BOTTOM ACTIONS
- * ==================================================
- */
+ * ================================================== */
 
 @Composable
 private fun ClockAction(
@@ -1947,118 +1183,71 @@ private fun ClockAction(
     selected:Boolean=false,
     onClick:()->Unit
 ){
-    val a=
-        LocalNmixAppearance.current
-
+    val a=LocalNmixAppearance.current
     val p=a.palette
     val ui=a.uiColors()
-
-    val shape=
-        RoundedCornerShape(13.dp)
+    val shape=RoundedCornerShape(50)
 
     val foreground=
-        if(red)
-            Color(0xFFE66E75)
-        else
-            ui.text
+        if(red)Color(0xFFE66E75)
+        else ui.text
 
     Row(
         Modifier
-            .height(43.dp)
+            .height(44.dp)
             .clip(shape)
             .background(
                 if(a.darkMode)
-                    Color(0xFF131816)
-                        .copy(alpha=.94f)
-                else
-                    Color.White
-                        .copy(alpha=.94f)
+                    Color(0xFF131816).copy(alpha=.94f)
+                else Color.White.copy(alpha=.94f)
             )
             .background(
                 when{
-                    red->
-                        Color(0xFFD94F57)
-                            .copy(alpha=.055f)
-
-                    selected->
-                        p.accent.copy(
-                            alpha=.075f
-                        )
-
-                    else->
-                        p.accent.copy(
-                            alpha=.018f
-                        )
+                    red->Color(0xFFD94F57).copy(alpha=.055f)
+                    selected->p.accent.copy(alpha=.075f)
+                    else->p.accent.copy(alpha=.018f)
                 }
             )
             .border(
-                if(selected)
-                    .9.dp
-                else
-                    .4.dp,
+                if(selected).95.dp else .5.dp,
                 when{
-                    red->
-                        foreground.copy(
-                            alpha=.28f
-                        )
-
-                    selected->
-                        p.accent.copy(
-                            alpha=.48f
-                        )
-
-                    else->
-                        p.accent.copy(
-                            alpha=
-                                if(a.darkMode)
-                                    .14f
-                                else
-                                    .22f
-                        )
+                    red->foreground.copy(alpha=.28f)
+                    selected->p.accent.copy(alpha=.50f)
+                    else->p.accent.copy(
+                        alpha=if(a.darkMode).17f else .25f
+                    )
                 },
                 shape
             )
             .clickable(
-                interactionSource=
-                    remember{
-                        MutableInteractionSource()
-                    },
+                interactionSource=remember{MutableInteractionSource()},
                 indication=null,
                 onClick=onClick
             )
-            .padding(
-                horizontal=8.dp
-            ),
-        verticalAlignment=
-            Alignment.CenterVertically,
-        horizontalArrangement=
-            Arrangement.spacedBy(5.dp)
+            .padding(horizontal=10.dp),
+        verticalAlignment=Alignment.CenterVertically,
+        horizontalArrangement=Arrangement.spacedBy(6.dp)
     ){
         NmixIcon(
             icon,
-            Modifier.size(15.dp),
-            if(red)
-                foreground
-            else
-                p.accent
+            Modifier.size(16.dp),
+            if(red)foreground else p.accent
         )
 
         Text(
             text,
             color=foreground,
-            fontSize=7.8.sp,
-            fontWeight=
-                FontWeight.SemiBold,
-            fontFamily=font
+            fontSize=9.sp,
+            fontWeight=FontWeight.SemiBold,
+            fontFamily=font,
+            maxLines=1
         )
     }
 }
 
-/*
- * ==================================================
+/* ==================================================
  * WALLPAPER
- * ==================================================
- */
+ * ================================================== */
 
 @Composable
 private fun WallpaperDialog(
@@ -2067,52 +1256,33 @@ private fun WallpaperDialog(
     onRemove:()->Unit,
     onChoose:()->Unit
 ){
-    val a=
-        LocalNmixAppearance.current
-
+    val a=LocalNmixAppearance.current
     val p=a.palette
     val ui=a.uiColors()
-
-    val shape=
-        RoundedCornerShape(20.dp)
+    val shape=RoundedCornerShape(22.dp)
 
     Column(
         Modifier
             .width(286.dp)
             .clip(shape)
             .background(
-                if(a.darkMode)
-                    Color(0xFF151A18)
-                else
-                    Color(0xFFF8FAF9)
+                if(a.darkMode)Color(0xFF151A18)
+                else Color(0xFFF8FAF9)
             )
-            .background(
-                p.accent.copy(
-                    alpha=.022f
-                )
-            )
-            .border(
-                .55.dp,
-                p.accent.copy(
-                    alpha=.27f
-                ),
-                shape
-            )
+            .background(p.accent.copy(alpha=.022f))
+            .border(.55.dp,p.accent.copy(alpha=.27f),shape)
             .padding(15.dp)
     ){
         Text(
             "CUSTOM WALLPAPER",
             color=p.accent,
             fontSize=9.sp,
-            fontWeight=
-                FontWeight.Bold,
+            fontWeight=FontWeight.Bold,
             letterSpacing=.8.sp,
             fontFamily=a.fontFamily
         )
 
-        Spacer(
-            Modifier.height(6.dp)
-        )
+        Spacer(Modifier.height(6.dp))
 
         Text(
             "Choose an image for Fullscreen Clock.",
@@ -2122,14 +1292,11 @@ private fun WallpaperDialog(
             fontFamily=a.fontFamily
         )
 
-        Spacer(
-            Modifier.height(13.dp)
-        )
+        Spacer(Modifier.height(13.dp))
 
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement=
-                Arrangement.spacedBy(7.dp)
+            horizontalArrangement=Arrangement.spacedBy(7.dp)
         ){
             DialogButton(
                 "Cancel",
@@ -2164,122 +1331,74 @@ private fun DialogButton(
     red:Boolean=false,
     onClick:()->Unit
 ){
-    val a=
-        LocalNmixAppearance.current
-
+    val a=LocalNmixAppearance.current
     val p=a.palette
     val ui=a.uiColors()
-    val haptic=
-        rememberNmixHapticAction()
-
-    val shape=
-        RoundedCornerShape(11.dp)
+    val haptic=rememberNmixHapticAction()
+    val shape=RoundedCornerShape(50)
 
     Box(
         modifier
-            .height(38.dp)
+            .height(40.dp)
             .clip(shape)
             .background(
                 when{
-                    accent->
-                        p.accent.copy(
-                            alpha=.82f
-                        )
-
-                    red->
-                        Color(0xFFD94F57)
-                            .copy(alpha=.11f)
-
-                    a.darkMode->
-                        Color(0xFF111614)
-
-                    else->
-                        Color.White
+                    accent->p.accent.copy(alpha=.82f)
+                    red->Color(0xFFD94F57).copy(alpha=.11f)
+                    a.darkMode->Color(0xFF111614)
+                    else->Color.White
                 }
             )
             .border(
-                .4.dp,
+                .5.dp,
                 when{
-                    red->
-                        Color(0xFFE66E75)
-                            .copy(alpha=.26f)
-
-                    else->
-                        p.accent.copy(
-                            alpha=.20f
-                        )
+                    red->Color(0xFFE66E75).copy(alpha=.26f)
+                    else->p.accent.copy(alpha=.22f)
                 },
                 shape
             )
             .clickable(
-                interactionSource=
-                    remember{
-                        MutableInteractionSource()
-                    },
+                interactionSource=remember{MutableInteractionSource()},
                 indication=null
-            ){
-                haptic(onClick)
-            },
-        contentAlignment=
-            Alignment.Center
+            ){haptic(onClick)},
+        contentAlignment=Alignment.Center
     ){
         Text(
             text,
-            color=
-                when{
-                    accent->
-                        Color.White
-
-                    red->
-                        Color(0xFFE66E75)
-
-                    else->
-                        ui.text
-                },
-            fontSize=8.sp,
-            fontWeight=
-                FontWeight.Bold,
+            color=when{
+                accent->Color.White
+                red->Color(0xFFE66E75)
+                else->ui.text
+            },
+            fontSize=9.sp,
+            fontWeight=FontWeight.Bold,
             fontFamily=a.fontFamily
         )
     }
 }
 
-/*
- * ==================================================
- * BRAND + IMAGE + HELPERS
- * ==================================================
- */
+/* ==================================================
+ * BRAND / PARSING / IMAGE
+ * ================================================== */
 
 @Composable
 private fun ClockBrand(
     modifier:Modifier=Modifier,
     centered:Boolean=false
 ){
-    val a=
-        LocalNmixAppearance.current
-
+    val a=LocalNmixAppearance.current
     val ui=a.uiColors()
-
-    val color=
-        if(a.darkMode)
-            Color.White
-        else
-            ui.text
+    val color=if(a.darkMode)Color.White else ui.text
 
     Column(
         modifier,
         horizontalAlignment=
-            if(centered)
-                Alignment.CenterHorizontally
-            else
-                Alignment.Start
+            if(centered)Alignment.CenterHorizontally
+            else Alignment.Start
     ){
         Text(
             "EVERYTHING WITH NUMBERS",
-            color=
-                color.copy(
-                    alpha=.58f
-                ),
+            color=color.copy(alpha=.58f),
             fontSize=7.sp,
             letterSpacing=1.5.sp,
             fontFamily=a.fontFamily
@@ -2289,66 +1408,35 @@ private fun ClockBrand(
             "NMIX",
             color=color,
             fontSize=24.sp,
-            fontWeight=
-                FontWeight.Bold,
+            fontWeight=FontWeight.Bold,
             letterSpacing=2.sp,
             fontFamily=NmixLogoFont
         )
     }
 }
 
-private fun parseFullscreenTime(
-    time:String
-):ClockParts{
-    /*
-     * Parse period independently. Seconds toggling
-     * can never mutate this value.
-     */
-    val trimmed=
-        time.trim()
+private fun parseFullscreenTime(time:String):ClockParts{
+    val trimmed=time.trim()
 
-    val period=
-        when{
-            trimmed.endsWith(
-                " AM",
-                ignoreCase=true
-            )->"AM"
+    val period=when{
+        trimmed.endsWith(" AM",true)->"AM"
+        trimmed.endsWith(" PM",true)->"PM"
+        else->""
+    }
 
-            trimmed.endsWith(
-                " PM",
-                ignoreCase=true
-            )->"PM"
+    val raw=trimmed
+        .removeSuffix(" AM")
+        .removeSuffix(" PM")
+        .removeSuffix(" am")
+        .removeSuffix(" pm")
 
-            else->""
-        }
-
-    val raw=
-        trimmed
-            .removeSuffix(" AM")
-            .removeSuffix(" PM")
-            .removeSuffix(" am")
-            .removeSuffix(" pm")
-
-    val pieces=
-        raw.split(":")
+    val pieces=raw.split(":")
 
     return ClockParts(
-        hour=
-            pieces.getOrElse(0){
-                "00"
-            },
-
-        minute=
-            pieces.getOrElse(1){
-                "00"
-            },
-
-        second=
-            pieces.getOrElse(2){
-                "00"
-            },
-
-        period=period
+        pieces.getOrElse(0){"00"},
+        pieces.getOrElse(1){"00"},
+        pieces.getOrElse(2){"00"},
+        period
     )
 }
 
@@ -2357,90 +1445,44 @@ private fun lerpClockColor(
     end:Color,
     amount:Float
 ):Color{
-    val t=
-        amount.coerceIn(
-            0f,
-            1f
-        )
+    val t=amount.coerceIn(0f,1f)
 
     return Color(
-        red=
-            start.red+
-                (end.red-start.red)*t,
-
-        green=
-            start.green+
-                (end.green-start.green)*t,
-
-        blue=
-            start.blue+
-                (end.blue-start.blue)*t,
-
-        alpha=
-            start.alpha+
-                (end.alpha-start.alpha)*t
+        red=start.red+(end.red-start.red)*t,
+        green=start.green+(end.green-start.green)*t,
+        blue=start.blue+(end.blue-start.blue)*t,
+        alpha=start.alpha+(end.alpha-start.alpha)*t
     )
-}
-
-private fun itSafe(
-    value:Int,
-    size:Int
-):Int{
-    return value.coerceIn(
-        0,
-        (size-1).coerceAtLeast(0)
-    )
-}
-
-private object IntentFlags{
-    const val READ=
-        android.content.Intent
-            .FLAG_GRANT_READ_URI_PERMISSION
 }
 
 @Composable
-private fun FullscreenWallpaper(
-    uri:Uri
-){
-    val context=
-        LocalContext.current
+private fun FullscreenWallpaper(uri:Uri){
+    val context=LocalContext.current
 
     var bitmap by remember(uri){
-        mutableStateOf<
-            androidx.compose.ui.graphics.ImageBitmap?
-        >(null)
+        mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null)
     }
 
     LaunchedEffect(uri){
-        bitmap=
-            withContext(
-                Dispatchers.IO
-            ){
-                try{
-                    context
-                        .contentResolver
-                        .openInputStream(uri)
-                        ?.use{
-                            BitmapFactory
-                                .decodeStream(it)
-                                ?.asImageBitmap()
-                        }
-                }catch(
-                    _:Exception
-                ){
-                    null
-                }
+        bitmap=withContext(Dispatchers.IO){
+            try{
+                context.contentResolver
+                    .openInputStream(uri)
+                    ?.use{
+                        BitmapFactory.decodeStream(it)?.asImageBitmap()
+                    }
+            }catch(_:Exception){
+                null
             }
+        }
     }
 
     bitmap?.let{
         Image(
             bitmap=it,
             contentDescription=null,
-            modifier=
-                Modifier.fillMaxSize(),
-            contentScale=
-                ContentScale.Crop
+            modifier=Modifier.fillMaxSize(),
+            contentScale=ContentScale.Crop
         )
     }
 }
