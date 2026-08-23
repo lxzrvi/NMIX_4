@@ -13,107 +13,87 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 @Composable
-fun NmixContribution(
-    modifier: Modifier = Modifier
-) {
-    val a = LocalNmixAppearance.current
-    val p = a.palette
-    val ui = a.uiColors()
+fun NmixContribution(modifier:Modifier=Modifier){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+    val ui=a.uiColors()
 
-    val stories = remember {
+    val stories=remember{
         listOf(
             "NMIX started as an idea to bring useful number tools together in one focused place.",
-            "Designed and developed by lxzrvi with a phone-first workflow using GitHub and Codespaces.",
             "The project evolved from a web reference into a fully native Android app built with Kotlin and Jetpack Compose.",
             "NMIX focuses on useful offline tools, fluid interaction and one idea — EVERYTHING WITH NUMBERS.",
             "Calculator, time tools, counters, themes and the interface were shaped into one consistent native experience."
         )
     }
 
-    var story by remember {
-        mutableIntStateOf(0)
-    }
+    var story by remember{mutableIntStateOf(0)}
 
-    LaunchedEffect(Unit) {
-        while (true) {
+    LaunchedEffect(Unit){
+        while(true){
             delay(4200)
-            story = (story + 1) % stories.size
+            story=(story+1)%stories.size
         }
     }
 
-    val outerShape = RoundedCornerShape(20.dp)
-    val innerShape = RoundedCornerShape(14.dp)
+    val outer=RoundedCornerShape(20.dp)
+    val inner=RoundedCornerShape(14.dp)
 
     /*
-     * Even accent glass.
-     * No black/white center stop, so the old vertical
-     * shadow / dark stripe cannot appear.
+     * Same surface language as the rest of NMIX:
+     * actual light/dark surface + restrained accent tint.
      */
-    val outerBrush = Brush.horizontalGradient(
-        listOf(
-            p.accent.copy(
-                alpha = if (a.darkMode) .12f else .10f
-            ),
-            p.accent.copy(
-                alpha = if (a.darkMode) .085f else .085f
-            ),
-            p.accent.copy(
-                alpha = if (a.darkMode) .12f else .10f
-            )
-        )
-    )
-
-    val innerBg = p.accent.copy(
-        alpha = if (a.darkMode) .055f else .050f
-    )
-
     Column(
         modifier
-            .padding(horizontal = 12.dp)
-            .clip(outerShape)
-            .background(outerBrush)
+            .padding(horizontal=12.dp)
+            .clip(outer)
+            .background(
+                if(a.darkMode)
+                    Color(0xFF121715).copy(alpha=.94f)
+                else
+                    Color.White.copy(alpha=.93f)
+            )
+            .background(
+                p.accent.copy(
+                    alpha=if(a.darkMode).045f else .025f
+                )
+            )
             .border(
                 .5.dp,
                 p.accent.copy(
-                    alpha = if (a.darkMode) .16f else .27f
+                    alpha=if(a.darkMode).18f else .28f
                 ),
-                outerShape
+                outer
             )
             .padding(14.dp)
-    ) {
+    ){
         Row(
             Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                Modifier.weight(1f)
-            ) {
+            verticalAlignment=Alignment.CenterVertically
+        ){
+            Column(Modifier.weight(1f)){
                 Text(
                     "CONTRIBUTION",
-                    color = p.accent,
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.3.sp,
-                    fontFamily = a.fontFamily
+                    color=p.accent,
+                    fontSize=8.sp,
+                    fontWeight=FontWeight.Bold,
+                    letterSpacing=1.3.sp,
+                    fontFamily=a.fontFamily
                 )
-
-                Spacer(
-                    Modifier.height(2.dp)
-                )
-
+                Spacer(Modifier.height(2.dp))
                 Text(
                     "lxzrvi",
-                    color = ui.text,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = NmixLogoFont
+                    color=ui.text,
+                    fontSize=22.sp,
+                    fontWeight=FontWeight.Bold,
+                    fontFamily=NmixLogoFont
                 )
             }
 
@@ -121,261 +101,204 @@ fun NmixContribution(
                 Modifier
                     .clip(RoundedCornerShape(50))
                     .background(
-                        p.accent.copy(alpha = .12f)
+                        p.accent.copy(
+                            alpha=if(a.darkMode).15f else .10f
+                        )
                     )
-                    .padding(
-                        horizontal = 10.dp,
-                        vertical = 6.dp
+                    .border(
+                        .4.dp,
+                        p.accent.copy(alpha=.20f),
+                        RoundedCornerShape(50)
                     )
-            ) {
+                    .padding(horizontal=10.dp,vertical=6.dp)
+            ){
                 Text(
                     "CONTRIBUTOR",
-                    color = p.accent,
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = .6.sp,
-                    fontFamily = a.fontFamily
+                    color=p.accent,
+                    fontSize=8.sp,
+                    fontWeight=FontWeight.Bold,
+                    letterSpacing=.6.sp,
+                    fontFamily=a.fontFamily
                 )
             }
         }
 
-        Spacer(
-            Modifier.height(11.dp)
-        )
+        Spacer(Modifier.height(11.dp))
 
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(9.dp)
-        ) {
-            /*
-             * ABOUT THE PROJECT
-             */
+            horizontalArrangement=Arrangement.spacedBy(9.dp)
+        ){
             Box(
                 Modifier
                     .weight(1.15f)
                     .height(145.dp)
-                    .clip(innerShape)
-                    .background(innerBg)
-                    .border(
-                        .4.dp,
+                    .clip(inner)
+                    .background(
                         p.accent.copy(
-                            alpha = if (a.darkMode) .11f else .18f
+                            alpha=if(a.darkMode).075f else .055f
+                        )
+                    )
+                    .border(
+                        .45.dp,
+                        p.accent.copy(
+                            alpha=if(a.darkMode).18f else .25f
                         ),
-                        innerShape
+                        inner
                     )
                     .padding(12.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
+                contentAlignment=Alignment.CenterStart
+            ){
                 AnimatedContent(
-                    targetState = story,
-                    transitionSpec = {
+                    story,
+                    transitionSpec={
                         (
-                            fadeIn(
-                                tween(
-                                    380,
-                                    easing = EaseOutCubic
+                            fadeIn(tween(320,easing=EaseOutCubic))+
+                                slideInVertically(
+                                    {it/10},
+                                    tween(320,easing=EaseOutCubic)
                                 )
-                            ) +
-                            slideInVertically(
-                                initialOffsetY = { it / 8 },
-                                animationSpec = tween(
-                                    380,
-                                    easing = EaseOutCubic
-                                )
-                            )
-                        ) togetherWith (
-                            fadeOut(
-                                tween(250)
-                            ) +
-                            slideOutVertically(
-                                targetOffsetY = { -it / 8 },
-                                animationSpec = tween(
-                                    300,
-                                    easing = EaseInCubic
+                            ) togetherWith (
+                            fadeOut(tween(210))+
+                                slideOutVertically(
+                                    {-it/10},
+                                    tween(260,easing=EaseInCubic)
                                 )
                             )
-                        )
                     },
-                    label = "contributionStory"
-                ) { index ->
-                    Column {
+                    label="contributionStory"
+                ){index->
+                    Column{
                         Text(
                             "ABOUT THE PROJECT",
-                            color = p.accent,
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = .7.sp,
-                            fontFamily = a.fontFamily
+                            color=p.accent,
+                            fontSize=8.sp,
+                            fontWeight=FontWeight.Bold,
+                            letterSpacing=.7.sp,
+                            fontFamily=a.fontFamily
                         )
-
-                        Spacer(
-                            Modifier.height(7.dp)
-                        )
-
+                        Spacer(Modifier.height(7.dp))
                         Text(
                             stories[index],
-                            color = ui.text.copy(alpha = .80f),
-                            fontSize = 9.sp,
-                            lineHeight = 14.sp,
-                            fontFamily = a.fontFamily
+                            color=ui.text.copy(alpha=.84f),
+                            fontSize=9.sp,
+                            lineHeight=14.sp,
+                            fontFamily=a.fontFamily
                         )
                     }
                 }
             }
 
-            /*
-             * BUILT WITH
-             *
-             * Fixed-height box.
-             * Content inside can scroll vertically.
-             */
             Column(
                 Modifier
                     .weight(.85f)
                     .height(145.dp)
-                    .clip(innerShape)
-                    .background(innerBg)
-                    .border(
-                        .4.dp,
+                    .clip(inner)
+                    .background(
                         p.accent.copy(
-                            alpha = if (a.darkMode) .11f else .18f
+                            alpha=if(a.darkMode).075f else .055f
+                        )
+                    )
+                    .border(
+                        .45.dp,
+                        p.accent.copy(
+                            alpha=if(a.darkMode).18f else .25f
                         ),
-                        innerShape
+                        inner
                     )
                     .padding(10.dp)
-            ) {
+            ){
                 Text(
                     "BUILT WITH",
-                    color = p.accent,
-                    fontSize = 7.5.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = .5.sp,
-                    fontFamily = a.fontFamily
+                    color=p.accent,
+                    fontSize=7.5.sp,
+                    fontWeight=FontWeight.Bold,
+                    letterSpacing=.5.sp,
+                    fontFamily=a.fontFamily
                 )
 
-                Spacer(
-                    Modifier.height(8.dp)
-                )
+                Spacer(Modifier.height(8.dp))
 
                 Column(
                     Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .verticalScroll(
-                            rememberScrollState()
-                        )
-                ) {
-                    SkillRow(
-                        "GitHub",
-                        "Kotlin"
-                    )
-
-                    Spacer(
-                        Modifier.height(5.dp)
-                    )
-
-                    SkillPill(
-                        "Compose",
-                        Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(
-                        Modifier.height(5.dp)
-                    )
-
-                    SkillPill(
-                        "Android SDK",
-                        Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(
-                        Modifier.height(5.dp)
-                    )
-
-                    SkillRow(
-                        "Gradle",
-                        "Actions"
-                    )
-
-                    Spacer(
-                        Modifier.height(2.dp)
-                    )
+                        .verticalScroll(rememberScrollState())
+                ){
+                    SkillRow("GitHub","Kotlin")
+                    Spacer(Modifier.height(5.dp))
+                    SkillPill("Compose",Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(5.dp))
+                    SkillPill("Android SDK",Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(5.dp))
+                    SkillRow("Gradle","Actions")
                 }
             }
         }
 
-        Spacer(
-            Modifier.height(13.dp)
-        )
+        Spacer(Modifier.height(13.dp))
 
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+            horizontalArrangement=Arrangement.Center,
+            verticalAlignment=Alignment.CenterVertically
+        ){
             Text(
                 "NMIX",
-                color = ui.text.copy(alpha = .80f),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = NmixLogoFont
+                color=ui.text.copy(alpha=.82f),
+                fontSize=11.sp,
+                fontWeight=FontWeight.Bold,
+                fontFamily=NmixLogoFont
             )
-
             Text(
                 "  •  lxzrvi  •  © 2026",
-                color = ui.muted,
-                fontSize = 10.sp,
-                fontFamily = a.fontFamily
+                color=ui.muted,
+                fontSize=10.sp,
+                fontFamily=a.fontFamily
             )
         }
     }
 }
 
 @Composable
-private fun SkillRow(
-    left: String,
-    right: String
-) {
+private fun SkillRow(left:String,right:String){
     Row(
         Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        SkillPill(
-            left,
-            Modifier.weight(1f)
-        )
-
-        SkillPill(
-            right,
-            Modifier.weight(1f)
-        )
+        horizontalArrangement=Arrangement.spacedBy(5.dp)
+    ){
+        SkillPill(left,Modifier.weight(1f))
+        SkillPill(right,Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun SkillPill(
-    text: String,
-    modifier: Modifier = Modifier
-) {
-    val a = LocalNmixAppearance.current
-    val p = a.palette
+private fun SkillPill(text:String,modifier:Modifier=Modifier){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
 
     Box(
         modifier
             .height(21.dp)
             .clip(RoundedCornerShape(50))
             .background(
-                p.accent.copy(alpha = .12f)
+                p.accent.copy(
+                    alpha=if(a.darkMode).17f else .11f
+                )
+            )
+            .border(
+                .35.dp,
+                p.accent.copy(alpha=.18f),
+                RoundedCornerShape(50)
             ),
-        contentAlignment = Alignment.Center
-    ) {
+        contentAlignment=Alignment.Center
+    ){
         Text(
             text,
-            color = p.accent,
-            fontSize = 6.5.sp,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = a.fontFamily,
-            maxLines = 1
+            color=p.accent,
+            fontSize=6.5.sp,
+            fontWeight=FontWeight.SemiBold,
+            fontFamily=a.fontFamily,
+            maxLines=1
         )
     }
 }
