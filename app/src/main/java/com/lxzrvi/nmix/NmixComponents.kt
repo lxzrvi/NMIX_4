@@ -26,8 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
@@ -36,7 +36,7 @@ private fun mix(a:Float,b:Float,t:Float)=a+(b-a)*t.coerceIn(0f,1f)
 
 @Composable
 private fun screenColor()=
-    if(LocalNmixAppearance.current.darkMode) Color(0xFF111614)
+    if(LocalNmixAppearance.current.darkMode)Color(0xFF111614)
     else Color(0xFFF8F9F8)
 
 @Composable
@@ -47,7 +47,7 @@ private fun screenBorder():Color{
 
 @Composable
 private fun displayText()=
-    if(LocalNmixAppearance.current.darkMode) Color.White.copy(alpha=.93f)
+    if(LocalNmixAppearance.current.darkMode)Color.White.copy(alpha=.93f)
     else Color(0xFF202522)
 
 @Composable
@@ -59,7 +59,7 @@ fun NmixToolSection(
     val p=a.palette
     val ui=a.uiColors()
     val progress by animateFloatAsState(
-        if(open)1f else 0f,tween(340,easing=EaseInOutCubic),label="toolOpen"
+        if(open)1f else 0f,tween(300,easing=EaseInOutCubic),label="toolOpen"
     )
     val shape=RoundedCornerShape(mix(17f,27f,progress).dp)
 
@@ -74,9 +74,12 @@ fun NmixToolSection(
             )
     ){
         Row(
-            Modifier.fillMaxWidth().clickable(
-                interactionSource=remember{MutableInteractionSource()},indication=null,onClick=onClick
-            ).padding(13.dp),
+            Modifier.fillMaxWidth()
+                .clickable(
+                    interactionSource=remember{MutableInteractionSource()},
+                    indication=null,onClick=onClick
+                )
+                .padding(13.dp),
             verticalAlignment=Alignment.CenterVertically
         ){
             Box(Modifier.size(42.dp),contentAlignment=Alignment.Center){
@@ -96,18 +99,25 @@ fun NmixToolSection(
                 }
                 NmixIcon(icon,Modifier.size(19.dp),Color.White)
             }
+
             Spacer(Modifier.width(12.dp))
+
             Column(Modifier.weight(1f)){
                 Text(title,color=ui.text,fontSize=14.sp,fontWeight=FontWeight.SemiBold,fontFamily=a.fontFamily)
                 Text(subtitle,color=ui.muted,fontSize=9.sp,fontFamily=a.fontFamily)
             }
-            NmixIcon(NmixIcon.CHEVRON_DOWN,Modifier.size(18.dp).rotate(180f*progress),ui.muted)
+
+            NmixIcon(
+                NmixIcon.CHEVRON_DOWN,
+                Modifier.size(18.dp).rotate(180f*progress),
+                ui.muted
+            )
         }
 
         AnimatedVisibility(
-            visible=open,
-            enter=expandVertically(tween(420,easing=EaseOutCubic),expandFrom=Alignment.Top)+fadeIn(tween(300)),
-            exit=shrinkVertically(tween(320,easing=EaseInOutCubic),shrinkTowards=Alignment.Top)+fadeOut(tween(200))
+            open,
+            enter=expandVertically(tween(360,easing=EaseOutCubic),expandFrom=Alignment.Top)+fadeIn(tween(250)),
+            exit=shrinkVertically(tween(280,easing=EaseInOutCubic),shrinkTowards=Alignment.Top)+fadeOut(tween(180))
         ){content()}
     }
 }
@@ -125,7 +135,7 @@ fun NmixOption(
     val scale by animateFloatAsState(
         if(pressed).965f else 1f,spring(dampingRatio=.72f,stiffness=620f),label="optionPress"
     )
-    val selection by animateFloatAsState(if(selected)1f else 0f,tween(220),label="optionSelected")
+    val selection by animateFloatAsState(if(selected)1f else 0f,tween(200),label="optionSelected")
     val shape=RoundedCornerShape(13.dp)
 
     Row(
@@ -147,6 +157,7 @@ fun NmixOption(
                 .background(p.accent.copy(alpha=if(selected).20f else .12f)),
             contentAlignment=Alignment.Center
         ){NmixIcon(icon,Modifier.size(18.dp),p.accent)}
+
         Spacer(Modifier.width(12.dp))
         Text(title,color=ui.text,fontSize=13.sp,fontWeight=FontWeight.SemiBold,fontFamily=a.fontFamily)
     }
@@ -169,6 +180,7 @@ fun NmixSmallIconButton(
     val a=LocalNmixAppearance.current
     val p=a.palette
     val shape=RoundedCornerShape(9.dp)
+
     Box(
         modifier.clip(shape)
             .background(if(a.darkMode)Color(0xFF151A18).copy(alpha=.91f) else Color.White.copy(alpha=.92f))
@@ -192,6 +204,7 @@ fun NmixTextButton(
     val a=LocalNmixAppearance.current
     val p=a.palette
     val shape=RoundedCornerShape(50)
+
     Box(
         modifier.clip(shape)
             .background(
@@ -248,7 +261,12 @@ fun NmixKey(
     }
 }
 
-/* S=0, M=.27, L=.61, EL=1. Same progress as draggable header. */
+/*
+ * Free Display progress:
+ * 0..39% = horizontal left family.
+ * 39..41% = short direct relocation.
+ * 41..100% = top family.
+ */
 @Composable
 fun NmixDisplay(
     label:String,value:String,status:String,timer:Boolean,
@@ -262,14 +280,14 @@ fun NmixDisplay(
     val interaction=remember{MutableInteractionSource()}
     val h=displayProgress.coerceIn(0f,1f)
 
-    val sToM=(h/.27f).coerceIn(0f,1f)
-    val mToL=((h-.27f)/.34f).coerceIn(0f,1f)
-    val lToEl=((h-.61f)/.39f).coerceIn(0f,1f)
+    val leftGrow=(h/.39f).coerceIn(0f,1f)
+    val relocate=((h-.39f)/.02f).coerceIn(0f,1f)
+    val topGrow=((h-.41f)/.59f).coerceIn(0f,1f)
 
-    val pill=((.13f-h)/.13f).coerceIn(0f,1f)
-    val displayShape=RoundedCornerShape(mix(19f,54f,pill).dp)
+    val pill=((.16f-h)/.16f).coerceIn(0f,1f)
+    val displayShape=RoundedCornerShape(mix(19f,52f,pill).dp)
     val calcAlpha by animateFloatAsState(
-        if(calcVisible)1f else 0f,tween(330,easing=EaseInOutCubic),label="calcVisible"
+        if(calcVisible)1f else 0f,tween(220),label="calcVisible"
     )
     val world=rememberNmixWorldMotion("mainDisplayWorld")
 
@@ -283,235 +301,155 @@ fun NmixDisplay(
 
         if(calcVisible){
             CalculatorMorph(
-                first=calcFirst.ifEmpty{"_"},
-                operator=calcOperator.ifEmpty{"sign"},
-                second=calcSecond.ifEmpty{"_"},
-                sToM=sToM,mToL=mToL,lToEl=lToEl,
-                modifier=Modifier.fillMaxSize().graphicsLayer{alpha=calcAlpha}
+                calcFirst.ifEmpty{"_"},
+                calcOperator.ifEmpty{"sign"},
+                calcSecond.ifEmpty{"_"},
+                leftGrow,relocate,topGrow,
+                Modifier.fillMaxSize().graphicsLayer{alpha=calcAlpha}
             )
         }
 
         /*
-         * S/M: content remains right of the left field group.
-         * M->L: fields travel to top and content continuously returns center.
+         * Text itself has two stable destinations.
+         * Relocation is only a tiny 39-41% interval.
          */
-        if(calcVisible&&mToL<.92f){
-            val enterCenter=
-                ((mToL-.10f)/.82f)
-                    .coerceIn(0f,1f)
-        
-            /*
-             * S/M calculator fields own the left side.
-             * Main value owns the right side.
-             * Label/status disappear at the tightest height so
-             * "Enter your number" cannot collide with fields/value.
-             */
-            val detailsAlpha=
-                ((h-.10f)/.20f)
-                    .coerceIn(0f,1f)
-        
-            Column(
-                Modifier
-                    .fillMaxWidth(
-                        mix(.52f,.78f,enterCenter)
-                    )
-                    .align(Alignment.CenterEnd)
-                    .padding(
-                        start=8.dp,
-                        end=10.dp
-                    )
-                    .graphicsLayer{
-                        translationY=
-                            -4f*enterCenter
-                    },
-                horizontalAlignment=
-                    Alignment.CenterHorizontally,
-                verticalArrangement=
-                    Arrangement.Center
-            ){
-                Text(
-                    label,
-                    Modifier.graphicsLayer{
-                        alpha=detailsAlpha
-                    },
-                    color=
-                        if(a.darkMode)
-                            p.accentLight
-                        else
-                            p.accentDark,
-                    fontSize=
-                        mix(
-                            6.8f,
-                            8.7f,
-                            enterCenter
-                        ).sp,
-                    fontWeight=FontWeight.Bold,
-                    letterSpacing=1.2.sp,
-                    fontFamily=a.fontFamily,
-                    maxLines=1
-                )
-        
-                if(detailsAlpha>.12f){
-                    Spacer(Modifier.height(2.dp))
-                }
-        
-                Text(
-                    value,
-                    color=displayText(),
-                    fontSize=
-                        mix(
-                            22f,
-                            34f,
-                            enterCenter
-                        ).sp,
-                    fontWeight=FontWeight.SemiBold,
-                    fontFamily=a.fontFamily,
-                    maxLines=1,
-                    textAlign=TextAlign.Center
-                )
-        
-                if(detailsAlpha>.12f){
-                    Spacer(Modifier.height(2.dp))
-                }
-        
-                Text(
-                    status,
-                        Modifier.graphicsLayer{
-                            alpha=detailsAlpha
-                        },
-                        color=
-                            if(a.darkMode)
-                                p.accentLight.copy(alpha=.72f)
-                            else
-                                p.accentDark.copy(alpha=.74f),
-                        fontSize=
-                            mix(
-                                6.3f,
-                                8.5f,
-                                enterCenter
-                            ).sp,
-                        lineHeight=9.sp,
-                        fontWeight=FontWeight.Medium,
-                        fontFamily=a.fontFamily,
-                        textAlign=TextAlign.Center,
-                        maxLines=1
-                    )
-                }
-            }else{
-            val topPadding=if(calcVisible)mix(72f,76f,lToEl).dp else 17.dp
+        val rightAmount=if(calcVisible)1f-relocate else 0f
+        val contentWidth=if(calcVisible)mix(.52f,.92f,relocate) else .92f
+        val horizontalBias=if(calcVisible)mix(.50f,0f,relocate) else 0f
 
+        val labelSize=when{
+            h<.15f->7.1f
+            h<.41f->mix(7.1f,8.2f,leftGrow)
+            else->mix(8.2f,9f,topGrow)
+        }
+
+        val valueSize=when{
+            h<.15f->23f
+            h<.41f->mix(23f,31f,leftGrow)
+            else->mix(32f,40f,topGrow)
+        }
+
+        val statusSize=when{
+            h<.15f->6.7f
+            h<.41f->mix(6.7f,8.2f,leftGrow)
+            else->mix(8.2f,10.5f,topGrow)
+        }
+
+        val gap1=when{
+            h<.15f->5.dp
+            h<.41f->mix(5f,8f,leftGrow).dp
+            else->mix(8f,11f,topGrow).dp
+        }
+
+        val gap2=when{
+            h<.15f->6.dp
+            h<.41f->mix(6f,9f,leftGrow).dp
+            else->mix(9f,12f,topGrow).dp
+        }
+
+        /*
+         * Label / Value / Status always share one Column,
+         * therefore their order/gaps cannot overlap.
+         */
+        Column(
+            Modifier
+                .fillMaxWidth(contentWidth)
+                .align(
+                    if(rightAmount>.5f)Alignment.CenterEnd
+                    else Alignment.Center
+                )
+                .padding(
+                    start=if(calcVisible&&rightAmount>.5f)6.dp else 12.dp,
+                    end=if(timer)58.dp else 12.dp
+                )
+                .graphicsLayer{
+                    translationX=
+                        if(calcVisible)
+                            horizontalBias*8f
+                        else 0f
+
+                    translationY=
+                        if(calcVisible&&relocate>.5f)
+                            22f+topGrow*12f
+                        else 0f
+                },
+            horizontalAlignment=Alignment.CenterHorizontally,
+            verticalArrangement=Arrangement.Center
+        ){
             Text(
                 label,
-                Modifier.align(Alignment.TopCenter).padding(top=topPadding)
-                    .graphicsLayer{translationY=if(calcVisible)6f*(1f-mToL) else 0f},
                 color=if(a.darkMode)p.accentLight else p.accentDark,
-                fontSize=mix(8.5f,9f,lToEl).sp,fontWeight=FontWeight.Bold,
-                letterSpacing=2.sp,fontFamily=a.fontFamily,maxLines=1
+                fontSize=labelSize.sp,
+                fontWeight=FontWeight.Bold,
+                letterSpacing=if(h<.41f)1.1.sp else 1.8.sp,
+                fontFamily=a.fontFamily,
+                maxLines=1
             )
+
+            Spacer(Modifier.height(gap1))
 
             Text(
                 value,
-                Modifier.align(Alignment.Center)
-                    .padding(horizontal=if(timer)70.dp else 16.dp)
-                    .graphicsLayer{translationY=if(calcVisible)mix(9f,16f,lToEl) else 0f},
-                color=displayText(),fontSize=mix(36f,40f,lToEl).sp,
-                fontWeight=FontWeight.SemiBold,fontFamily=a.fontFamily,maxLines=1
+                color=displayText(),
+                fontSize=valueSize.sp,
+                fontWeight=FontWeight.SemiBold,
+                fontFamily=a.fontFamily,
+                maxLines=1,
+                textAlign=TextAlign.Center
             )
+
+            Spacer(Modifier.height(gap2))
 
             Text(
                 status,
-                Modifier.align(Alignment.BottomCenter).padding(horizontal=18.dp,vertical=15.dp),
-                color=if(a.darkMode)p.accentLight.copy(alpha=.78f) else p.accentDark.copy(alpha=.80f),
-                fontSize=mix(10f,11f,lToEl).sp,lineHeight=15.sp,
-                fontWeight=FontWeight.Medium,fontFamily=a.fontFamily,
-                textAlign=TextAlign.Center,maxLines=2
+                color=if(a.darkMode)
+                    p.accentLight.copy(alpha=.74f)
+                else p.accentDark.copy(alpha=.76f),
+                fontSize=statusSize.sp,
+                lineHeight=(statusSize+3f).sp,
+                fontWeight=FontWeight.Medium,
+                fontFamily=a.fontFamily,
+                textAlign=TextAlign.Center,
+                maxLines=if(h<.22f)1 else 2
             )
         }
 
         val timerSize=mix(34f,47f,h).dp
-        AnimatedVisibility(
-            timer,
-            Modifier.align(Alignment.CenterStart).padding(start=if(h<.15f)8.dp else 13.dp),
-            enter=fadeIn(tween(220))+scaleIn(),exit=fadeOut(tween(170))+scaleOut()
-        ){NmixCircleButton(NmixIcon.MINUS,Modifier.size(timerSize),onClick=onMinus)}
 
         AnimatedVisibility(
             timer,
-            Modifier.align(Alignment.CenterEnd).padding(end=if(h<.15f)8.dp else 13.dp),
-            enter=fadeIn(tween(220))+scaleIn(),exit=fadeOut(tween(170))+scaleOut()
-        ){NmixCircleButton(NmixIcon.PLUS,Modifier.size(timerSize),onClick=onPlus)}
-    }
-}
-
-@Composable
-private fun BoxScope.GiantWorldLayer(world:NmixWorldMotion){
-    val a=LocalNmixAppearance.current
-    val p=a.palette
-    val soft=a.animation!=NmixAnimationName.FLOAT
-
-    world.bodies.forEachIndexed{index,body->
-        val x=body.x*(650f+index*55f)
-        val y=body.y*(475f+index*42f)
-
-        if(soft){
-            Box(
-                Modifier
-                    .size(when(index){0->1080.dp;1->950.dp;2->830.dp;3->890.dp;else->740.dp})
-                    .align(Alignment.Center)
-                    .graphicsLayer{
-                        translationX=x;translationY=y
-                        scaleX=body.pulse;scaleY=body.pulse
-                    }
-                    .background(
-                        Brush.radialGradient(
-                            colorStops=arrayOf(
-                                0f to (if(index%2==0)p.accent else p.accentLight)
-                                    .copy(alpha=if(a.darkMode).28f else .20f),
-                                .18f to p.accent.copy(alpha=if(a.darkMode).23f else .17f),
-                                .38f to p.accent.copy(alpha=.12f),
-                                .58f to p.accent.copy(alpha=.055f),
-                                .75f to p.accent.copy(alpha=.018f),
-                                .90f to p.accent.copy(alpha=.003f),
-                                1f to Color.Transparent
-                            )
-                        ),
-                        CircleShape
-                    )
+            Modifier.align(Alignment.CenterStart)
+                .padding(start=if(h<.15f)8.dp else 13.dp),
+            enter=fadeIn(tween(180))+scaleIn(),
+            exit=fadeOut(tween(150))+scaleOut()
+        ){
+            NmixCircleButton(
+                NmixIcon.MINUS,
+                Modifier.size(timerSize),
+                onClick=onMinus
             )
-        }else{
-            val elementSize=when(index){0->520.dp;1->455.dp;2->395.dp;3->425.dp;else->355.dp}
-            Canvas(
-                Modifier.size(elementSize).align(Alignment.Center)
-                    .graphicsLayer{
-                        translationX=x;translationY=y
-                        rotationZ=body.rotation
-                        scaleX=body.pulse;scaleY=body.pulse
-                    }
-            ){
-                val c=if(index%2==0)p.accent else p.accentLight
-                val inset=16.dp.toPx()
-                drawRoundRect(c.copy(alpha=.024f),cornerRadius=CornerRadius(58.dp.toPx()))
-                drawRoundRect(
-                    c.copy(alpha=if(a.darkMode).17f else .13f),
-                    Offset(inset,inset),
-                    Size((size.width-inset*2).coerceAtLeast(0f),(size.height-inset*2).coerceAtLeast(0f)),
-                    CornerRadius(46.dp.toPx())
-                )
-                drawRoundRect(
-                    c.copy(alpha=.13f),Offset(inset,inset),
-                    Size((size.width-inset*2).coerceAtLeast(0f),(size.height-inset*2).coerceAtLeast(0f)),
-                    CornerRadius(46.dp.toPx()),style=Stroke(1.6.dp.toPx())
-                )
-            }
+        }
+
+        AnimatedVisibility(
+            timer,
+            Modifier.align(Alignment.CenterEnd)
+                .padding(end=if(h<.15f)8.dp else 13.dp),
+            enter=fadeIn(tween(180))+scaleIn(),
+            exit=fadeOut(tween(150))+scaleOut()
+        ){
+            NmixCircleButton(
+                NmixIcon.PLUS,
+                Modifier.size(timerSize),
+                onClick=onPlus
+            )
         }
     }
 }
 
-/* Same three Layout children are moved throughout S -> M -> L -> EL. */
 @Composable
 private fun CalculatorMorph(
     first:String,operator:String,second:String,
-    sToM:Float,mToL:Float,lToEl:Float,
+    leftGrow:Float,relocate:Float,topGrow:Float,
     modifier:Modifier=Modifier
 ){
     val density=LocalDensity.current
@@ -525,120 +463,82 @@ private fun CalculatorMorph(
         else->1f
     }
 
-    val textBase=mix(mix(8.8f,10.5f,sToM),mix(13.2f,14f,lToEl),mToL)
+    val textBase=
+        if(relocate<1f)
+            mix(9.2f,11.5f,leftGrow)
+        else
+            mix(12.8f,14f,topGrow)
 
     Layout(
-        modifier=modifier,
+        modifier,
         content={
-            MorphField(first,(textBase*textScale(first)).coerceAtLeast(6.6f).sp,0,sToM,mToL)
-            MorphField(operator,(textBase*.80f).coerceAtLeast(6.2f).sp,1,sToM,mToL)
-            MorphField(second,(textBase*textScale(second)).coerceAtLeast(6.6f).sp,2,sToM,mToL)
+            MorphField(
+                first,
+                (textBase*textScale(first)).coerceAtLeast(6.5f).sp,
+                0,relocate
+            )
+            MorphField(
+                operator,
+                (textBase*.80f).coerceAtLeast(6.2f).sp,
+                1,relocate
+            )
+            MorphField(
+                second,
+                (textBase*textScale(second)).coerceAtLeast(6.5f).sp,
+                2,relocate
+            )
         }
     ){measurables,constraints->
         val w=constraints.maxWidth
         val h=constraints.maxHeight
         fun px(v:Float)=with(density){v.dp.toPx()}
 
-        /* S: left vertical. */
         /*
-         * S + M are the same horizontal-left family.
-         * S is compact; M grows smoothly without changing topology.
+         * 0-39: left horizontal group grows continuously.
+         * At 0 it is compact, at 39 it is roomier.
          */
-        val sLeft=px(5f)
-        val sGap=px(2f)
-        val sTotal=w*.45f
-        val sSignW=sTotal*.22f
-        val sNumW=(sTotal-sSignW-sGap*2)/2f
-        val sHeight=(h-px(10f))
-            .coerceAtLeast(px(25f))
-        
-        val sx=floatArrayOf(
-            sLeft,
-            sLeft+sNumW+sGap,
-            sLeft+sNumW+sGap+sSignW+sGap
-        )
-        
-        val sy=floatArrayOf(
-            (h-sHeight)/2f,
-            (h-sHeight)/2f,
-            (h-sHeight)/2f
-        )
-        
-        val sw=floatArrayOf(
-            sNumW,
-            sSignW,
-            sNumW
-        )
-        
-        val sh=floatArrayOf(
-            sHeight,
-            sHeight,
-            sHeight
-        )
-        
-        val mLeft=px(5f)
-        val mGap=px(2.5f)
-        val mTotal=w*.47f
-        val mSignW=mTotal*.23f
-        val mNumW=(mTotal-mSignW-mGap*2)/2f
-        val mHeight=(h-px(10f))
-            .coerceAtLeast(px(25f))
-        
-        val mx=floatArrayOf(
-            mLeft,
-            mLeft+mNumW+mGap,
-            mLeft+mNumW+mGap+mSignW+mGap
-        )
-        
-        val my=floatArrayOf(
-            (h-mHeight)/2f,
-            (h-mHeight)/2f,
-            (h-mHeight)/2f
-        )
-        
-        val mw=floatArrayOf(
-            mNumW,
-            mSignW,
-            mNumW
-        )
-        
-        val mh=floatArrayOf(
-            mHeight,
-            mHeight,
-            mHeight
-        )
+        val left=px(5f)
+        val gap=mix(2f,3f,leftGrow).let(::px)
+        val total=w*mix(.43f,.49f,leftGrow)
+        val signW=total*mix(.20f,.23f,leftGrow)
+        val numW=(total-signW-gap*2)/2f
 
-        /* L: full horizontal row at top. */
-        val lOuter=px(12f)
-        val lGap=px(7f)
-        val lTop=px(12f)
-        val lHeight=px(45f)
-        val lSignW=px(58f)
-        val lNumW=((w-lOuter*2-lGap*2-lSignW)/2f).coerceAtLeast(px(20f))
-        val lx=floatArrayOf(
-            lOuter,
-            lOuter+lNumW+lGap,
-            lOuter+lNumW+lGap+lSignW+lGap
-        )
-        val ly=floatArrayOf(lTop,lTop,lTop)
-        val lw=floatArrayOf(lNumW,lSignW,lNumW)
-        val lh=floatArrayOf(lHeight,lHeight,lHeight)
+        val lowH=(
+            h*mix(.54f,.76f,leftGrow)
+        ).coerceIn(px(38f),(h-px(10f)).coerceAtLeast(px(38f)))
 
-        /* EL: same top structure, only subtle size increase. */
-        val eOuter=px(12f)
-        val eGap=px(7f)
-        val eTop=px(12f)
-        val eHeight=px(46f)
-        val eSignW=px(58f)
-        val eNumW=((w-eOuter*2-eGap*2-eSignW)/2f).coerceAtLeast(px(20f))
-        val ex=floatArrayOf(
-            eOuter,
-            eOuter+eNumW+eGap,
-            eOuter+eNumW+eGap+eSignW+eGap
+        val lowY=(h-lowH)/2f
+
+        val lowX=floatArrayOf(
+            left,
+            left+numW+gap,
+            left+numW+gap+signW+gap
         )
-        val ey=floatArrayOf(eTop,eTop,eTop)
-        val ew=floatArrayOf(eNumW,eSignW,eNumW)
-        val eh=floatArrayOf(eHeight,eHeight,eHeight)
+        val lowYArr=floatArrayOf(lowY,lowY,lowY)
+        val lowW=floatArrayOf(numW,signW,numW)
+        val lowHArr=floatArrayOf(lowH,lowH,lowH)
+
+        /*
+         * 41-100: top family. Position remains top;
+         * only sizing changes subtly with free Display height.
+         */
+        val outer=px(mix(9f,12f,topGrow))
+        val topGap=px(mix(5f,7f,topGrow))
+        val topY=px(mix(9f,12f,topGrow))
+        val topH=px(mix(42f,46f,topGrow))
+        val topSign=px(mix(52f,58f,topGrow))
+        val topNum=(
+            w-outer*2-topGap*2-topSign
+        ).div(2f).coerceAtLeast(px(20f))
+
+        val topX=floatArrayOf(
+            outer,
+            outer+topNum+topGap,
+            outer+topNum+topGap+topSign+topGap
+        )
+        val topYArr=floatArrayOf(topY,topY,topY)
+        val topW=floatArrayOf(topNum,topSign,topNum)
+        val topHArr=floatArrayOf(topH,topH,topH)
 
         val fx=FloatArray(3)
         val fy=FloatArray(3)
@@ -646,27 +546,17 @@ private fun CalculatorMorph(
         val fh=FloatArray(3)
 
         repeat(3){i->
-            val smX=mix(sx[i],mx[i],sToM)
-            val smY=mix(sy[i],my[i],sToM)
-            val smW=mix(sw[i],mw[i],sToM)
-            val smH=mix(sh[i],mh[i],sToM)
-
-            val mlX=mix(smX,lx[i],mToL)
-            val mlY=mix(smY,ly[i],mToL)
-            val mlW=mix(smW,lw[i],mToL)
-            val mlH=mix(smH,lh[i],mToL)
-
-            fx[i]=mix(mlX,ex[i],lToEl)
-            fy[i]=mix(mlY,ey[i],lToEl)
-            fw[i]=mix(mlW,ew[i],lToEl)
-            fh[i]=mix(mlH,eh[i],lToEl)
+            fx[i]=mix(lowX[i],topX[i],relocate)
+            fy[i]=mix(lowYArr[i],topYArr[i],relocate)
+            fw[i]=mix(lowW[i],topW[i],relocate)
+            fh[i]=mix(lowHArr[i],topHArr[i],relocate)
         }
 
         val placeables=measurables.mapIndexed{i,m->
             m.measure(
                 Constraints.fixed(
-                    fw[i].toInt().coerceAtLeast(1).coerceAtMost(w.coerceAtLeast(1)),
-                    fh[i].toInt().coerceAtLeast(1).coerceAtMost(h.coerceAtLeast(1))
+                    fw[i].toInt().coerceIn(1,w.coerceAtLeast(1)),
+                    fh[i].toInt().coerceIn(1,h.coerceAtLeast(1))
                 )
             )
         }
@@ -684,59 +574,150 @@ private fun CalculatorMorph(
 
 @Composable
 private fun MorphField(
-    text:String,textSize:TextUnit,kind:Int,sToM:Float,mToL:Float
+    text:String,
+    textSize:TextUnit,
+    kind:Int,
+    relocate:Float
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
-    val r=11f
+    val t=relocate.coerceIn(0f,1f)
 
     val shape=when(kind){
-    0->{
-        /*
-         * S/M: strong left-side rounding.
-         * L/EL: returns smoothly to top-left-only.
-         */
-        val leftRadius=
-            mix(24f,28f,sToM)
-
-        RoundedCornerShape(
-            topStart=
-                mix(leftRadius,r,mToL).dp,
+        0->RoundedCornerShape(
+            topStart=mix(26f,11f,t).dp,
             topEnd=0.dp,
             bottomEnd=0.dp,
-            bottomStart=
-                mix(leftRadius,0f,mToL).dp
+            bottomStart=mix(26f,0f,t).dp
         )
-    }
 
-    1->RoundedCornerShape(0.dp)
+        1->RoundedCornerShape(0.dp)
 
-    else->{
-        /*
-         * S/M: square right field.
-         * L/EL: top-right corner appears smoothly.
-         */
-        RoundedCornerShape(
+        else->RoundedCornerShape(
             topStart=0.dp,
-            topEnd=(r*mToL).dp,
+            topEnd=mix(0f,11f,t).dp,
             bottomEnd=0.dp,
             bottomStart=0.dp
         )
     }
-}
 
     Box(
         Modifier.fillMaxSize().clip(shape)
-            .background(if(a.darkMode)Color(0xFF151B18).copy(alpha=.74f) else Color.White.copy(alpha=.73f))
+            .background(
+                if(a.darkMode)Color(0xFF151B18).copy(alpha=.74f)
+                else Color.White.copy(alpha=.73f)
+            )
             .background(p.accent.copy(alpha=if(a.darkMode).045f else .027f))
             .border(.5.dp,screenBorder(),shape),
         contentAlignment=Alignment.Center
     ){
         Text(
-            text,color=displayText().copy(alpha=.87f),fontSize=textSize,
-            fontWeight=FontWeight.SemiBold,fontFamily=a.fontFamily,
-            maxLines=1,textAlign=TextAlign.Center
+            text,
+            color=displayText().copy(alpha=.87f),
+            fontSize=textSize,
+            fontWeight=FontWeight.SemiBold,
+            fontFamily=a.fontFamily,
+            maxLines=1,
+            textAlign=TextAlign.Center
         )
+    }
+}
+
+@Composable
+private fun BoxScope.GiantWorldLayer(world:NmixWorldMotion){
+    val a=LocalNmixAppearance.current
+    val p=a.palette
+    val soft=a.animation!=NmixAnimationName.FLOAT
+
+    world.bodies.forEachIndexed{index,body->
+        val x=body.x*(650f+index*55f)
+        val y=body.y*(475f+index*42f)
+
+        if(soft){
+            Box(
+                Modifier
+                    .size(
+                        when(index){
+                            0->1080.dp
+                            1->950.dp
+                            2->830.dp
+                            3->890.dp
+                            else->740.dp
+                        }
+                    )
+                    .align(Alignment.Center)
+                    .graphicsLayer{
+                        translationX=x
+                        translationY=y
+                        scaleX=body.pulse
+                        scaleY=body.pulse
+                    }
+                    .background(
+                        Brush.radialGradient(
+                            colorStops=arrayOf(
+                                0f to
+                                    (if(index%2==0)p.accent else p.accentLight)
+                                        .copy(alpha=if(a.darkMode).28f else .20f),
+                                .18f to p.accent.copy(alpha=if(a.darkMode).23f else .17f),
+                                .38f to p.accent.copy(alpha=.12f),
+                                .58f to p.accent.copy(alpha=.055f),
+                                .75f to p.accent.copy(alpha=.018f),
+                                .90f to p.accent.copy(alpha=.003f),
+                                1f to Color.Transparent
+                            )
+                        ),
+                        CircleShape
+                    )
+            )
+        }else{
+            val elementSize=when(index){
+                0->520.dp
+                1->455.dp
+                2->395.dp
+                3->425.dp
+                else->355.dp
+            }
+
+            Canvas(
+                Modifier.size(elementSize).align(Alignment.Center)
+                    .graphicsLayer{
+                        translationX=x
+                        translationY=y
+                        rotationZ=body.rotation
+                        scaleX=body.pulse
+                        scaleY=body.pulse
+                    }
+            ){
+                val c=if(index%2==0)p.accent else p.accentLight
+                val inset=16.dp.toPx()
+
+                drawRoundRect(
+                    c.copy(alpha=.024f),
+                    cornerRadius=CornerRadius(58.dp.toPx())
+                )
+
+                drawRoundRect(
+                    c.copy(alpha=if(a.darkMode).17f else .13f),
+                    Offset(inset,inset),
+                    Size(
+                        (size.width-inset*2).coerceAtLeast(0f),
+                        (size.height-inset*2).coerceAtLeast(0f)
+                    ),
+                    CornerRadius(46.dp.toPx())
+                )
+
+                drawRoundRect(
+                    c.copy(alpha=.13f),
+                    Offset(inset,inset),
+                    Size(
+                        (size.width-inset*2).coerceAtLeast(0f),
+                        (size.height-inset*2).coerceAtLeast(0f)
+                    ),
+                    CornerRadius(46.dp.toPx()),
+                    style=Stroke(1.6.dp.toPx())
+                )
+            }
+        }
     }
 }
 
@@ -748,33 +729,43 @@ fun NmixCalcField(
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
+
     Box(
-        modifier.then(if(height!=null)Modifier.height(height) else Modifier)
+        modifier
+            .then(if(height!=null)Modifier.height(height) else Modifier)
             .clip(shape)
-            .background(if(a.darkMode)Color(0xFF151B18).copy(alpha=.74f) else Color.White.copy(alpha=.73f))
+            .background(
+                if(a.darkMode)Color(0xFF151B18).copy(alpha=.74f)
+                else Color.White.copy(alpha=.73f)
+            )
             .background(p.accent.copy(alpha=if(a.darkMode).045f else .027f))
             .border(.5.dp,screenBorder(),shape),
         contentAlignment=Alignment.Center
     ){
         Text(
-            text,color=displayText().copy(alpha=.87f),fontSize=textSize,
-            fontWeight=FontWeight.SemiBold,fontFamily=a.fontFamily,
-            maxLines=1,textAlign=TextAlign.Center
+            text,color=displayText().copy(alpha=.87f),
+            fontSize=textSize,fontWeight=FontWeight.SemiBold,
+            fontFamily=a.fontFamily,maxLines=1,textAlign=TextAlign.Center
         )
     }
 }
 
 @Composable
 fun NmixGlassBox(
-    modifier:Modifier=Modifier,accentTint:Boolean=true,
+    modifier:Modifier=Modifier,
+    accentTint:Boolean=true,
     content:@Composable BoxScope.()->Unit
 ){
     val a=LocalNmixAppearance.current
     val p=a.palette
     val shape=RoundedCornerShape(13.dp)
+
     Box(
         modifier.clip(shape)
-            .background(if(a.darkMode)Color(0xFF141917).copy(alpha=.92f) else Color.White.copy(alpha=.92f))
+            .background(
+                if(a.darkMode)Color(0xFF141917).copy(alpha=.92f)
+                else Color.White.copy(alpha=.92f)
+            )
             .background(
                 if(accentTint)p.accent.copy(alpha=if(a.darkMode).04f else .022f)
                 else Color.Transparent
@@ -786,8 +777,11 @@ fun NmixGlassBox(
 
 @Composable
 fun NmixPressBox(
-    modifier:Modifier,shape:Shape,color:Color,
-    onClick:()->Unit,content:@Composable ()->Unit
+    modifier:Modifier,
+    shape:Shape,
+    color:Color,
+    onClick:()->Unit,
+    content:@Composable ()->Unit
 ){
     val haptic=rememberNmixHapticAction()
     val interaction=remember{MutableInteractionSource()}
@@ -800,7 +794,10 @@ fun NmixPressBox(
 
     Box(
         modifier.scale(scale).clip(shape).background(color)
-            .clickable(interactionSource=interaction,indication=null){haptic(onClick)},
+            .clickable(
+                interactionSource=interaction,
+                indication=null
+            ){haptic(onClick)},
         contentAlignment=Alignment.Center
     ){content()}
 }
