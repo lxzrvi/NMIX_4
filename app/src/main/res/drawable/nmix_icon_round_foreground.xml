@@ -2,10 +2,10 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:left="25dp"
-        android:top="25dp"
-        android:right="25dp"
-        android:bottom="25dp">
+        android:left="28dp"
+        android:top="28dp"
+        android:right="28dp"
+        android:bottom="28dp">
 
         <bitmap
             android:src="@drawable/nmix_n"
