@@ -143,51 +143,83 @@ class NmixTimeService:Service(){
      */
     private fun playAlarmTwice(){
         stopAlarm()
-        alarmPlayCount=0
-
-        fun finish(){
-            stopAlarm()
+    
+        val mp=runCatching{
+            MediaPlayer.create(
+                this,
+                R.raw.nimix_alarm
+            )
+        }.getOrNull()
+    
+        if(mp==null){
             runCatching{
-                NotificationManagerCompat.from(this).cancel(COMPLETE_ID)
+                NotificationManagerCompat
+                    .from(this)
+                    .cancel(COMPLETE_ID)
             }
+    
+            stopSelf()
+            return
+        }
+    
+        player=mp
+    
+        mp.setOnCompletionListener{
+            completed->
+    
+            runCatching{
+                completed.release()
+            }
+    
+            if(player===completed){
+                player=null
+            }
+    
+            runCatching{
+                NotificationManagerCompat
+                    .from(this)
+                    .cancel(COMPLETE_ID)
+            }
+    
             stopSelf()
         }
-
-        fun begin(){
-            val mp=runCatching{
-                MediaPlayer.create(this,R.raw.nimix_alarm)
-            }.getOrNull()
-
-            if(mp==null){
-                finish()
-                return
+    
+        mp.setOnErrorListener{
+            failed,
+            _,
+            _->
+    
+            runCatching{
+                failed.release()
             }
-
-            player=mp
-            alarmPlayCount++
-
-            mp.setOnCompletionListener{completed->
-                runCatching{completed.reset()}
-                runCatching{completed.release()}
-                if(player===completed) player=null
-
-                if(alarmPlayCount<2) begin()
-                else finish()
+    
+            if(player===failed){
+                player=null
             }
-
-            mp.setOnErrorListener{failed,_,_->
-                runCatching{failed.reset()}
-                runCatching{failed.release()}
-                if(player===failed) player=null
-                finish()
-                true
+    
+            runCatching{
+                NotificationManagerCompat
+                    .from(this)
+                    .cancel(COMPLETE_ID)
             }
-
-            runCatching{mp.start()}
-                .onFailure{finish()}
+    
+            stopSelf()
+            true
         }
-
-        begin()
+    
+        runCatching{
+            mp.start()
+        }.onFailure{
+            stopAlarm()
+    
+            runCatching{
+                NotificationManagerCompat
+                    .from(this)
+                    .cancel(COMPLETE_ID)
+            }
+    
+            stopSelf()
+        }
     }
 
     private fun stopAlarm(){
@@ -222,7 +254,7 @@ class NmixTimeService:Service(){
 
     private fun baseNotification(title:String,text:String)=
         NotificationCompat.Builder(this,CHANNEL_ACTIVE)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(R.drawable.ic_nmix_notification)
             .setContentTitle(title)
             .setContentText(text)
             .setColor(0xFF111111.toInt())
