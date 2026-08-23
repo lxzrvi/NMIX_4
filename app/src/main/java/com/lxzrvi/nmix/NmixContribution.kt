@@ -46,10 +46,6 @@ fun NmixContribution(modifier:Modifier=Modifier){
     val outer=RoundedCornerShape(20.dp)
     val inner=RoundedCornerShape(14.dp)
 
-    /*
-     * Same surface language as the rest of NMIX:
-     * actual light/dark surface + restrained accent tint.
-     */
     Column(
         modifier
             .padding(horizontal=12.dp)
@@ -57,8 +53,7 @@ fun NmixContribution(modifier:Modifier=Modifier){
             .background(
                 if(a.darkMode)
                     Color(0xFF121715).copy(alpha=.94f)
-                else
-                    Color.White.copy(alpha=.93f)
+                else Color.White.copy(alpha=.93f)
             )
             .background(
                 p.accent.copy(
@@ -150,21 +145,34 @@ fun NmixContribution(modifier:Modifier=Modifier){
                 contentAlignment=Alignment.CenterStart
             ){
                 AnimatedContent(
-                    story,
+                    targetState=story,
                     transitionSpec={
                         (
-                            fadeIn(tween(320,easing=EaseOutCubic))+
-                                slideInVertically(
-                                    {it/10},
-                                    tween(320,easing=EaseOutCubic)
+                            fadeIn(
+                                tween(
+                                    320,
+                                    easing=EaseOutCubic
                                 )
-                            ) togetherWith (
-                            fadeOut(tween(210))+
-                                slideOutVertically(
-                                    {-it/10},
-                                    tween(260,easing=EaseInCubic)
+                            )+
+                            slideInVertically(
+                                initialOffsetY={it/10},
+                                animationSpec=tween(
+                                    320,
+                                    easing=EaseOutCubic
                                 )
                             )
+                        ) togetherWith (
+                            fadeOut(
+                                tween(210)
+                            )+
+                            slideOutVertically(
+                                targetOffsetY={-it/10},
+                                animationSpec=tween(
+                                    260,
+                                    easing=EaseInCubic
+                                )
+                            )
+                        )
                     },
                     label="contributionStory"
                 ){index->
@@ -177,7 +185,9 @@ fun NmixContribution(modifier:Modifier=Modifier){
                             letterSpacing=.7.sp,
                             fontFamily=a.fontFamily
                         )
+
                         Spacer(Modifier.height(7.dp))
+
                         Text(
                             stories[index],
                             color=ui.text.copy(alpha=.84f),
@@ -223,13 +233,21 @@ fun NmixContribution(modifier:Modifier=Modifier){
                     Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .verticalScroll(rememberScrollState())
+                        .verticalScroll(
+                            rememberScrollState()
+                        )
                 ){
                     SkillRow("GitHub","Kotlin")
                     Spacer(Modifier.height(5.dp))
-                    SkillPill("Compose",Modifier.fillMaxWidth())
+                    SkillPill(
+                        "Compose",
+                        Modifier.fillMaxWidth()
+                    )
                     Spacer(Modifier.height(5.dp))
-                    SkillPill("Android SDK",Modifier.fillMaxWidth())
+                    SkillPill(
+                        "Android SDK",
+                        Modifier.fillMaxWidth()
+                    )
                     Spacer(Modifier.height(5.dp))
                     SkillRow("Gradle","Actions")
                 }
@@ -250,6 +268,7 @@ fun NmixContribution(modifier:Modifier=Modifier){
                 fontWeight=FontWeight.Bold,
                 fontFamily=NmixLogoFont
             )
+
             Text(
                 "  •  lxzrvi  •  © 2026",
                 color=ui.muted,
@@ -261,25 +280,40 @@ fun NmixContribution(modifier:Modifier=Modifier){
 }
 
 @Composable
-private fun SkillRow(left:String,right:String){
+private fun SkillRow(
+    left:String,
+    right:String
+){
     Row(
         Modifier.fillMaxWidth(),
-        horizontalArrangement=Arrangement.spacedBy(5.dp)
+        horizontalArrangement=
+            Arrangement.spacedBy(5.dp)
     ){
-        SkillPill(left,Modifier.weight(1f))
-        SkillPill(right,Modifier.weight(1f))
+        SkillPill(
+            left,
+            Modifier.weight(1f)
+        )
+
+        SkillPill(
+            right,
+            Modifier.weight(1f)
+        )
     }
 }
 
 @Composable
-private fun SkillPill(text:String,modifier:Modifier=Modifier){
+private fun SkillPill(
+    text:String,
+    modifier:Modifier=Modifier
+){
     val a=LocalNmixAppearance.current
     val p=a.palette
+    val shape=RoundedCornerShape(50)
 
     Box(
         modifier
             .height(21.dp)
-            .clip(RoundedCornerShape(50))
+            .clip(shape)
             .background(
                 p.accent.copy(
                     alpha=if(a.darkMode).17f else .11f
@@ -288,7 +322,7 @@ private fun SkillPill(text:String,modifier:Modifier=Modifier){
             .border(
                 .35.dp,
                 p.accent.copy(alpha=.18f),
-                RoundedCornerShape(50)
+                shape
             ),
         contentAlignment=Alignment.Center
     ){
