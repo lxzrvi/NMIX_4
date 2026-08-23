@@ -261,12 +261,6 @@ fun NmixKey(
     }
 }
 
-/*
- * Free Display progress:
- * 0..39% = horizontal left family.
- * 39..41% = short direct relocation.
- * 41..100% = top family.
- */
 @Composable
 fun NmixDisplay(
     label:String,value:String,status:String,timer:Boolean,
@@ -365,8 +359,13 @@ fun NmixDisplay(
                     else Alignment.Center
                 )
                 .padding(
-                    start=if(calcVisible&&rightAmount>.5f)6.dp else 12.dp,
-                    end=if(timer)58.dp else 12.dp
+                    start=
+                        if(timer)62.dp
+                        else if(calcVisible&&rightAmount>.5f)6.dp
+                        else 12.dp,
+                    end=
+                        if(timer)62.dp
+                        else 12.dp
                 )
                 .graphicsLayer{
                     translationX=
