@@ -470,7 +470,7 @@ private fun CalculatorMorph(
             mix(12.8f,14f,topGrow)
 
     Layout(
-        modifier,
+        modifier=modifier,
         content={
             MorphField(
                 first,
