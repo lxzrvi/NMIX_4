@@ -1,18 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission
-        android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <uses-permission
-        android:name="android.permission.FOREGROUND_SERVICE" />
-
-    <uses-permission
-        android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-
-    <uses-permission
-        android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:theme="@style/Theme.NMIX"
@@ -22,28 +14,18 @@
         android:allowBackup="true"
         android:supportsRtl="true">
 
-        <!--
-            Default launcher component.
-            Icon manager disables this only while
-            an alternate icon alias is active.
-        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            
-        android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize">
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize">
 
             <intent-filter>
-                <action
-                    android:name="android.intent.action.MAIN" />
-
-                <category
-                    android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
         </activity>
 
-        <!-- Timer / Stopwatch foreground service -->
         <service
             android:name=".NmixTimeService"
             android:exported="false"
@@ -54,10 +36,6 @@
                 android:value="NMIX user-started timer and stopwatch with persistent time notification" />
 
         </service>
-
-        <!-- ============================= -->
-        <!-- ADAPTIVE ICON ALIASES         -->
-        <!-- ============================= -->
 
         <activity-alias
             android:name=".IconGreenAdaptive"
@@ -142,10 +120,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
-
-        <!-- ============================= -->
-        <!-- ROUND ICON ALIASES            -->
-        <!-- ============================= -->
 
         <activity-alias
             android:name=".IconGreenRound"
