@@ -31,7 +31,7 @@ class NmixTimeService:Service(){
     private var timerFinishAt=0L
     private var stopwatchBase=0L
     private var player:MediaPlayer?=null
-    private var alarmPlayCount=0
+    private var completing=false
 
     private val updater=object:Runnable{
         override fun run(){
@@ -51,22 +51,28 @@ class NmixTimeService:Service(){
         when(intent?.action){
             ACTION_START_TIMER->startTimer(intent.getIntExtra(EXTRA_TIMER_SECONDS,0))
             ACTION_START_STOPWATCH->startStopwatch(intent.getLongExtra(EXTRA_STOPWATCH_ELAPSED,0L))
+
             ACTION_TIMER_PLUS->if(mode=="timer"){
                 timerFinishAt+=5000L
                 updateTimer()
             }
+
             ACTION_TIMER_MINUS->if(mode=="timer"){
                 timerFinishAt-=5000L
-                if(timerFinishAt<=SystemClock.elapsedRealtime()) completeTimer()
+                if(timerFinishAt<=SystemClock.elapsedRealtime())completeTimer()
                 else updateTimer()
             }
+
             ACTION_TIMER_RESET->stopTiming()
+
             ACTION_STOPWATCH_RESET->if(mode=="stopwatch"){
                 stopwatchBase=SystemClock.elapsedRealtime()
                 updateStopwatch()
             }
+
             ACTION_STOP->stopTiming()
         }
+
         return START_NOT_STICKY
     }
 
@@ -78,6 +84,7 @@ class NmixTimeService:Service(){
         }
 
         stopAlarm()
+        completing=false
         handler.removeCallbacks(updater)
         mode="timer"
         timerFinishAt=SystemClock.elapsedRealtime()+safe*1000L
@@ -87,6 +94,7 @@ class NmixTimeService:Service(){
 
     private fun startStopwatch(existingElapsed:Long){
         stopAlarm()
+        completing=false
         handler.removeCallbacks(updater)
         mode="stopwatch"
         val safe=existingElapsed.coerceAtLeast(0L)
@@ -96,7 +104,7 @@ class NmixTimeService:Service(){
     }
 
     private fun updateTimer(){
-        if(mode!="timer") return
+        if(mode!="timer")return
         handler.removeCallbacks(updater)
 
         val remaining=timerFinishAt-SystemClock.elapsedRealtime()
@@ -111,7 +119,7 @@ class NmixTimeService:Service(){
     }
 
     private fun updateStopwatch(){
-        if(mode!="stopwatch") return
+        if(mode!="stopwatch")return
         handler.removeCallbacks(updater)
 
         val elapsed=(SystemClock.elapsedRealtime()-stopwatchBase).coerceAtLeast(0L)
@@ -119,9 +127,13 @@ class NmixTimeService:Service(){
         handler.postDelayed(updater,500L)
     }
 
+    /*
+     * Completion can only enter once.
+     * nimix_alarm.mp3 itself is played exactly one time.
+     */
     private fun completeTimer(){
-        if(mode!="timer") return
-
+        if(mode!="timer"||completing)return
+        completing=true
         mode=""
         handler.removeCallbacks(updater)
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -131,109 +143,62 @@ class NmixTimeService:Service(){
                 .notify(COMPLETE_ID,completionNotification())
         }
 
-        playAlarmTwice()
+        playAlarmOnce()
     }
 
-    /*
-     * res/raw/nimix_alarm.mp3
-     *
-     * First play -> completion callback -> second play.
-     * Service and completion notification are removed
-     * only after the second complete playback.
-     */
-    private fun playAlarmTwice(){
+    private fun playAlarmOnce(){
         stopAlarm()
-    
+
         val mp=runCatching{
-            MediaPlayer.create(
-                this,
-                R.raw.nimix_alarm
-            )
+            MediaPlayer.create(this,R.raw.nimix_alarm)
         }.getOrNull()
-    
+
         if(mp==null){
-            runCatching{
-                NotificationManagerCompat
-                    .from(this)
-                    .cancel(COMPLETE_ID)
-            }
-    
-            stopSelf()
+            finishCompletion()
             return
         }
-    
+
         player=mp
-    
-        mp.setOnCompletionListener{
-            completed->
-    
-            runCatching{
-                completed.release()
-            }
-    
-            if(player===completed){
-                player=null
-            }
-    
-            runCatching{
-                NotificationManagerCompat
-                    .from(this)
-                    .cancel(COMPLETE_ID)
-            }
-    
-            stopSelf()
+
+        mp.setOnCompletionListener{completed->
+            if(player===completed)player=null
+            runCatching{completed.release()}
+            finishCompletion()
         }
-    
-        mp.setOnErrorListener{
-            failed,
-            _,
-            _->
-    
-            runCatching{
-                failed.release()
-            }
-    
-            if(player===failed){
-                player=null
-            }
-    
-            runCatching{
-                NotificationManagerCompat
-                    .from(this)
-                    .cancel(COMPLETE_ID)
-            }
-    
-            stopSelf()
+
+        mp.setOnErrorListener{failed,_,_->
+            if(player===failed)player=null
+            runCatching{failed.release()}
+            finishCompletion()
             true
         }
-    
-        runCatching{
-            mp.start()
-        }.onFailure{
+
+        runCatching{mp.start()}.onFailure{
             stopAlarm()
-    
-            runCatching{
-                NotificationManagerCompat
-                    .from(this)
-                    .cancel(COMPLETE_ID)
-            }
-    
-            stopSelf()
+            finishCompletion()
         }
+    }
+
+    private fun finishCompletion(){
+        completing=false
+        runCatching{
+            NotificationManagerCompat.from(this).cancel(COMPLETE_ID)
+        }
+        stopSelf()
     }
 
     private fun stopAlarm(){
         player?.let{
-            runCatching{if(it.isPlaying) it.stop()}
+            runCatching{if(it.isPlaying)it.stop()}
             runCatching{it.reset()}
             runCatching{it.release()}
         }
         player=null
-        alarmPlayCount=0
     }
 
     private fun stopTiming(){
         mode=""
+        completing=false
         handler.removeCallbacks(updater)
         stopAlarm()
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -257,40 +222,38 @@ class NmixTimeService:Service(){
             .setSmallIcon(R.drawable.ic_nmix_notification)
             .setContentTitle(title)
             .setContentText(text)
-            .setColor(0xFF111111.toInt())
+            .setColor(notificationAccent())
             .setColorized(false)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
+            .setShowWhen(false)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(openAppPendingIntent())
+            .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
             .setPriority(NotificationCompat.PRIORITY_LOW)
 
     private fun timerNotification(seconds:Int):Notification{
         val value=formatTimer(seconds)
 
         return baseNotification("NMIX • TIMER","$value  •  Running")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(
-                "$value\nTimer running\nEVERYTHING WITH NUMBERS"
-            ))
-            .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
             .addAction(
-                android.R.drawable.ic_media_rew,
+                R.drawable.ic_nmix_notification,
                 "−5",
                 servicePendingIntent(5201,ACTION_TIMER_MINUS)
             )
             .addAction(
-                android.R.drawable.ic_input_add,
+                R.drawable.ic_nmix_notification,
                 "+5",
                 servicePendingIntent(5202,ACTION_TIMER_PLUS)
             )
             .addAction(
-                android.R.drawable.ic_menu_revert,
+                R.drawable.ic_nmix_notification,
                 "Reset",
                 servicePendingIntent(5203,ACTION_TIMER_RESET)
             )
             .addAction(
-                android.R.drawable.ic_menu_close_clear_cancel,
+                R.drawable.ic_nmix_notification,
                 "Stop",
                 servicePendingIntent(5204,ACTION_STOP)
             )
@@ -301,17 +264,13 @@ class NmixTimeService:Service(){
         val value=formatStopwatch(elapsed)
 
         return baseNotification("NMIX • STOPWATCH","$value  •  Running")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(
-                "$value\nStopwatch running\nEVERYTHING WITH NUMBERS"
-            ))
-            .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
             .addAction(
-                android.R.drawable.ic_menu_revert,
+                R.drawable.ic_nmix_notification,
                 "Reset",
                 servicePendingIntent(5301,ACTION_STOPWATCH_RESET)
             )
             .addAction(
-                android.R.drawable.ic_menu_close_clear_cancel,
+                R.drawable.ic_nmix_notification,
                 "Stop",
                 servicePendingIntent(5302,ACTION_STOP)
             )
@@ -320,20 +279,44 @@ class NmixTimeService:Service(){
 
     private fun completionNotification()=
         NotificationCompat.Builder(this,CHANNEL_COMPLETE)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(R.drawable.ic_nmix_notification)
             .setContentTitle("NMIX • TIMER COMPLETE")
             .setContentText("Time's up")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(
-                "Time's up.\nEVERYTHING WITH NUMBERS"
-            ))
-            .setColor(0xFF111111.toInt())
+            .setColor(notificationAccent())
             .setColorized(false)
             .setAutoCancel(true)
+            .setShowWhen(false)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(openAppPendingIntent())
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
+
+    /*
+     * Notification accent follows the saved preset theme.
+     * Custom arbitrary HEX is intentionally not needed for launcher aliases,
+     * but notification accent can still safely use preset persistence.
+     */
+    private fun notificationAccent():Int{
+        val prefs=getSharedPreferences(
+            NmixAppearanceState.PREFS,
+            MODE_PRIVATE
+        )
+
+        return when(
+            prefs.getString(
+                NmixAppearanceState.KEY_THEME,
+                NmixThemeName.GREEN.name
+            )
+        ){
+            NmixThemeName.BLUE.name->0xFF348BB8.toInt()
+            NmixThemeName.PURPLE.name->0xFF8A62C8.toInt()
+            NmixThemeName.ORANGE.name->0xFFD57D35.toInt()
+            NmixThemeName.ROSE.name->0xFFC85878.toInt()
+            NmixThemeName.CYAN.name->0xFF26A6B5.toInt()
+            else->0xFF319B79.toInt()
+        }
+    }
 
     private fun openAppPendingIntent():PendingIntent{
         val intent=packageManager.getLaunchIntentForPackage(packageName)
@@ -346,7 +329,8 @@ class NmixTimeService:Service(){
 
         return PendingIntent.getActivity(
             this,5101,intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or
+                PendingIntent.FLAG_IMMUTABLE
         )
     }
 
@@ -357,12 +341,13 @@ class NmixTimeService:Service(){
 
         return PendingIntent.getService(
             this,request,intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or
+                PendingIntent.FLAG_IMMUTABLE
         )
     }
 
     private fun createChannels(){
-        if(Build.VERSION.SDK_INT<Build.VERSION_CODES.O) return
+        if(Build.VERSION.SDK_INT<Build.VERSION_CODES.O)return
 
         val manager=getSystemService(NotificationManager::class.java)
 
