@@ -373,10 +373,15 @@ fun NmixFullscreenClock(
                 transitionSpec={
                     (
                         fadeIn(tween(260,easing=EaseOutCubic))+
-                            scaleIn(.985f,tween(280))
+                            scaleIn(
+                                initialScale=.985f,
+                                animationSpec=tween(280)
+                            )
                     ) togetherWith (
                         fadeOut(tween(180))+
-                            scaleOut(1.008f)
+                            scaleOut(
+                                targetScale=1.008f
+                            )
                     )
                 },
                 label="clockStyle"
