@@ -53,14 +53,6 @@ Built entirely with Kotlin and Jetpack Compose — no WebView, no web runtime.
 
 ---
 
-## Download
-
-Get the latest APK from:
-
-**[NMIX Releases →](../../releases/latest)**
-
----
-
 ## Built With
 
 `Kotlin` • `Jetpack Compose` • `Android SDK` • `Gradle`
@@ -68,9 +60,7 @@ Get the latest APK from:
 ---
 
 <div align="center">
-
 **NMIX • lxzrvi • © 2026**
 
 EVERYTHING WITH NUMBERS
-
 </div>
