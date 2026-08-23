@@ -358,7 +358,7 @@ private fun ClockSelector(
     val shape=RoundedCornerShape(27.dp)
 
     Column(
-        Modifier.width(210.dp).height(52.dp).clip(shape)
+        Modifier.width(190.dp).height(52.dp).clip(shape)
             .background(
                 if(a.darkMode)Color(0xFF0D110F).copy(alpha=.97f)
                 else Color.White.copy(alpha=.97f)
@@ -424,27 +424,52 @@ private fun ClockSelector(
 
 @Composable
 private fun BoxScope.SelectorValue(
-    text:String,position:Float,selected:Float,
-    selectedColor:Color,muted:Color,baseFont:FontFamily,
-    colorSelector:Boolean,valueFont:FontFamily
+    text:String,
+    position:Float,
+    selected:Float,
+    selectedColor:Color,
+    muted:Color,
+    baseFont:FontFamily,
+    colorSelector:Boolean,
+    valueFont:FontFamily
 ){
-    val t=selected.coerceIn(0f,1f)
     val a=LocalNmixAppearance.current
+    val density=androidx.compose.ui.platform.LocalDensity.current
+    val t=selected.coerceIn(0f,1f)
+
+    val travel=with(density){
+        61.dp.toPx()
+    }
 
     Text(
         text.lowercase(),
-        Modifier.align(Alignment.Center).graphicsLayer{
-            translationX=position*70f
-            translationY=-1f
-            scaleX=.88f+t*.16f
-            scaleY=.88f+t*.16f
-        },
-        color=when{
-            colorSelector->lerpClockColor(muted.copy(alpha=.66f),selectedColor,t)
-            else->lerpClockColor(muted.copy(alpha=.70f),a.uiColors().text,t)
-        },
-        fontSize=(9.2f+t*5.3f).sp,
-        fontWeight=if(t>.55f)FontWeight.Bold else FontWeight.Medium,
+        Modifier
+            .align(Alignment.Center)
+            .graphicsLayer{
+                translationX=position*travel
+                translationY=-1f
+                scaleX=.88f+t*.16f
+                scaleY=.88f+t*.16f
+            },
+        color=
+            if(colorSelector)
+                lerpClockColor(
+                    muted.copy(alpha=.66f),
+                    selectedColor,
+                    t
+                )
+            else
+                lerpClockColor(
+                    muted.copy(alpha=.70f),
+                    a.uiColors().text,
+                    t
+                ),
+        fontSize=(8.7f+t*5.5f).sp,
+        fontWeight=
+            if(t>.55f)
+                FontWeight.Bold
+            else
+                FontWeight.Medium,
         fontFamily=valueFont,
         maxLines=1,
         textAlign=TextAlign.Center
