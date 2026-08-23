@@ -280,9 +280,15 @@ fun NmixDisplay(
     val interaction=remember{MutableInteractionSource()}
     val h=displayProgress.coerceIn(0f,1f)
 
-    val leftGrow=(h/.39f).coerceIn(0f,1f)
-    val relocate=((h-.39f)/.02f).coerceIn(0f,1f)
-    val topGrow=((h-.41f)/.59f).coerceIn(0f,1f)
+    val leftGrow=(h/.40f).coerceIn(0f,1f)
+
+    val relocate=
+        if(h>=.40f)1f
+        else 0f
+    
+    val topGrow=
+        ((h-.40f)/.60f)
+            .coerceIn(0f,1f)
 
     val pill=((.16f-h)/.16f).coerceIn(0f,1f)
     val displayShape=RoundedCornerShape(mix(19f,52f,pill).dp)
@@ -502,12 +508,14 @@ private fun CalculatorMorph(
         val total=w*mix(.43f,.49f,leftGrow)
         val signW=total*mix(.20f,.23f,leftGrow)
         val numW=(total-signW-gap*2)/2f
-
-        val lowH=(
-            h*mix(.54f,.76f,leftGrow)
-        ).coerceIn(px(38f),(h-px(10f)).coerceAtLeast(px(38f)))
-
-        val lowY=(h-lowH)/2f
+        
+        val edgeGap=px(5f)
+        
+        val lowY=edgeGap
+        
+        val lowH=
+            (h-edgeGap*2f)
+                .coerceAtLeast(1f)
 
         val lowX=floatArrayOf(
             left,
